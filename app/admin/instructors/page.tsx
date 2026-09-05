@@ -136,13 +136,13 @@ export default function AdminInstructorsPage() {
       const uploadForm = new FormData();
       uploadForm.append("file", file);
 
-      const res = await fetch("/api/r2/upload", {
+      const res = await fetch("/api/upload/image", {
         method: "POST",
         body: uploadForm,
       });
 
       if (!res.ok) {
-        throw new Error("Failed to upload avatar to Cloudflare R2.");
+        throw new Error("Failed to upload avatar image.");
       }
 
       const data = await res.json();
