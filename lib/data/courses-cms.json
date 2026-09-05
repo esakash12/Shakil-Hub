@@ -1,0 +1,135 @@
+{
+  "premiere-pro-masterclass": {
+    "subtitle": "Master Adobe Premiere Pro from cutting basics to commercial color grading, advanced audio design, and cinematic storytelling.",
+    "badge": "Bestseller",
+    "category": "Video Editing",
+    "level": "Beginner to Advanced",
+    "mainSlogan": "The complete roadmap to becoming a professional video editor.",
+    "heroSlogan": "Master Commercial Editing & Filmmaking",
+    "numericPrice": 1299,
+    "numericOriginalPrice": 3500,
+    "discountPct": "63% OFF",
+    "instructorId": "rashedul-hasan",
+    "highlights": {
+      "hours": "18+ Hours",
+      "lessons": "45 Lessons",
+      "access": "Lifetime Access",
+      "certificate": "Certificate Included"
+    },
+    "faqs": [
+      {
+        "question": "Do I need any prior video editing experience before taking this course?",
+        "answer": "No prior experience is required. This masterclass is designed from the ground up for beginners as well as intermediate creators. Everything is taught step-by-step from software setup to advanced cinematic editing."
+      },
+      {
+        "question": "How long do I have access to the course content?",
+        "answer": "You receive full lifetime access to all lessons, project files, and resources. You can learn at your own pace and revisit any lesson anytime in the future, including all future updates."
+      },
+      {
+        "question": "Where do I get support if I face technical issues or have questions?",
+        "answer": "You have direct access to our student community and Q&A desk located directly beneath each lesson where the instructor and teaching assistants provide prompt answers and feedback."
+      },
+      {
+        "question": "Will I receive an official certificate upon completing the masterclass?",
+        "answer": "Yes. Once you complete all video modules and exercises, an official, verifiable digital Certificate of Completion is automatically generated in your student dashboard."
+      },
+      {
+        "question": "Are project files, LUTs, and sound effects included with the course?",
+        "answer": "Yes. Every practical module includes downloadable project files, cinematic LUTs, sound effects (SFX), and preset packs so you can follow along directly."
+      }
+    ]
+  },
+  "after-effects-masterclass": {
+    "subtitle": "Create breathtaking visual effects, kinetic typography, motion graphics, and 3D camera projections with Adobe After Effects.",
+    "badge": "Hot & New",
+    "category": "Motion Graphics & VFX",
+    "level": "Intermediate to Pro",
+    "mainSlogan": "Design high-end motion graphics and VFX for commercial brands.",
+    "heroSlogan": "Cinematic Visual Effects & Motion Graphics",
+    "numericPrice": 1499,
+    "numericOriginalPrice": 4000,
+    "discountPct": "62% OFF",
+    "instructorId": "sakil-ahmed",
+    "highlights": {
+      "hours": "14+ Hours",
+      "lessons": "38 Lessons",
+      "access": "Lifetime Access",
+      "certificate": "Certificate Included"
+    },
+    "faqs": [
+      {
+        "question": "What computer specifications do I need for After Effects?",
+        "answer": "We recommend at least 16GB of RAM (32GB preferred for complex 3D scenes), a dedicated GPU, and a modern multi-core processor (Intel i5/i7/i9, AMD Ryzen, or Apple Silicon M-series)."
+      },
+      {
+        "question": "Do I need to know Premiere Pro before learning After Effects?",
+        "answer": "While basic video editing knowledge helps, this course begins with fundamental motion principles and interface navigation, making it accessible to any creator willing to practice."
+      },
+      {
+        "question": "Are plugin licenses (Element 3D, Trapcode) required?",
+        "answer": "No. The core masterclass focuses entirely on native After Effects tools and free scripts. Optional bonus modules demonstrate third-party plugins with free alternatives provided."
+      }
+    ]
+  },
+  "davinci-resolve-color-grading": {
+    "subtitle": "Master color science, ACES workflows, HDR grading, film emulation, and shot matching in DaVinci Resolve Studio.",
+    "badge": "Top Rated",
+    "category": "Color Grading",
+    "level": "All Levels",
+    "mainSlogan": "Transform flat Log footage into Hollywood cinematic masterpieces.",
+    "heroSlogan": "Hollywood Color Science & Film Emulation",
+    "numericPrice": 1199,
+    "numericOriginalPrice": 3000,
+    "discountPct": "60% OFF",
+    "instructorId": "tanvir-hasan",
+    "highlights": {
+      "hours": "12+ Hours",
+      "lessons": "32 Lessons",
+      "access": "Lifetime Access",
+      "certificate": "Certificate Included"
+    },
+    "faqs": [
+      {
+        "question": "Can I follow this course with the free version of DaVinci Resolve?",
+        "answer": "Yes! 90% of the techniques taught in this course work perfectly in the free version of DaVinci Resolve. Features requiring Studio (such as Magic Mask and Film Grain) are clearly highlighted."
+      },
+      {
+        "question": "Are practice RAW and Log footage files provided?",
+        "answer": "Yes. You will receive real cinema camera files shot on RED, ARRI, Sony FX3, and Blackmagic cameras so you can practice real-world color grading."
+      }
+    ]
+  },
+  "ai-basic-editing": {
+    "subtitle": "",
+    "badge": "Bestseller",
+    "category": "Video Editing",
+    "level": "Beginner to Advanced",
+    "mainSlogan": "",
+    "heroSlogan": "",
+    "numericPrice": 1299,
+    "numericOriginalPrice": 2858,
+    "discountPct": "63% OFF",
+    "instructorId": "sakil-ahmed",
+    "instructorName": "Sakil Ahmed",
+    "highlights": {
+      "hours": "18+ Hours",
+      "access": "Lifetime Access",
+      "certificate": "Certificate Included"
+    },
+    "faqs": [
+      {
+        "question": "এখানে কি কি শেখা যবে?",
+        "answer": "অনেক কিছু"
+      }
+    ]
+  },
+  "basic-video-editing": {
+    "subtitle": "Transform raw footage into polished, engaging videos—no prior experience required.",
+    "badge": "Bestseller",
+    "category": "Video Editing",
+    "level": "Beginner to Advanced",
+    "numericPrice": 1299,
+    "instructorName": "Sakil Ahmed",
+    "highlights": {}
+  }
+}

@@ -1,0 +1,36 @@
+[
+  {
+    "id": "prod_1788383135176_s3hli",
+    "title": "CapCut Pro 1 Month",
+    "slug": "capcut-pro-1-month",
+    "category": "Software",
+    "shortDescription": "Best Editing App",
+    "fullDescription": "Get premium access to CapCut Pro for 1 month. Unlock advanced video editing tools, AI-powered features, smart background removal, speed ramping, 4K 60fps export, and thousands of premium effects and transitions without watermarks.",
+    "price": 899,
+    "originalPrice": 2400,
+    "discountBadge": "63% OFF",
+    "thumbnail": "/api/r2/lessons/1788383129839-thumbnails_1788383129626-ChatGPT_Image_Aug_20__2026__04_50_17_PM.png",
+    "images": [
+      "/api/r2/lessons/1788383129839-thumbnails_1788383129626-ChatGPT_Image_Aug_20__2026__04_50_17_PM.png"
+    ],
+    "badge": "Hot & New",
+    "features": [
+      "100% Guaranteed & Verified Working",
+      "Instant Automated Delivery",
+      "Commercial & Personal Use License"
+    ],
+    "deliveryMethod": {
+      "type": "account_access",
+      "label": "Private Account Credentials",
+      "instructions": "Your private account login details will be displayed immediately upon completed payment."
+    },
+    "faqs": [],
+    "stock": "unlimited",
+    "rating": 5,
+    "reviewsCount": 1,
+    "salesCount": 0,
+    "status": "active",
+    "createdAt": "2026-09-02T21:05:35.176Z",
+    "updatedAt": "2026-09-02T21:05:35.176Z"
+  }
+]

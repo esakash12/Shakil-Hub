@@ -1,0 +1,17 @@
+{
+  "products": {
+    "title": "Courses",
+    "domain": "Courses",
+    "header": "Courses"
+  },
+  "orders": {
+    "title": "Enrollments",
+    "domain": "Enrollments",
+    "header": "Enrollments"
+  },
+  "customers": {
+    "title": "Students",
+    "domain": "Students",
+    "header": "Students"
+  }
+}

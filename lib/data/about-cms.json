@@ -1,0 +1,55 @@
+{
+  "missionBadge": "Our Vision & Mission",
+  "heroHeadline": "Empowering the Next Generation of Creative Editors",
+  "heroParagraph1": "Sakil Hub was founded with a single mission: to bridge the gap between amateur video cutting and high-earning professional editing. We believe anyone with passion can turn video editing into a thriving global career.",
+  "heroParagraph2": "Whether you are an aspiring YouTuber, freelancer, or commercial filmmaker, our structured masterclasses give you the exact technical mastery and storytelling prowess required to stand out in today's digital creator economy.",
+  "heroCtaText": "Explore Masterclasses",
+  "heroCtaHref": "/courses",
+  "heroImageUrl": "https://images.unsplash.com/photo-1536240478700-b869070f9279?auto=format&fit=crop&w=1200&q=80",
+  "heroImageBadge": "Industry Standard Curriculum Tested on 500+ Client Projects",
+  "milestones": [
+    {
+      "label": "Active Students",
+      "value": "20,000+",
+      "icon": "Users"
+    },
+    {
+      "label": "Premium Masterclasses",
+      "value": "50+",
+      "icon": "Film"
+    },
+    {
+      "label": "Positive Rating",
+      "value": "98%",
+      "icon": "Award"
+    },
+    {
+      "label": "Global Creators",
+      "value": "35+ Countries",
+      "icon": "Globe2"
+    }
+  ],
+  "whyTitle": "Why Students Choose Sakil Hub",
+  "values": [
+    {
+      "step": "01",
+      "title": "100% Practical & Project-Based",
+      "description": "No boring theory. We teach using real commercial footage and YouTube projects from day one."
+    },
+    {
+      "step": "02",
+      "title": "Industry-Standard Workflows",
+      "description": "Learn the exact keyboard shortcuts, organization, and delivery pipelines used by top studios."
+    },
+    {
+      "step": "03",
+      "title": "Lifetime Mentorship & Support",
+      "description": "Direct community feedback and Q&A support to ensure you never get stuck while editing."
+    }
+  ],
+  "leadInstructorBadge": "Founder & Master Instructor",
+  "leadInstructorName": "Rashedul Hasan",
+  "leadInstructorQuote": "My goal with Sakil Hub is to ensure no creative editor has to waste months watching disconnected YouTube tutorials. We provide the complete, step-by-step roadmap from day one.",
+  "leadInstructorAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+  "updatedAt": "2026-09-02T21:01:50.617Z"
+}

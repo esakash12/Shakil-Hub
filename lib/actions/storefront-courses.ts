@@ -1,0 +1,312 @@
+"use server";
+
+import { mapMedusaProductToCourse, CourseDetail, getCourseBySlug } from "@/lib/data/courses";
+import { getCourseCmsOverride } from "@/lib/data/courses-cms";
+import { getInstructorById } from "@/lib/data/instructors";
+
+/**
+ * Merges course data with persistent CMS overrides and live assigned instructor
+ */
+async function applyCmsOverrides(course: CourseDetail, slug: string): Promise<CourseDetail> {
+  try {
+    const override = await getCourseCmsOverride(slug);
+    if (!override) return course;
+
+    let instructorObj = course.instructor;
+    if (override.instructorId) {
+      const liveInst = await getInstructorById(override.instructorId);
+      if (liveInst) {
+        instructorObj = {
+          name: liveInst.name,
+          role: liveInst.role,
+          avatar: liveInst.avatar,
+          bio: liveInst.bio,
+          experience: liveInst.experience,
+          projects: liveInst.projects,
+          students: liveInst.students,
+        };
+      }
+    } else if (override.instructorName) {
+      instructorObj = {
+        ...instructorObj,
+        name: override.instructorName,
+      };
+    }
+
+    return {
+      ...course,
+      subtitle: override.subtitle || course.subtitle,
+      badge: override.badge || course.badge,
+      category: override.category || course.category,
+      level: override.level || course.level,
+      mainSlogan: override.mainSlogan || course.mainSlogan,
+      heroSlogan: override.heroSlogan || course.heroSlogan,
+      numericPrice: override.numericPrice ?? course.numericPrice,
+      price: override.numericPrice ? `৳${override.numericPrice.toLocaleString()}` : course.price,
+      numericOriginalPrice: override.numericOriginalPrice ?? course.numericOriginalPrice,
+      originalPrice: override.numericOriginalPrice
+        ? `৳${override.numericOriginalPrice.toLocaleString()}`
+        : course.originalPrice,
+      discountPct: override.discountPct || course.discountPct,
+      instructorId: override.instructorId || course.instructorId,
+      instructor: instructorObj,
+      highlights: {
+        ...course.highlights,
+        ...(override.highlights || {}),
+      },
+      faqs: override.faqs && override.faqs.length > 0 ? override.faqs : course.faqs,
+      curriculum: override.curriculum && override.curriculum.length > 0 ? override.curriculum : course.curriculum,
+    };
+  } catch {
+    return course;
+  }
+}
+
+/**
+ * Server Action: Fetches a single masterclass by handle or ID directly from the backend.
+ * Runs 100% on the Next.js Node.js server to completely eliminate browser CORS and network errors.
+ */
+export async function getLiveCourseAction(slug: string): Promise<{
+  success: boolean;
+  course: CourseDetail | null;
+  error?: string;
+}> {
+  if (!slug) {
+    return { success: false, course: null, error: "Slug is required" };
+  }
+
+  const backendUrl =
+    process.env.MEDUSA_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
+    "http://localhost:9000";
+  const publishableKey =
+    process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
+
+  try {
+    // 1. Direct LMS Course lookup by handle or ID
+    try {
+      const lmsRes = await fetch(`${backendUrl}/lms/courses/${slug}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      });
+
+      if (lmsRes.ok) {
+        const lmsData = await lmsRes.json().catch(() => null);
+        if (lmsData?.product) {
+          const course = mapMedusaProductToCourse(lmsData.product);
+          return {
+            success: true,
+            course: await applyCmsOverrides(course, slug),
+          };
+        }
+      }
+    } catch (e) {
+      // Continue to next strategy
+    }
+
+    // 2. Query Storefront API
+    try {
+      const res = await fetch(
+        `${backendUrl}/store/products?handle=${slug}&fields=*metadata`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "x-publishable-api-key": publishableKey,
+          },
+          cache: "no-store",
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data?.products?.[0]) {
+          const course = mapMedusaProductToCourse(data.products[0]);
+          return {
+            success: true,
+            course: await applyCmsOverrides(course, slug),
+          };
+        }
+      }
+    } catch (e) {
+      // Continue to next strategy
+    }
+
+    // 3. Fallback scan all courses in LMS
+    try {
+      const allCoursesRes = await fetch(`${backendUrl}/lms/courses`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      });
+
+      if (allCoursesRes.ok) {
+        const allData = await allCoursesRes.json().catch(() => null);
+        if (allData?.courses && Array.isArray(allData.courses)) {
+          const found = allData.courses.find(
+            (c: any) =>
+              c.handle === slug ||
+              c.id === slug ||
+              c.title
+                ?.toLowerCase()
+                .replace(/[^\w\s-]/g, "")
+                .trim()
+                .replace(/[\s_-]+/g, "-") === slug
+          );
+          if (found) {
+            const course = mapMedusaProductToCourse(found);
+            return {
+              success: true,
+              course: await applyCmsOverrides(course, slug),
+            };
+          }
+        }
+      }
+    } catch (e) {
+      // Backend unreachable
+    }
+
+    // Fallback: Check if course exists in persistent CMS overrides
+    const cmsOverride = await getCourseCmsOverride(slug);
+    if (cmsOverride) {
+      const fallbackProduct = {
+        handle: slug,
+        title: slug
+          .split("-")
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(" "),
+        metadata: cmsOverride,
+      };
+      const fallbackCourse = mapMedusaProductToCourse(fallbackProduct);
+      return {
+        success: true,
+        course: await applyCmsOverrides(fallbackCourse, slug),
+      };
+    }
+
+    // Strict 404: Course does not exist
+    return {
+      success: false,
+      course: null,
+      error: "Course not found",
+    };
+  } catch (err: any) {
+    console.error("SERVER ACTION getLiveCourseAction ERROR:", err.message || err);
+    try {
+      const cmsOverride = await getCourseCmsOverride(slug);
+      if (cmsOverride) {
+        const fallbackProduct = {
+          handle: slug,
+          title: slug
+            .split("-")
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(" "),
+          metadata: cmsOverride,
+        };
+        const fallbackCourse = mapMedusaProductToCourse(fallbackProduct);
+        return {
+          success: true,
+          course: await applyCmsOverrides(fallbackCourse, slug),
+        };
+      }
+    } catch {}
+
+    return {
+      success: false,
+      course: null,
+      error: err.message || "Failed to fetch live course",
+    };
+  }
+}
+
+/**
+ * Server Action: Fetches all published masterclasses for the storefront catalog.
+ */
+export async function getLiveStorefrontCoursesAction(): Promise<{
+  success: boolean;
+  courses: CourseDetail[];
+}> {
+  const backendUrl =
+    process.env.MEDUSA_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
+    "http://localhost:9000";
+  const publishableKey =
+    process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
+
+  try {
+    // 1. Query Direct LMS Catalog API
+    try {
+      const lmsRes = await fetch(`${backendUrl}/lms/courses`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      });
+
+      if (lmsRes.ok) {
+        const lmsData = await lmsRes.json().catch(() => null);
+        if (lmsData?.courses && Array.isArray(lmsData.courses) && lmsData.courses.length > 0) {
+          const mapped = lmsData.courses.map(mapMedusaProductToCourse);
+          const enriched = await Promise.all(
+            mapped.map((c: CourseDetail) => applyCmsOverrides(c, c.slug))
+          );
+          return {
+            success: true,
+            courses: enriched,
+          };
+        }
+      }
+    } catch (e) {
+      // Continue
+    }
+
+    // 2. Query Medusa Store API
+    try {
+      const res = await fetch(
+        `${backendUrl}/store/products?limit=50&fields=*metadata`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "x-publishable-api-key": publishableKey,
+          },
+          cache: "no-store",
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data?.products && Array.isArray(data.products) && data.products.length > 0) {
+          const mapped = data.products.map(mapMedusaProductToCourse);
+          const enriched = await Promise.all(
+            mapped.map((c: CourseDetail) => applyCmsOverrides(c, c.slug))
+          );
+          return {
+            success: true,
+            courses: enriched,
+          };
+        }
+      }
+    } catch (e) {
+      // Continue
+    }
+  } catch (err: any) {
+    console.error("SERVER ACTION getLiveStorefrontCoursesAction ERROR:", err);
+  }
+
+  // Fallback default courses
+  const defaultSlugs = [
+    "premiere-pro-masterclass",
+    "after-effects-masterclass",
+    "davinci-resolve-color-grading",
+  ];
+  const enriched = await Promise.all(
+    defaultSlugs.map((s) => applyCmsOverrides(getCourseBySlug(s), s))
+  );
+
+  return {
+    success: true,
+    courses: enriched,
+  };
+}

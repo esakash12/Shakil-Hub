@@ -1,0 +1,64 @@
+export interface HomePillarItem {
+  title: string;
+  description: string;
+  icon?: string;
+}
+
+export interface HomeCmsData {
+  heroPill: string;
+  heroHeadlineLine1: string;
+  heroHeadlineHighlight: string;
+  heroHeadlineLine2: string;
+  heroSubtext: string;
+  heroCtaText: string;
+  heroCtaHref: string;
+  heroSecondaryCtaText?: string;
+  heroSecondaryCtaHref?: string;
+  heroBackgroundImage?: string;
+  whatYouWillLearnTitle: string;
+  whatYouWillLearnItems: HomePillarItem[];
+  coursesSectionTitle?: string;
+  coursesSectionSubtitle?: string;
+  updatedAt?: string;
+}
+
+export const DEFAULT_HOME_CMS: HomeCmsData = {
+  heroPill: "Best Online Video Learning Platform",
+  heroHeadlineLine1: "Learn Video Editing",
+  heroHeadlineHighlight: "From Zero to Pro",
+  heroHeadlineLine2: "Build Your Creative Career",
+  heroSubtext:
+    "Complete video editing masterclasses for beginners to advanced. Practical projects, premium resources and lifetime 1-on-1 support.",
+  heroCtaText: "Explore Masterclasses",
+  heroCtaHref: "#courses",
+  heroSecondaryCtaText: "Browse Digital Shop",
+  heroSecondaryCtaHref: "/shop",
+  heroBackgroundImage:
+    "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1600&q=80",
+  whatYouWillLearnTitle: "What You'll Learn",
+  whatYouWillLearnItems: [
+    {
+      title: "Professional Editing",
+      description: "Learn industry-standard workflows",
+      icon: "Film",
+    },
+    {
+      title: "Visual Effects",
+      description: "Create stunning VFX & motion",
+      icon: "Sparkles",
+    },
+    {
+      title: "Color Grading",
+      description: "Professional color correction",
+      icon: "Sliders",
+    },
+    {
+      title: "Audio Editing",
+      description: "Mix & master like a pro",
+      icon: "Volume2",
+    },
+  ],
+  coursesSectionTitle: "Featured Masterclasses",
+  coursesSectionSubtitle:
+    "Step-by-step masterclasses designed to take you from amateur to industry professional",
+};
