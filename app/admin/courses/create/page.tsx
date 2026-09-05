@@ -20,7 +20,7 @@ import {
 import { createAdminCourseAction } from "@/lib/actions/admin-courses";
 import { getAdminInstructorsAction } from "@/lib/actions/admin-instructors";
 import { InstructorItem } from "@/lib/data/instructor-types";
-import { CourseFaqItem } from "@/lib/data/courses-cms";
+import type { CourseFaqItem } from "@/lib/data/courses";
 import VideoUploader from "@/components/admin/VideoUploader";
 import ImageUploader from "@/components/admin/ImageUploader";
 

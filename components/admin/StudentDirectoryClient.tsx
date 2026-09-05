@@ -35,7 +35,7 @@ import {
   revokeStudentCourseAccessAction,
   deleteStudentAccountAction,
 } from "@/lib/actions/admin-students";
-import { CustomerNotice } from "@/lib/data/customers";
+import type { CustomerNotice } from "@/lib/data/customers";
 
 interface StudentDirectoryClientProps {
   initialStudents: AdminStudentItem[];

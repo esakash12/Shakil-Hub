@@ -10,7 +10,7 @@ import {
   BellRing,
   Sparkles,
 } from "lucide-react";
-import { CustomerNotice } from "@/lib/data/customers";
+import type { CustomerNotice } from "@/lib/data/customers";
 import { dismissStudentNoticeAction } from "@/lib/actions/student";
 
 interface StudentNoticeBannerProps {
