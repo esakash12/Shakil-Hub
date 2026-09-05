@@ -1,5 +1,4 @@
-import fs from "fs/promises";
-import path from "path";
+import { readDataFile, writeDataFile } from "./storage-helper";
 
 export interface OrderItem {
   id: string;
@@ -18,23 +17,17 @@ export interface OrderItem {
   rejectionReason?: string;
 }
 
-const ORDERS_FILE_PATH = path.join(process.cwd(), "lib", "data", "orders.json");
-
 /**
  * Ensures orders.json file exists and returns list of orders
  */
 export async function getPersistentOrders(): Promise<OrderItem[]> {
   try {
-    const data = await fs.readFile(ORDERS_FILE_PATH, "utf8");
-    const parsed = JSON.parse(data);
-    if (Array.isArray(parsed)) {
-      return parsed;
+    const list = await readDataFile<OrderItem[]>("orders.json", []);
+    if (Array.isArray(list)) {
+      return list;
     }
   } catch (err: any) {
-    if (err.code === "ENOENT") {
-      // File doesn't exist, initialize empty array
-      await fs.writeFile(ORDERS_FILE_PATH, JSON.stringify([], null, 2), "utf8");
-    }
+    console.error("Error reading persistent orders:", err);
   }
   return [];
 }
@@ -57,7 +50,7 @@ export async function savePersistentOrder(order: OrderItem): Promise<OrderItem[]
       updated = [order, ...existing];
     }
 
-    await fs.writeFile(ORDERS_FILE_PATH, JSON.stringify(updated, null, 2), "utf8");
+    await writeDataFile("orders.json", updated);
     return updated;
   } catch (err) {
     console.error("FAILED TO SAVE PERSISTENT ORDER:", err);
@@ -85,7 +78,7 @@ export async function updatePersistentOrderStatus(
     if (extra?.verifiedAt) target.verifiedAt = extra.verifiedAt;
     if (extra?.rejectionReason) target.rejectionReason = extra.rejectionReason;
 
-    await fs.writeFile(ORDERS_FILE_PATH, JSON.stringify(existing, null, 2), "utf8");
+    await writeDataFile("orders.json", existing);
     return target;
   } catch (err) {
     console.error("FAILED TO UPDATE PERSISTENT ORDER STATUS:", err);
@@ -109,7 +102,7 @@ export async function deletePersistentOrder(
 
     const deleted = existing[targetIndex];
     const updated = existing.filter((_, idx) => idx !== targetIndex);
-    await fs.writeFile(ORDERS_FILE_PATH, JSON.stringify(updated, null, 2), "utf8");
+    await writeDataFile("orders.json", updated);
     return deleted;
   } catch (err) {
     console.error("FAILED TO DELETE PERSISTENT ORDER:", err);

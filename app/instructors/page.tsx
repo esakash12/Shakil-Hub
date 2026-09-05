@@ -24,94 +24,9 @@ export const metadata: Metadata = {
     "Learn from industry-leading video editors, motion designers, and colorists at Sakil Hub.",
 };
 
-const defaultInstructorsData = [
-  {
-    id: "rashedul-hasan",
-    name: "Rashedul Hasan",
-    role: "Lead Video Editor & Filmmaker",
-    avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
-    experience: "8+ Years",
-    projects: "500+",
-    students: "10K+",
-    bio: "Commercial video editor and YouTube creator with over 8 years of industry experience. Specializes in Adobe Premiere Pro speed-ramping, narrative pacing, and sound design.",
-    socials: {
-      youtube: "https://youtube.com",
-      instagram: "https://instagram.com",
-      facebook: "https://facebook.com",
-      linkedin: "https://linkedin.com",
-    },
-    courses: [
-      {
-        slug: "premiere-pro-masterclass",
-        title: "Premiere Pro Masterclass: Complete Video Editing",
-        badge: "Bestseller",
-        price: "৳1,299",
-      },
-      {
-        slug: "after-effects-masterclass",
-        title: "After Effects Masterclass: VFX & Motion Graphics",
-        badge: "Hot & New",
-        price: "৳1,499",
-      },
-    ],
-  },
-  {
-    id: "sakil-ahmed",
-    name: "Sakil Ahmed",
-    role: "Senior Motion Designer & VFX Director",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80",
-    experience: "7+ Years",
-    projects: "400+",
-    students: "8K+",
-    bio: "Passionate motion graphics artist and visual storyteller. Worked with high-profile advertising agencies and produced 3D broadcast packages for international brands.",
-    socials: {
-      youtube: "https://youtube.com",
-      instagram: "https://instagram.com",
-      facebook: "https://facebook.com",
-      linkedin: "https://linkedin.com",
-    },
-    courses: [
-      {
-        slug: "after-effects-masterclass",
-        title: "After Effects Masterclass: VFX & Motion Graphics",
-        badge: "Hot & New",
-        price: "৳1,499",
-      },
-    ],
-  },
-  {
-    id: "tanvir-hasan",
-    name: "Tanvir Hasan",
-    role: "Certified Colorist & Cinematographer",
-    avatar:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80",
-    experience: "6+ Years",
-    projects: "300+",
-    students: "5K+",
-    bio: "Certified DaVinci Resolve Studio colorist. Color graded 50+ music videos, documentary films, and television commercials with Hollywood color management workflows.",
-    socials: {
-      youtube: "https://youtube.com",
-      instagram: "https://instagram.com",
-      facebook: "https://facebook.com",
-      linkedin: "https://linkedin.com",
-    },
-    courses: [
-      {
-        slug: "davinci-resolve-color-grading",
-        title: "DaVinci Resolve Color Grading Masterclass",
-        badge: "Top Rated",
-        price: "৳1,199",
-      },
-    ],
-  },
-];
-
 export default async function InstructorsPage() {
   const res = await getStorefrontInstructorsAction();
-  const displayInstructors =
-    res.success && res.instructors.length > 0 ? res.instructors : defaultInstructorsData;
+  const displayInstructors = res.success && res.instructors ? res.instructors : [];
 
   return (
     <div className="min-h-screen bg-black text-white py-10 sm:py-16">
@@ -137,44 +52,64 @@ export default async function InstructorsPage() {
 
         {/* Instructors Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-          {displayInstructors.map((instructor) => (
-            <div
-              key={instructor.id}
-              className="group rounded-2xl bg-[#0e1320]/90 border border-white/10 hover:border-cyan-500/50 p-6 sm:p-7 flex flex-col justify-between space-y-6 transition-all duration-300 hover:-translate-y-2 shadow-[0_8px_30px_rgba(0,0,0,0.6)] hover:shadow-[0_15px_45px_rgba(0,0,0,0.85),0_0_30px_rgba(6,182,212,0.18)] backdrop-blur-xl"
-            >
-              <div className="space-y-5">
-                {/* Profile Header */}
-                <div className="flex items-center gap-4">
-                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-black/50 border border-cyan-500/30 shrink-0 shadow-lg group-hover:border-cyan-400/60 transition-colors">
-                    <Image
-                      src={instructor.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
-                      alt={instructor.name}
-                      fill
-                      sizes="80px"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
+          {displayInstructors.map((instructor) => {
+            const initials = instructor.name
+              ? instructor.name
+                  .split(" ")
+                  .filter(Boolean)
+                  .map((w: string) => w[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase()
+              : "IN";
 
-                  <div className="min-w-0">
-                    <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-400 mb-0.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Verified Instructor</span>
+            return (
+              <div
+                key={instructor.id}
+                className="group rounded-2xl bg-[#0e1320]/90 border border-white/10 hover:border-cyan-500/50 p-6 sm:p-7 flex flex-col justify-between space-y-6 transition-all duration-300 hover:-translate-y-2 shadow-[0_8px_30px_rgba(0,0,0,0.6)] hover:shadow-[0_15px_45px_rgba(0,0,0,0.85),0_0_30px_rgba(6,182,212,0.18)] backdrop-blur-xl"
+              >
+                <div className="space-y-5">
+                  {/* Profile Header */}
+                  <div className="flex items-center gap-4">
+                    {instructor.avatar ? (
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-black/50 border border-cyan-500/30 shrink-0 shadow-lg group-hover:border-cyan-400/60 transition-colors">
+                        <Image
+                          src={instructor.avatar}
+                          alt={instructor.name}
+                          fill
+                          sizes="80px"
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-cyan-950 via-[#0c1017] to-neutral-900 border border-cyan-500/30 shrink-0 shadow-lg flex flex-col items-center justify-center text-cyan-400 group-hover:border-cyan-400/60 transition-colors">
+                        <span className="text-lg sm:text-xl font-black tracking-wider">
+                          {initials}
+                        </span>
+                        <span className="text-[8px] font-mono text-cyan-400/70 uppercase tracking-wider">
+                          Mentor
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="min-w-0">
+                      <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-400 mb-0.5">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Verified Instructor</span>
+                      </div>
+                      <h3 className="text-base sm:text-lg font-bold text-white tracking-tight truncate group-hover:text-cyan-300 transition-colors">
+                        {instructor.name}
+                      </h3>
+                      <p className="text-xs text-zinc-300 font-medium truncate">
+                        {instructor.role}
+                      </p>
                     </div>
-                    <h3 className="text-base sm:text-lg font-bold text-white tracking-tight truncate group-hover:text-cyan-300 transition-colors">
-                      {instructor.name}
-                    </h3>
-                    <p className="text-xs text-zinc-300 font-medium truncate">
-                      {instructor.role}
-                    </p>
                   </div>
-                </div>
 
-                {/* Bio */}
-                <p className="text-xs sm:text-[13px] text-zinc-200 leading-relaxed font-normal">
-                  {instructor.bio}
-                </p>
-
-                {/* Metrics */}
+                  {/* Bio */}
+                  <p className="text-xs sm:text-[13px] text-zinc-200 leading-relaxed font-normal">
+                    {instructor.bio}
+                  </p>
                 <div className="grid grid-cols-3 gap-2 pt-1">
                   <div className="p-2.5 rounded-xl bg-[#0a0e17]/90 border border-cyan-500/15 text-center">
                     <p className="text-sm font-extrabold text-white">
@@ -253,7 +188,8 @@ export default async function InstructorsPage() {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Bottom CTA Box */}

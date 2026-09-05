@@ -1,7 +1,7 @@
 import "server-only";
 import fs from "fs/promises";
 import path from "path";
-import { writeDataFile } from "./storage-helper";
+import { readDataFile, writeDataFile } from "./storage-helper";
 
 export interface CourseFaqItem {
   question: string;
@@ -34,40 +34,17 @@ export interface CourseCmsOverride {
 
 export type CoursesCmsMap = Record<string, CourseCmsOverride>;
 
-const COURSES_CMS_FILE = path.join(process.cwd(), "lib", "data", "courses-cms.json");
-const STANDALONE_COURSES_CMS_FILE = path.join(
-  process.cwd(),
-  ".next",
-  "standalone",
-  "lib",
-  "data",
-  "courses-cms.json"
-);
-
 /**
  * Reads all course CMS overrides from disk
  */
 export async function getPersistentCoursesCms(): Promise<CoursesCmsMap> {
   try {
-    let data: string | null = null;
-    try {
-      data = await fs.readFile(COURSES_CMS_FILE, "utf8");
-    } catch {
-      try {
-        data = await fs.readFile(STANDALONE_COURSES_CMS_FILE, "utf8");
-      } catch {}
-    }
-
-    if (data) {
-      const parsed = JSON.parse(data);
-      if (parsed && typeof parsed === "object") {
-        return parsed;
-      }
+    const data = await readDataFile<CoursesCmsMap>("courses-cms.json", {});
+    if (data && typeof data === "object") {
+      return data;
     }
   } catch (err: any) {
-    if (err.code === "ENOENT") {
-      await writeDataFile("courses-cms.json", {});
-    }
+    console.error("Error reading persistent courses CMS:", err);
   }
   return {};
 }

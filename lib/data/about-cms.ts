@@ -1,19 +1,15 @@
 import "server-only";
-import fs from "fs/promises";
-import path from "path";
 import { AboutCmsData, DEFAULT_ABOUT_CMS } from "./about-cms-types";
+import { readDataFile, writeDataFile } from "./storage-helper";
 
 export * from "./about-cms-types";
-
-const ABOUT_CMS_FILE = path.join(process.cwd(), "lib", "data", "about-cms.json");
 
 /**
  * Reads persistent About CMS content from disk
  */
 export async function getPersistentAboutCms(): Promise<AboutCmsData> {
   try {
-    const data = await fs.readFile(ABOUT_CMS_FILE, "utf8");
-    const parsed = JSON.parse(data);
+    const parsed = await readDataFile<AboutCmsData>("about-cms.json", DEFAULT_ABOUT_CMS);
     if (parsed && typeof parsed === "object") {
       return {
         ...DEFAULT_ABOUT_CMS,
@@ -21,9 +17,7 @@ export async function getPersistentAboutCms(): Promise<AboutCmsData> {
       };
     }
   } catch (err: any) {
-    if (err.code === "ENOENT") {
-      await fs.writeFile(ABOUT_CMS_FILE, JSON.stringify(DEFAULT_ABOUT_CMS, null, 2), "utf8");
-    }
+    console.error("Error reading persistent about CMS:", err);
   }
   return DEFAULT_ABOUT_CMS;
 }
@@ -41,6 +35,11 @@ export async function updatePersistentAboutCms(
     updatedAt: new Date().toISOString(),
   };
 
-  await fs.writeFile(ABOUT_CMS_FILE, JSON.stringify(merged, null, 2), "utf8");
+  try {
+    await writeDataFile("about-cms.json", merged);
+  } catch (err) {
+    console.error("Failed to write about-cms.json:", err);
+  }
   return merged;
 }
+

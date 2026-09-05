@@ -26,7 +26,7 @@ interface MobileQuickStatsAndFeaturesProps {
 
 export default function MobileQuickStatsAndFeatures({
   course,
-  slug = "premiere-pro-masterclass",
+  slug = "",
   isEnrolled: initialIsEnrolled = false,
 }: MobileQuickStatsAndFeaturesProps) {
   const router = useRouter();

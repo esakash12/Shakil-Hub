@@ -11,8 +11,10 @@ interface CourseAboutProps {
 
 export default function CourseAbout({ initialCourse }: CourseAboutProps = {}) {
   const params = useParams();
-  const slug = (params?.slug as string) || "premiere-pro-masterclass";
-  const course = initialCourse || getCourseBySlug(slug);
+  const slug = (params?.slug as string) || "";
+  const course = initialCourse || (slug ? getCourseBySlug(slug) : null);
+
+  if (!course) return null;
 
   const hasLearnings = Boolean(course.whatYouWillLearn && course.whatYouWillLearn.length > 0);
   const hasRequirements = Boolean(course.requirements && course.requirements.length > 0);

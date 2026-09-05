@@ -35,11 +35,11 @@ export default function Footer() {
     { name: "Student Dashboard", href: "/dashboard" },
   ];
 
-  const topCourses = [
-    { name: "Premiere Pro Masterclass", href: "/courses/premiere-pro-masterclass" },
-    { name: "After Effects VFX & Motion", href: "/courses/after-effects-masterclass" },
-    { name: "DaVinci Resolve Color Grading", href: "/courses/davinci-resolve-color-grading" },
-    { name: "Audio Mixing for Video", href: "/courses" },
+  const exploreCategories = [
+    { name: "Video Editing", href: "/courses" },
+    { name: "Filmmaking & VFX", href: "/courses" },
+    { name: "Color Grading", href: "/courses" },
+    { name: "Audio Mixing", href: "/courses" },
   ];
 
   const socialLinks = [
@@ -121,13 +121,13 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Top Courses */}
+          {/* Categories */}
           <div>
             <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
-              Top Courses
+              Categories
             </h4>
             <ul className="space-y-2 text-xs">
-              {topCourses.map((item) => (
+              {exploreCategories.map((item) => (
                 <li key={item.name}>
                   <Link href={item.href} className="hover:text-cyan-300 transition-colors">
                     {item.name}

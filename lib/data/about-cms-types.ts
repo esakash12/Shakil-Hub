@@ -69,9 +69,8 @@ export const DEFAULT_ABOUT_CMS: AboutCmsData = {
     },
   ],
   leadInstructorBadge: "Founder & Master Instructor",
-  leadInstructorName: "Rashedul Hasan",
+  leadInstructorName: "Sakil Ahmed",
   leadInstructorQuote:
     "My goal with Sakil Hub is to ensure no creative editor has to waste months watching disconnected YouTube tutorials. We provide the complete, step-by-step roadmap from day one.",
-  leadInstructorAvatar:
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+  leadInstructorAvatar: "",
 };

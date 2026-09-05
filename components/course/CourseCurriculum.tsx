@@ -15,10 +15,10 @@ interface CourseCurriculumProps {
 
 export default function CourseCurriculum({ initialCourse, slug: propSlug }: CourseCurriculumProps = {}) {
   const params = useParams();
-  const slug = propSlug || (params?.slug as string) || "premiere-pro-masterclass";
+  const slug = propSlug || (params?.slug as string) || "";
 
-  const [course, setCourse] = useState<CourseDetail>(() => initialCourse || getCourseBySlug(slug));
-  const [isLoading, setIsLoading] = useState(!initialCourse);
+  const [course, setCourse] = useState<CourseDetail>(() => initialCourse || (slug ? getCourseBySlug(slug) : ({} as CourseDetail)));
+  const [isLoading, setIsLoading] = useState(!initialCourse && Boolean(slug));
 
   useEffect(() => {
     if (initialCourse) {

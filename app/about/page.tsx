@@ -150,15 +150,34 @@ export default async function AboutPage() {
 
         {/* Lead Instructor Highlight Card */}
         <div className="rounded-2xl bg-[#0e1320]/80 border border-white/10 p-6 sm:p-8 flex flex-col md:flex-row items-center gap-6 sm:gap-8 shadow-xl">
-          <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-black border border-cyan-500/30 shrink-0">
-            <Image
-              src={about.leadInstructorAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"}
-              alt={about.leadInstructorName || "Lead Instructor"}
-              fill
-              sizes="128px"
-              className="object-cover"
-            />
-          </div>
+          {about.leadInstructorAvatar ? (
+            <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-black border border-cyan-500/30 shrink-0">
+              <Image
+                src={about.leadInstructorAvatar}
+                alt={about.leadInstructorName || "Lead Instructor"}
+                fill
+                sizes="128px"
+                className="object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-br from-cyan-950 via-[#0c1017] to-neutral-900 border border-cyan-500/30 shrink-0 flex flex-col items-center justify-center text-cyan-400 shadow-md">
+              <span className="text-xl sm:text-2xl font-black tracking-wider">
+                {about.leadInstructorName
+                  ? about.leadInstructorName
+                      .split(" ")
+                      .filter(Boolean)
+                      .map((w: string) => w[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()
+                  : "SA"}
+              </span>
+              <span className="text-[9px] font-mono text-cyan-400/70 mt-0.5 uppercase tracking-widest">
+                Instructor
+              </span>
+            </div>
+          )}
 
           <div className="space-y-2 text-center md:text-left flex-1">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 text-[11px] font-semibold">

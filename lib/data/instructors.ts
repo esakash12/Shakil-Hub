@@ -3,44 +3,21 @@ import fs from "fs/promises";
 import path from "path";
 import { InstructorItem } from "./instructor-types";
 
-import { writeDataFile } from "./storage-helper";
+import { readDataFile, writeDataFile } from "./storage-helper";
 
 export * from "./instructor-types";
 
-const INSTRUCTORS_FILE = path.join(process.cwd(), "lib", "data", "instructors.json");
-const STANDALONE_INSTRUCTORS_FILE = path.join(
-  process.cwd(),
-  ".next",
-  "standalone",
-  "lib",
-  "data",
-  "instructors.json"
-);
-
 /**
- * Reads all persistent instructors from disk
+ * Reads all persistent instructors from disk (with 4-layer storage hierarchy)
  */
 export async function getPersistentInstructors(): Promise<InstructorItem[]> {
   try {
-    let data: string | null = null;
-    try {
-      data = await fs.readFile(INSTRUCTORS_FILE, "utf8");
-    } catch {
-      try {
-        data = await fs.readFile(STANDALONE_INSTRUCTORS_FILE, "utf8");
-      } catch {}
-    }
-
-    if (data) {
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed)) {
-        return parsed;
-      }
+    const list = await readDataFile<InstructorItem[]>("instructors.json", []);
+    if (Array.isArray(list)) {
+      return list;
     }
   } catch (err: any) {
-    if (err.code === "ENOENT") {
-      await writeDataFile("instructors.json", []);
-    }
+    console.error("Error reading persistent instructors:", err);
   }
   return [];
 }

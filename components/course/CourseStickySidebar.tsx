@@ -28,7 +28,7 @@ interface CourseStickySidebarProps {
 
 export default function CourseStickySidebar({
   initialCourse,
-  slug = "premiere-pro-masterclass",
+  slug = "",
   isEnrolled: initialIsEnrolled = false,
 }: CourseStickySidebarProps) {
   const router = useRouter();

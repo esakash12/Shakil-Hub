@@ -18,9 +18,9 @@ export default function StickyBottomCTA({
 }: StickyBottomCTAProps = {}) {
   const params = useParams();
   const router = useRouter();
-  const slug = propSlug || (params?.slug as string) || "premiere-pro-masterclass";
+  const slug = propSlug || (params?.slug as string) || "";
 
-  const [course, setCourse] = useState<CourseDetail>(() => initialCourse || getCourseBySlug(slug));
+  const [course, setCourse] = useState<CourseDetail>(() => initialCourse || (slug ? getCourseBySlug(slug) : ({} as CourseDetail)));
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(initialIsEnrolled);
 

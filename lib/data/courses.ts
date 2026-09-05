@@ -57,6 +57,13 @@ export interface CourseDetail {
     experience: string;
     projects: string;
     students: string;
+    socials?: {
+      youtube?: string;
+      instagram?: string;
+      facebook?: string;
+      linkedin?: string;
+      twitter?: string;
+    };
   };
   highlights: {
     hours: string;
@@ -325,28 +332,20 @@ export function mapMedusaProductToCourse(product: any): CourseDetail {
     numericOriginalPrice: meta.numericOriginalPrice
       ? Number(meta.numericOriginalPrice)
       : Math.round(priceAmount * 1.8),
-    image:
-      resolvedThumb ||
-      "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80",
-    thumbnail:
-      resolvedThumb ||
-      "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80",
-    trailerImage:
-      resolvedThumb ||
-      meta.trailerImage ||
-      "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
+    image: resolvedThumb || meta.thumbnail || "",
+    thumbnail: resolvedThumb || meta.thumbnail || "",
+    trailerImage: resolvedThumb || meta.trailerImage || meta.thumbnail || "",
     trailerVideo: resolvedTrailer || rawTrailer || "",
     instructorId: meta.instructorId || "",
     instructor: {
-      name: meta.instructor || "Sakil Ahmed",
+      name: meta.instructor || meta.instructorName || "Sakil Ahmed",
       role: meta.instructorRole || "Lead Filmmaker & Video Editor",
-      avatar:
-        meta.instructorAvatar ||
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
-      bio: "8+ years in commercial video editing and digital filmmaking.",
-      experience: "8+ Years",
-      projects: "400+",
-      students: "10K+",
+      avatar: meta.instructorAvatar || "",
+      bio: meta.instructorBio || "Commercial filmmaker and video editor with extensive industry experience.",
+      experience: meta.instructorExperience || "8+ Years",
+      projects: meta.instructorProjects || "400+",
+      students: meta.instructorStudents || "10K+",
+      socials: meta.instructorSocials || {},
     },
     highlights: {
       hours:

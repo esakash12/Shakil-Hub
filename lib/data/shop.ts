@@ -1,36 +1,29 @@
 import "server-only";
-import fs from "fs/promises";
-import path from "path";
 import { DigitalProduct, ShopProductPayload } from "./shop-types";
+import { readDataFile, writeDataFile } from "./storage-helper";
 
 export * from "./shop-types";
-
-const SHOP_FILE = path.join(process.cwd(), "lib", "data", "shop.json");
 
 /**
  * Reads all digital products from disk
  */
 export async function getPersistentShopProducts(): Promise<DigitalProduct[]> {
   try {
-    const data = await fs.readFile(SHOP_FILE, "utf8");
-    const parsed = JSON.parse(data);
-    if (Array.isArray(parsed)) {
-      return parsed;
+    const list = await readDataFile<DigitalProduct[]>("shop.json", []);
+    if (Array.isArray(list)) {
+      return list;
     }
-    return [];
   } catch (err: any) {
-    if (err.code === "ENOENT") {
-      await fs.writeFile(SHOP_FILE, JSON.stringify([], null, 2), "utf8");
-    }
-    return [];
+    console.error("Error reading persistent shop products:", err);
   }
+  return [];
 }
 
 /**
  * Saves all digital products to disk
  */
 export async function savePersistentShopProducts(products: DigitalProduct[]): Promise<void> {
-  await fs.writeFile(SHOP_FILE, JSON.stringify(products, null, 2), "utf8");
+  await writeDataFile("shop.json", products);
 }
 
 /**

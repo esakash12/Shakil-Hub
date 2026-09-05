@@ -1,19 +1,15 @@
 import "server-only";
-import fs from "fs/promises";
-import path from "path";
 import { HomeCmsData, DEFAULT_HOME_CMS } from "./home-cms-types";
+import { readDataFile, writeDataFile } from "./storage-helper";
 
 export * from "./home-cms-types";
-
-const HOME_CMS_FILE = path.join(process.cwd(), "lib", "data", "home-cms.json");
 
 /**
  * Reads persistent Home CMS content from disk
  */
 export async function getPersistentHomeCms(): Promise<HomeCmsData> {
   try {
-    const data = await fs.readFile(HOME_CMS_FILE, "utf8");
-    const parsed = JSON.parse(data);
+    const parsed = await readDataFile<HomeCmsData>("home-cms.json", DEFAULT_HOME_CMS);
     if (parsed && typeof parsed === "object") {
       return {
         ...DEFAULT_HOME_CMS,
@@ -21,9 +17,7 @@ export async function getPersistentHomeCms(): Promise<HomeCmsData> {
       };
     }
   } catch (err: any) {
-    if (err.code === "ENOENT") {
-      await fs.writeFile(HOME_CMS_FILE, JSON.stringify(DEFAULT_HOME_CMS, null, 2), "utf8");
-    }
+    console.error("Error reading persistent home CMS:", err);
   }
   return DEFAULT_HOME_CMS;
 }
@@ -41,6 +35,11 @@ export async function updatePersistentHomeCms(
     updatedAt: new Date().toISOString(),
   };
 
-  await fs.writeFile(HOME_CMS_FILE, JSON.stringify(merged, null, 2), "utf8");
+  try {
+    await writeDataFile("home-cms.json", merged);
+  } catch (err) {
+    console.error("Failed to write home-cms.json:", err);
+  }
   return merged;
 }
+

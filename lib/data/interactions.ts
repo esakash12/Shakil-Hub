@@ -1,6 +1,4 @@
 import "server-only";
-import fs from "fs/promises";
-import path from "path";
 
 export interface QuestionReply {
   author: string;
@@ -20,32 +18,19 @@ export interface QuestionItem {
   createdAt: string;
 }
 
-const PROGRESS_FILE = path.join(process.cwd(), "lib", "data", "student-progress.json");
-const NOTES_FILE = path.join(process.cwd(), "lib", "data", "student-notes.json");
-const QA_FILE = path.join(process.cwd(), "lib", "data", "community-qa.json");
-const WISHLIST_FILE = path.join(process.cwd(), "lib", "data", "student-wishlist.json");
+import { readDataFile, writeDataFile } from "./storage-helper";
 
-async function readJsonFile<T>(filePath: string, defaultValue: T): Promise<T> {
-  try {
-    const data = await fs.readFile(filePath, "utf8");
-    const parsed = JSON.parse(data);
-    if (parsed !== null && typeof parsed === "object") {
-      return parsed;
-    }
-  } catch (err: any) {
-    if (err.code === "ENOENT") {
-      await fs.writeFile(filePath, JSON.stringify(defaultValue, null, 2), "utf8").catch(() => {});
-    }
-  }
-  return defaultValue;
+const PROGRESS_FILE = "student-progress.json";
+const NOTES_FILE = "student-notes.json";
+const QA_FILE = "community-qa.json";
+const WISHLIST_FILE = "student-wishlist.json";
+
+async function readJsonFile<T>(filename: string, defaultValue: T): Promise<T> {
+  return readDataFile<T>(filename, defaultValue);
 }
 
-async function writeJsonFile<T>(filePath: string, data: T): Promise<void> {
-  try {
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2), "utf8");
-  } catch (err) {
-    console.error(`Failed to write to ${filePath}:`, err);
-  }
+async function writeJsonFile<T>(filename: string, data: T): Promise<void> {
+  await writeDataFile(filename, data);
 }
 
 // -------------------------------------------------------------

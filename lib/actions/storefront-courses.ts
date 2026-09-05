@@ -2,7 +2,7 @@
 
 import { mapMedusaProductToCourse, CourseDetail, getCourseBySlug } from "@/lib/data/courses";
 import { getCourseCmsOverride } from "@/lib/data/courses-cms";
-import { getInstructorById } from "@/lib/data/instructors";
+import { getInstructorById, getPersistentInstructors } from "@/lib/data/instructors";
 
 /**
  * Merges course data with persistent CMS overrides and live assigned instructor
@@ -10,26 +10,40 @@ import { getInstructorById } from "@/lib/data/instructors";
 async function applyCmsOverrides(course: CourseDetail, slug: string): Promise<CourseDetail> {
   try {
     const override = await getCourseCmsOverride(slug);
-    if (!override) return course;
 
-    let instructorObj = course.instructor;
-    if (override.instructorId) {
-      const liveInst = await getInstructorById(override.instructorId);
-      if (liveInst) {
-        instructorObj = {
-          name: liveInst.name,
-          role: liveInst.role,
-          avatar: liveInst.avatar,
-          bio: liveInst.bio,
-          experience: liveInst.experience,
-          projects: liveInst.projects,
-          students: liveInst.students,
-        };
+    // Dynamic instructor resolution
+    let instructorObj = { ...course.instructor };
+    const targetInstructorId = override?.instructorId || course.instructorId || "";
+    const targetInstructorName = override?.instructorName || course.instructor?.name || "";
+
+    let liveInst = targetInstructorId ? await getInstructorById(targetInstructorId) : null;
+    if (!liveInst && targetInstructorName) {
+      liveInst = await getInstructorById(targetInstructorName);
+    }
+    if (!liveInst) {
+      const allInstructors = await getPersistentInstructors();
+      if (allInstructors.length > 0) {
+        liveInst = allInstructors[0];
       }
-    } else if (override.instructorName) {
+    }
+
+    if (liveInst) {
       instructorObj = {
-        ...instructorObj,
-        name: override.instructorName,
+        name: liveInst.name || instructorObj.name,
+        role: liveInst.role || instructorObj.role,
+        avatar: liveInst.avatar || instructorObj.avatar,
+        bio: liveInst.bio || instructorObj.bio,
+        experience: liveInst.experience || instructorObj.experience,
+        projects: liveInst.projects || instructorObj.projects,
+        students: liveInst.students || instructorObj.students,
+        socials: liveInst.socials || {},
+      };
+    }
+
+    if (!override) {
+      return {
+        ...course,
+        instructor: instructorObj,
       };
     }
 

@@ -1,7 +1,5 @@
-import fs from "fs/promises";
-import path from "path";
 import crypto from "crypto";
-import { writeDataFile } from "./storage-helper";
+import { readDataFile, writeDataFile } from "./storage-helper";
 
 export interface CustomerNotice {
   id: string;
@@ -33,27 +31,17 @@ export function hashPassword(password: string): string {
   return crypto.createHash("sha256").update(password).digest("hex");
 }
 
-const CUSTOMERS_FILE_PATH = path.join(
-  process.cwd(),
-  "lib",
-  "data",
-  "customers.json"
-);
-
 /**
  * Ensures customers.json exists and returns all registered student customer accounts
  */
 export async function getPersistentCustomers(): Promise<CustomerRecord[]> {
   try {
-    const data = await fs.readFile(CUSTOMERS_FILE_PATH, "utf8");
-    const parsed = JSON.parse(data);
-    if (Array.isArray(parsed)) {
-      return parsed;
+    const list = await readDataFile<CustomerRecord[]>("customers.json", []);
+    if (Array.isArray(list)) {
+      return list;
     }
   } catch (err: any) {
-    if (err.code === "ENOENT") {
-      await writeDataFile("customers.json", []);
-    }
+    console.error("Error reading persistent customers:", err);
   }
   return [];
 }

@@ -16,11 +16,26 @@ async function verifyAdminAuth(): Promise<boolean> {
   return Boolean(token);
 }
 
+import { getPersistentInstructors } from "@/lib/data/instructors";
+
 /**
  * Public action to get About CMS content
  */
 export async function getAboutCmsAction(): Promise<AboutCmsData> {
-  return await getPersistentAboutCms();
+  const data = await getPersistentAboutCms();
+  try {
+    const instructors = await getPersistentInstructors();
+    if (instructors.length > 0) {
+      const primary = instructors[0];
+      if (!data.leadInstructorName || data.leadInstructorName === "Rashedul Hasan") {
+        data.leadInstructorName = primary.name;
+      }
+      if (!data.leadInstructorAvatar || data.leadInstructorAvatar.includes("unsplash")) {
+        data.leadInstructorAvatar = primary.avatar || "";
+      }
+    }
+  } catch {}
+  return data;
 }
 
 /**
