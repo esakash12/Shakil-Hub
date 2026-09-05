@@ -162,6 +162,7 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
             first_name: existing.firstName || "Student",
             last_name: existing.lastName || "",
             email: existing.email,
+            phone: existing.phone || "",
           };
 
           await purgeAllSessionCookies();
@@ -201,12 +202,25 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
       }
     }
 
+    const existing = await findCustomerByEmail(email);
     const { hashPassword } = await import("@/lib/data/customers");
+
+    const finalFirstName = (existing?.firstName && existing.firstName !== "Student")
+      ? existing.firstName
+      : (customerObj?.first_name && customerObj.first_name !== "Student" ? customerObj.first_name : (existing?.firstName || "Student"));
+
+    const finalLastName = existing?.lastName !== undefined && existing.lastName !== ""
+      ? existing.lastName
+      : (customerObj?.last_name || "");
+
+    const finalPhone = existing?.phone || customerObj?.phone || "";
+
     await savePersistentCustomer({
-      id: customerObj?.id || `std-${Date.now().toString().slice(-6)}`,
-      firstName: customerObj?.first_name || "Student",
-      lastName: customerObj?.last_name || "",
+      id: customerObj?.id || existing?.id || `std-${Date.now().toString().slice(-6)}`,
+      firstName: finalFirstName,
+      lastName: finalLastName,
       email: customerObj?.email || email,
+      phone: finalPhone,
       passwordHash: hashPassword(password),
     });
 
@@ -218,10 +232,11 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
     cookieStore.set("sakil_customer_token", token, getSessionCookieOptions());
 
     const finalProfile = {
-      id: customerObj?.id,
-      first_name: customerObj?.first_name || "Student",
-      last_name: customerObj?.last_name || "",
+      id: customerObj?.id || existing?.id,
+      first_name: finalFirstName,
+      last_name: finalLastName,
       email: customerObj?.email || email,
+      phone: finalPhone,
     };
 
     cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
@@ -249,6 +264,7 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
             first_name: existing.firstName || "Student",
             last_name: existing.lastName || "",
             email: existing.email,
+            phone: existing.phone || "",
           };
 
           await purgeAllSessionCookies();
@@ -573,7 +589,7 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
       return null;
     }
 
-    // Strict Administrative Ban Check
+    // Strict Administrative Ban Check & Authoritative Profile Reconciliation
     const normalizedEmail = candidateProfile.email.toLowerCase().trim();
     const dbCust = await findCustomerByEmail(normalizedEmail);
 
@@ -592,6 +608,20 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
         if (isStillBanned) {
           return null;
         }
+      }
+
+      // 3. Authoritative Profile Attribute Reconciliation from customers.json
+      if (dbCust.firstName && dbCust.firstName !== "Student") {
+        candidateProfile.first_name = dbCust.firstName;
+      }
+      if (dbCust.lastName !== undefined && dbCust.lastName !== "") {
+        candidateProfile.last_name = dbCust.lastName;
+      }
+      if (dbCust.phone !== undefined && dbCust.phone !== "") {
+        candidateProfile.phone = dbCust.phone;
+      }
+      if (dbCust.id && !candidateProfile.id) {
+        candidateProfile.id = dbCust.id;
       }
     }
 
@@ -633,6 +663,15 @@ export async function updateCustomerProfileAction(formData: FormData): Promise<{
       } catch {}
     }
 
+    // Fallback if existingEmail was not found in infoCookie
+    if (!existingEmail) {
+      const current = await getCustomerProfile();
+      if (current?.email) {
+        existingEmail = current.email;
+        customerId = current.id || customerId;
+      }
+    }
+
     // Send update to Medusa backend if token is available
     if (token && token.includes(".")) {
       try {
@@ -670,12 +709,18 @@ export async function updateCustomerProfileAction(formData: FormData): Promise<{
         firstName: firstName,
         lastName: lastName,
         email: existingEmail,
-        phone: phone || undefined,
-        createdAt: new Date().toISOString(),
+        phone: phone,
+        forceUpdate: true,
       });
     }
 
     cookieStore.set("sakil_customer_info", JSON.stringify(updatedProfile), getSessionCookieOptions());
+
+    try {
+      const { revalidatePath } = await import("next/cache");
+      revalidatePath("/dashboard/settings");
+      revalidatePath("/dashboard");
+    } catch {}
 
     return {
       success: true,

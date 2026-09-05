@@ -28,11 +28,19 @@ import {
 
 interface OrderListProps {
   initialOrders: AdminOrderRecord[];
+  initialFilter?: "all" | "pending" | "approved" | "rejected";
+  pendingOnly?: boolean;
 }
 
-export default function OrderList({ initialOrders }: OrderListProps) {
+export default function OrderList({
+  initialOrders,
+  initialFilter = "all",
+  pendingOnly = false,
+}: OrderListProps) {
   const [orders, setOrders] = useState<AdminOrderRecord[]>(initialOrders);
-  const [filterTab, setFilterTab] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [filterTab, setFilterTab] = useState<"all" | "pending" | "approved" | "rejected">(
+    initialFilter
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);

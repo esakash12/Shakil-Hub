@@ -102,18 +102,38 @@ export async function fetchAdminOrders(): Promise<{
       }
     } catch {}
 
+    const { getPersistentCustomers } = await import("@/lib/data/customers");
+    const persistentCustomers = await getPersistentCustomers();
+    const customerMap = new Map(
+      persistentCustomers.map((c) => [c.email.toLowerCase().trim(), c])
+    );
+
+    const resolveStudentName = (name: string, email: string) => {
+      if (name && name !== "Student") return name;
+      const matched = customerMap.get(email?.toLowerCase().trim());
+      if (matched && matched.firstName && matched.firstName !== "Student") {
+        return `${matched.firstName} ${matched.lastName || ""}`.trim();
+      }
+      return name || "Student";
+    };
+
     // Merge real orders from persistent store, session, and backend
     const mergedMap = new Map<string, AdminOrderRecord>();
 
     // 1. Add Medusa orders
-    medusaOrders.forEach((o) => mergedMap.set(o.id, o));
+    medusaOrders.forEach((o) => {
+      mergedMap.set(o.id, {
+        ...o,
+        studentName: resolveStudentName(o.studentName, o.email),
+      });
+    });
 
     // 2. Add Persistent orders (from disk store)
     persistentOrders.forEach((o) => {
       mergedMap.set(o.id, {
         id: o.id,
         orderNumber: o.orderNumber,
-        studentName: o.studentName,
+        studentName: resolveStudentName(o.studentName, o.email),
         email: o.email,
         courseTitle: o.courseTitle,
         courseSlug: o.courseSlug,
@@ -128,7 +148,10 @@ export async function fetchAdminOrders(): Promise<{
 
     // 3. Add Session orders
     sessionOrders.forEach((o) => {
-      mergedMap.set(o.id, o);
+      mergedMap.set(o.id, {
+        ...o,
+        studentName: resolveStudentName(o.studentName, o.email),
+      });
     });
 
     const orders = Array.from(mergedMap.values()).sort(
@@ -228,6 +251,7 @@ export async function approveOrderAction(orderId: string): Promise<{
     } catch {}
 
     // Revalidate routes
+    revalidatePath("/admin/pending");
     revalidatePath("/admin/enrollments");
     revalidatePath("/admin");
     revalidatePath("/admin/students");
@@ -301,6 +325,7 @@ export async function rejectOrderAction(
     }
 
     // Revalidate routes
+    revalidatePath("/admin/pending");
     revalidatePath("/admin/enrollments");
     revalidatePath("/admin");
     revalidatePath("/admin/students");
@@ -377,6 +402,7 @@ export async function deleteAdminOrderAction(orderId: string): Promise<{
     } catch {}
 
     // Revalidate routes
+    revalidatePath("/admin/pending");
     revalidatePath("/admin/enrollments");
     revalidatePath("/admin");
     revalidatePath("/admin/students");

@@ -43,6 +43,7 @@ export default function SettingsPage() {
         if (res.customer) {
           setFirstName(res.customer.first_name || "");
           setLastName(res.customer.last_name || "");
+          setPhone(res.customer.phone || "");
         }
         setTimeout(() => setSaved(false), 3000);
       } else {

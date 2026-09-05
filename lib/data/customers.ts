@@ -50,7 +50,7 @@ export async function getPersistentCustomers(): Promise<CustomerRecord[]> {
  * Saves or updates a registered customer
  */
 export async function savePersistentCustomer(
-  customer: Partial<CustomerRecord> & { email: string }
+  customer: Partial<CustomerRecord> & { email: string; forceUpdate?: boolean }
 ): Promise<CustomerRecord[]> {
   try {
     const existing = await getPersistentCustomers();
@@ -62,9 +62,34 @@ export async function savePersistentCustomer(
     let updated: CustomerRecord[];
     if (index >= 0) {
       const prev = existing[index];
+
+      // If forceUpdate is true (e.g. explicit profile edit), accept the new values directly.
+      // Otherwise (e.g. login sync, background auth), NEVER clobber an existing user's real name with "Student" or blank, and never clobber existing phone.
+      const newFirstName = customer.forceUpdate
+        ? (customer.firstName ? customer.firstName.trim() : (prev.firstName || "Student"))
+        : (customer.firstName && customer.firstName.trim() && customer.firstName.trim() !== "Student"
+            ? customer.firstName.trim()
+            : (prev.firstName && prev.firstName !== "Student" ? prev.firstName : (customer.firstName || "Student")));
+
+      const newLastName = customer.forceUpdate
+        ? (customer.lastName !== undefined ? customer.lastName.trim() : (prev.lastName || ""))
+        : (customer.lastName !== undefined && customer.lastName.trim() !== ""
+            ? customer.lastName.trim()
+            : (prev.lastName || ""));
+
+      const newPhone = customer.forceUpdate
+        ? (customer.phone !== undefined ? customer.phone.trim() : (prev.phone || ""))
+        : (customer.phone !== undefined && customer.phone.trim() !== ""
+            ? customer.phone.trim()
+            : (prev.phone || ""));
+
       const merged: CustomerRecord = {
         ...prev,
         ...customer,
+        id: customer.id || prev.id,
+        firstName: newFirstName,
+        lastName: newLastName,
+        phone: newPhone,
         passwordHash: customer.passwordHash || prev.passwordHash,
         status: customer.status || prev.status || "active",
         customEnrolledSlugs: customer.customEnrolledSlugs || prev.customEnrolledSlugs || [],
@@ -80,7 +105,7 @@ export async function savePersistentCustomer(
         firstName: customer.firstName || "Student",
         lastName: customer.lastName || "",
         email: normalizedEmail,
-        phone: customer.phone,
+        phone: customer.phone || "",
         passwordHash: customer.passwordHash,
         status: customer.status || "active",
         customEnrolledSlugs: customer.customEnrolledSlugs || [],
