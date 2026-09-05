@@ -90,7 +90,9 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     if (body.title) updatePayload.title = body.title.trim();
     if (body.description) updatePayload.description = body.description.trim();
-    if (body.thumbnail) updatePayload.thumbnail = body.thumbnail.trim();
+    if (body.thumbnail && !body.thumbnail.startsWith("data:")) {
+      updatePayload.thumbnail = body.thumbnail.trim();
+    }
 
     // Preserve and update metadata
     const existingMeta = existingProduct?.metadata || {};
@@ -101,6 +103,13 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       ...incomingMeta,
       is_digital_course: true,
     };
+
+    if (metadataUpdates.thumbnail && metadataUpdates.thumbnail.startsWith("data:")) {
+      metadataUpdates.thumbnail = existingMeta.thumbnail || "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80";
+    }
+    if (metadataUpdates.image && metadataUpdates.image.startsWith("data:")) {
+      metadataUpdates.image = existingMeta.image || metadataUpdates.thumbnail;
+    }
 
     if (body.instructor !== undefined) metadataUpdates.instructor = body.instructor.trim();
     if (body.trailerUrl !== undefined) {

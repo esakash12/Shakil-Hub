@@ -62,6 +62,7 @@ export default function AdminCreateCoursePage() {
   const [includes, setIncludes] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isImageUploading, setIsImageUploading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -452,6 +453,7 @@ export default function AdminCreateCoursePage() {
             <ImageUploader
               value={thumbnail}
               onChange={setThumbnail}
+              onUploadingChange={setIsImageUploading}
               label="Course Thumbnail (Upload File or Enter URL)"
             />
           </div>
@@ -595,13 +597,18 @@ export default function AdminCreateCoursePage() {
 
           <button
             type="submit"
-            disabled={isLoading || isSuccess}
+            disabled={isLoading || isSuccess || isImageUploading}
             className="px-7 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-[0_0_25px_rgba(37,99,235,0.4)] transition-all active:scale-95 disabled:opacity-50"
           >
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Publishing Masterclass...</span>
+              </>
+            ) : isImageUploading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Uploading Image...</span>
               </>
             ) : (
               <>

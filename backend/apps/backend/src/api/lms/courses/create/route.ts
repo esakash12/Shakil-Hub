@@ -39,9 +39,31 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   }
 
   const priceBdt = Number(body.priceBdt) || 1299;
-  const slug = slugify(body.title) || `course-${Date.now()}`;
+  let slug = slugify(body.title) || `course-${Date.now()}`;
   const incomingMeta = body.metadata || {};
   const highlights = body.highlights || incomingMeta.highlights || {};
+
+  // Ensure unique handle in product module to avoid duplicate key constraint errors
+  try {
+    const productModuleService = req.scope.resolve("product");
+    const existing = await productModuleService.listProducts({ handle: slug });
+    if (existing && existing.length > 0) {
+      slug = `${slug}-${Date.now().toString().slice(-4)}`;
+    }
+  } catch {}
+
+  const safeThumbnail =
+    (body.thumbnail && !body.thumbnail.startsWith("data:") ? body.thumbnail.trim() : null) ||
+    (incomingMeta.thumbnail && !incomingMeta.thumbnail.startsWith("data:") ? incomingMeta.thumbnail : null) ||
+    "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80";
+
+  const cleanMeta = { ...incomingMeta };
+  if (cleanMeta.thumbnail && cleanMeta.thumbnail.startsWith("data:")) {
+    cleanMeta.thumbnail = safeThumbnail;
+  }
+  if (cleanMeta.image && cleanMeta.image.startsWith("data:")) {
+    cleanMeta.image = safeThumbnail;
+  }
 
   // 1. Resolve default Sales Channel so course appears in storefront
   let salesChannelIds: Array<{ id: string }> = [];
@@ -75,10 +97,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
             title: body.title.trim(),
             handle: slug,
             description: body.description?.trim() || incomingMeta.subtitle || "Comprehensive digital masterclass on Sakil Hub.",
-            thumbnail:
-              body.thumbnail?.trim() ||
-              incomingMeta.thumbnail ||
-              "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80",
+            thumbnail: safeThumbnail,
             status: "published" as any,
             discountable: true,
             is_giftcard: false,

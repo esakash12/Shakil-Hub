@@ -418,6 +418,8 @@ export async function getLiveStorefrontCourses(): Promise<CourseDetail[]> {
   const publishableKey =
     process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
 
+  let list: CourseDetail[] = [];
+
   try {
     // 1. Query Direct LMS Catalog API (has full metadata without field restrictions)
     const lmsRes = await fetch(`${backendUrl}/lms/courses`, {
@@ -428,32 +430,102 @@ export async function getLiveStorefrontCourses(): Promise<CourseDetail[]> {
     });
 
     if (lmsRes.ok) {
-      const lmsData = await lmsRes.json();
-      if (lmsData.courses && Array.isArray(lmsData.courses) && lmsData.courses.length > 0) {
-        return lmsData.courses.map(mapMedusaProductToCourse);
+      const lmsData = await lmsRes.json().catch(() => null);
+      if (lmsData?.courses && Array.isArray(lmsData.courses) && lmsData.courses.length > 0) {
+        list = lmsData.courses.map(mapMedusaProductToCourse);
       }
     }
 
-    // 2. Query Medusa Store API
-    const res = await fetch(`${backendUrl}/store/products?limit=50&fields=*metadata`, {
-      headers: {
-        "Content-Type": "application/json",
-        "x-publishable-api-key": publishableKey,
-      },
-      cache: "no-store",
-    });
+    // 2. Query Medusa Store API if empty
+    if (list.length === 0) {
+      const res = await fetch(`${backendUrl}/store/products?limit=50&fields=*metadata`, {
+        headers: {
+          "Content-Type": "application/json",
+          "x-publishable-api-key": publishableKey,
+        },
+        cache: "no-store",
+      });
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.products && Array.isArray(data.products) && data.products.length > 0) {
-        return data.products.map(mapMedusaProductToCourse);
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data?.products && Array.isArray(data.products) && data.products.length > 0) {
+          list = data.products.map(mapMedusaProductToCourse);
+        }
       }
     }
   } catch {
     // Backend offline or empty
   }
 
-  return [];
+  // 3. Merge with persistent CMS overrides
+  try {
+    const { getPersistentCoursesCms } = await import("@/lib/data/courses-cms");
+    const cmsMap = await getPersistentCoursesCms();
+
+    for (const item of list) {
+      const override = cmsMap[item.slug] || cmsMap[item.slug.toLowerCase()];
+      if (override) {
+        if (override.faqs && override.faqs.length > 0) item.faqs = override.faqs;
+        if (override.highlights) item.highlights = { ...item.highlights, ...override.highlights };
+        if (override.subtitle) item.subtitle = override.subtitle;
+        if (override.badge) item.badge = override.badge;
+      }
+    }
+
+    // Add any courses recorded in CMS that are missing from Medusa
+    for (const [key, cmsItem] of Object.entries(cmsMap)) {
+      const exists = list.some((c) => c.slug.toLowerCase() === key.toLowerCase());
+      if (!exists && cmsItem) {
+        list.push({
+          slug: key,
+          title: key
+            .split("-")
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(" "),
+          subtitle: cmsItem.subtitle || "Masterclass on Sakil Hub.",
+          badge: cmsItem.badge || "Bestseller",
+          category: cmsItem.category || "Video Editing",
+          rating: 5.0,
+          reviewsCount: "0",
+          studentsCount: "0 Enrolled",
+          updatedDate: "2026",
+          level: cmsItem.level || "Beginner to Advanced",
+          price: `৳${(cmsItem.numericPrice || 1299).toLocaleString()}`,
+          originalPrice: `৳${(cmsItem.numericOriginalPrice || 3500).toLocaleString()}`,
+          discountPct: cmsItem.discountPct || "63% OFF",
+          numericPrice: cmsItem.numericPrice || 1299,
+          numericOriginalPrice: cmsItem.numericOriginalPrice || 3500,
+          image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80",
+          thumbnail: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80",
+          trailerImage: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
+          trailerVideo: "",
+          instructor: {
+            name: cmsItem.instructorName || "Sakil Ahmed",
+            role: cmsItem.instructorRole || "Lead Filmmaker & Video Editor",
+            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
+            bio: "8+ years in commercial video editing.",
+            experience: "8+ Years",
+            projects: "400+",
+            students: "10K+",
+          },
+          highlights: {
+            hours: cmsItem.highlights?.hours || "18+ Hours",
+            lessons: cmsItem.highlights?.lessons || "Comprehensive",
+            access: cmsItem.highlights?.access || "Lifetime Access",
+            certificate: cmsItem.highlights?.certificate || "Certificate Included",
+          },
+          description: cmsItem.subtitle || "Comprehensive masterclass on Sakil Hub.",
+          whatYouWillLearn: [],
+          includes: [],
+          requirements: [],
+          curriculum: cmsItem.curriculum || [],
+          faqs: cmsItem.faqs || [],
+        });
+      }
+    }
+  } catch {}
+
+  return list;
 }
 
 /**
@@ -531,6 +603,59 @@ export async function getLiveCourseBySlug(slug: string): Promise<CourseDetail | 
     } catch {
       // Backend unreachable
     }
+
+    // 4. CMS Override Fallback
+    try {
+      const { getCourseCmsOverride } = await import("@/lib/data/courses-cms");
+      const cmsOverride = await getCourseCmsOverride(slug);
+      if (cmsOverride) {
+        return {
+          slug,
+          title: slug
+            .split("-")
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(" "),
+          subtitle: cmsOverride.subtitle || "Masterclass on Sakil Hub.",
+          badge: cmsOverride.badge || "Bestseller",
+          category: cmsOverride.category || "Video Editing",
+          rating: 5.0,
+          reviewsCount: "0",
+          studentsCount: "0 Enrolled",
+          updatedDate: "2026",
+          level: cmsOverride.level || "Beginner to Advanced",
+          price: `৳${(cmsOverride.numericPrice || 1299).toLocaleString()}`,
+          originalPrice: `৳${(cmsOverride.numericOriginalPrice || 3500).toLocaleString()}`,
+          discountPct: cmsOverride.discountPct || "63% OFF",
+          numericPrice: cmsOverride.numericPrice || 1299,
+          numericOriginalPrice: cmsOverride.numericOriginalPrice || 3500,
+          image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80",
+          thumbnail: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=800&q=80",
+          trailerImage: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
+          trailerVideo: "",
+          instructor: {
+            name: cmsOverride.instructorName || "Sakil Ahmed",
+            role: cmsOverride.instructorRole || "Lead Filmmaker & Video Editor",
+            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
+            bio: "8+ years in commercial video editing.",
+            experience: "8+ Years",
+            projects: "400+",
+            students: "10K+",
+          },
+          highlights: {
+            hours: cmsOverride.highlights?.hours || "18+ Hours",
+            lessons: cmsOverride.highlights?.lessons || "Comprehensive",
+            access: cmsOverride.highlights?.access || "Lifetime Access",
+            certificate: cmsOverride.highlights?.certificate || "Certificate Included",
+          },
+          description: cmsOverride.subtitle || "Comprehensive masterclass on Sakil Hub.",
+          whatYouWillLearn: [],
+          includes: [],
+          requirements: [],
+          curriculum: cmsOverride.curriculum || [],
+          faqs: cmsOverride.faqs || [],
+        };
+      }
+    } catch {}
   } catch (err) {
     console.error("getLiveCourseBySlug error:", err);
   }

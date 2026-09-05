@@ -17,6 +17,7 @@ import { resolveMediaUrl } from "@/lib/data/courses";
 interface ImageUploaderProps {
   value?: string;
   onChange: (imageUrl: string) => void;
+  onUploadingChange?: (isUploading: boolean) => void;
   label?: string;
   className?: string;
 }
@@ -24,6 +25,7 @@ interface ImageUploaderProps {
 export default function ImageUploader({
   value = "",
   onChange,
+  onUploadingChange,
   label = "Course Thumbnail Image",
   className = "",
 }: ImageUploaderProps) {
@@ -33,6 +35,7 @@ export default function ImageUploader({
   const [isUrlMode, setIsUrlMode] = useState(false);
   const [urlInput, setUrlInput] = useState(value);
   const [hasLoadError, setHasLoadError] = useState(false);
+  const [localPreview, setLocalPreview] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,7 +43,7 @@ export default function ImageUploader({
     setHasLoadError(false);
   }, [value]);
 
-  const previewUrl = resolveMediaUrl(value) || value;
+  const previewUrl = localPreview || resolveMediaUrl(value) || value;
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -60,76 +63,60 @@ export default function ImageUploader({
 
     setErrorMsg("");
     setIsUploading(true);
+    onUploadingChange?.(true);
     setProgress(0);
     setHasLoadError(false);
 
-    // 1. Immediate Instant Base64 Preview
+    // 1. Immediate Instant Preview in browser
     const reader = new FileReader();
     reader.onload = (event) => {
       const base64Data = event.target?.result as string;
       if (base64Data) {
-        onChange(base64Data);
+        setLocalPreview(base64Data);
       }
     };
     reader.readAsDataURL(file);
 
     try {
-      // 2. Upload to Cloudflare R2
-      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-      const presignedRes = await getPresignedUploadUrl(
-        `thumbnails/${Date.now()}-${sanitizedName}`,
-        file.type || "image/jpeg"
-      );
+      // 2. Upload to server upload endpoint
+      const formData = new FormData();
+      formData.append("file", file);
 
-      if (presignedRes.success && presignedRes.uploadUrl && presignedRes.objectKey) {
-        const targetKey = presignedRes.objectKey;
-
-        if (presignedRes.uploadUrl === "SIMULATED_R2_UPLOAD") {
-          let currentProg = 0;
-          const interval = setInterval(() => {
-            currentProg += 25;
-            if (currentProg >= 100) {
-              clearInterval(interval);
-              setProgress(100);
-              setIsUploading(false);
-              onChange(`/api/r2/${targetKey}`);
-            } else {
-              setProgress(currentProg);
-            }
-          }, 120);
-          return;
+      const xhr = new XMLHttpRequest();
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          setProgress(percent);
         }
+      };
 
-        // Direct Browser-to-R2 Upload
-        const xhr = new XMLHttpRequest();
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
-            setProgress(percent);
-          }
-        };
-
-        xhr.onload = () => {
-          setIsUploading(false);
-          if (xhr.status >= 200 && xhr.status < 300) {
-            // Set permanent streaming R2 URL
-            onChange(`/api/r2/${targetKey}`);
-          }
-        };
-
-        xhr.onerror = () => {
-          setIsUploading(false);
-          // Fallback preserves the base64 preview
-        };
-
-        xhr.open("PUT", presignedRes.uploadUrl, true);
-        xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
-        xhr.send(file);
-      } else {
+      xhr.onload = () => {
         setIsUploading(false);
-      }
-    } catch {
+        onUploadingChange?.(false);
+        try {
+          const res = JSON.parse(xhr.responseText);
+          if (res.success && res.url) {
+            onChange(res.url);
+          } else {
+            setErrorMsg(res.error || "Image upload failed.");
+          }
+        } catch {
+          setErrorMsg("Failed to process upload response.");
+        }
+      };
+
+      xhr.onerror = () => {
+        setIsUploading(false);
+        onUploadingChange?.(false);
+        setErrorMsg("Network error during image upload.");
+      };
+
+      xhr.open("POST", "/api/upload/image", true);
+      xhr.send(formData);
+    } catch (err: any) {
       setIsUploading(false);
+      onUploadingChange?.(false);
+      setErrorMsg(err.message || "Failed to upload image.");
     }
   };
 

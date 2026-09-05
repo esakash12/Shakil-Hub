@@ -2,8 +2,36 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import fs from "fs/promises";
+import path from "path";
 
 import { saveCourseCmsOverride, getCourseCmsOverride, CourseFaqItem } from "@/lib/data/courses-cms";
+
+async function persistBase64Image(dataUri?: string): Promise<string> {
+  if (!dataUri || !dataUri.startsWith("data:")) return dataUri || "";
+  try {
+    const matches = dataUri.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (matches && matches.length === 3) {
+      const ext = matches[1].split("/")[1]?.replace("+xml", "") || "png";
+      const buffer = Buffer.from(matches[2], "base64");
+      const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+      const targets = [
+        path.join(process.cwd(), "public", "uploads", "thumbnails", filename),
+        path.join(process.cwd(), ".next", "standalone", "public", "uploads", "thumbnails", filename),
+      ];
+      for (const t of targets) {
+        try {
+          await fs.mkdir(path.dirname(t), { recursive: true });
+          await fs.writeFile(t, buffer);
+        } catch {}
+      }
+      return `/uploads/thumbnails/${filename}`;
+    }
+  } catch (err) {
+    console.error("Failed to decode base64 thumbnail:", err);
+  }
+  return "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80";
+}
 
 export interface CoursePayload {
   title: string;
@@ -88,6 +116,11 @@ export async function createAdminCourseAction(payload: CoursePayload) {
       };
     }
 
+    const cleanThumbnail = await persistBase64Image(thumbnail?.trim() || "");
+    const safeThumbnail =
+      cleanThumbnail ||
+      "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80";
+
     const slug = slugify(title) || `course-${Date.now()}`;
     const backendUrl =
       process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
@@ -96,13 +129,13 @@ export async function createAdminCourseAction(payload: CoursePayload) {
     const bodyData = {
       title: title.trim(),
       description: description.trim(),
-      thumbnail: thumbnail.trim(),
+      thumbnail: safeThumbnail,
       trailerUrl: trailerUrl.trim(),
       priceBdt: Number(priceBdt) || 1299,
       instructor: instructor.trim(),
       metadata: {
-        thumbnail: thumbnail.trim(),
-        image: thumbnail.trim(),
+        thumbnail: safeThumbnail,
+        image: safeThumbnail,
         trailer_url: trailerUrl.trim(),
         trailerUrl: trailerUrl.trim(),
         instructor: instructor.trim(),
@@ -146,6 +179,8 @@ export async function createAdminCourseAction(payload: CoursePayload) {
     }
 
     let productData: any = null;
+    let createError = "";
+
     try {
       let response = await fetch(`${backendUrl}/lms/courses/create`, {
         method: "POST",
@@ -163,12 +198,24 @@ export async function createAdminCourseAction(payload: CoursePayload) {
         });
       }
 
-      if (response.ok) {
-        const data = await response.json().catch(() => null);
-        productData = data?.product;
+      const resData = await response.json().catch(() => null);
+
+      if (response.ok && (resData?.success !== false || resData?.product)) {
+        productData = resData?.product;
+      } else {
+        createError = resData?.message || `Medusa rejected creation with HTTP ${response.status}`;
+        console.error("MEDUSA CREATE ERROR:", response.status, resData);
       }
     } catch (medusaErr: any) {
-      console.warn("MEDUSA CREATE OFFLINE (persisted to CMS override):", medusaErr.message || medusaErr);
+      createError = medusaErr.message || "Failed to reach Medusa backend.";
+      console.warn("MEDUSA CREATE FAILED:", medusaErr.message || medusaErr);
+    }
+
+    if (!productData) {
+      return {
+        success: false,
+        error: createError || "Failed to create course in Medusa database. Please check inputs.",
+      };
     }
 
     try {
@@ -180,8 +227,8 @@ export async function createAdminCourseAction(payload: CoursePayload) {
 
     return {
       success: true,
-      product: productData || { id: slug, handle: slug, title: title.trim() },
-      slug,
+      product: productData,
+      slug: productData.handle || slug,
     };
   } catch (err: any) {
     console.error("CREATE ADMIN COURSE ACTION ERROR:", err);
@@ -275,7 +322,7 @@ export async function updateAdminCourseAction(
       process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
     const headers = await getAuthHeaders();
 
-    const formattedThumbnail = payload.thumbnail?.trim() || "";
+    const formattedThumbnail = await persistBase64Image(payload.thumbnail?.trim() || "");
     const formattedTrailer = payload.trailerUrl?.trim() || "";
     const formattedInstructor = payload.instructor?.trim() || "";
 
@@ -285,7 +332,6 @@ export async function updateAdminCourseAction(
       description: payload.description?.trim(),
       thumbnail: formattedThumbnail,
       image: formattedThumbnail,
-      images: formattedThumbnail ? [{ url: formattedThumbnail }] : undefined,
       trailerUrl: formattedTrailer,
       instructor: formattedInstructor,
       priceBdt: payload.priceBdt ? Number(payload.priceBdt) : undefined,
