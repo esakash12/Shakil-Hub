@@ -156,16 +156,15 @@ export default function AdminCreateCoursePage() {
 
       if (res.success) {
         setIsSuccess(true);
-        const destination = res.slug ? `/admin/courses/${res.slug}` : "/admin/courses";
+        const destination = "/admin/courses";
         setTimeout(() => {
-          router.push(destination);
-          router.refresh();
-        }, 1000);
+          window.location.href = destination;
+        }, 800);
       } else {
         setErrorMsg(res.error || "Failed to create masterclass.");
       }
-    } catch {
-      setErrorMsg("A network error occurred. Please try again.");
+    } catch (err: any) {
+      setErrorMsg(err?.message || "A network error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

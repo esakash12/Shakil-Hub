@@ -60,9 +60,8 @@ async function getAuthHeaders() {
     "x-medusa-access-token": apiKey,
   };
 
-  if (adminToken) {
+  if (adminToken && (adminToken.startsWith("eyJ") || adminToken.startsWith("adm_jwt_"))) {
     headers["Authorization"] = `Bearer ${adminToken}`;
-    headers["Cookie"] = `sakil_admin_token=${adminToken}`;
   }
 
   return headers;
@@ -72,115 +71,123 @@ async function getAuthHeaders() {
  * Enterprise Headless Course Creation Action
  */
 export async function createAdminCourseAction(payload: CoursePayload) {
-  const {
-    title,
-    description = "",
-    thumbnail = "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
-    trailerUrl = "https://youtube.com/watch?v=demo",
-    instructor = "Sakil Ahmed",
-    priceBdt = 1299,
-  } = payload;
-
-  if (!title?.trim()) {
-    return {
-      success: false,
-      error: "Course Title is required.",
-    };
-  }
-
-  const slug = slugify(title) || `course-${Date.now()}`;
-  const backendUrl =
-    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-  const headers = await getAuthHeaders();
-
-  const bodyData = {
-    title: title.trim(),
-    description: description.trim(),
-    thumbnail: thumbnail.trim(),
-    trailerUrl: trailerUrl.trim(),
-    priceBdt: Number(priceBdt) || 1299,
-    instructor: instructor.trim(),
-    metadata: {
-      thumbnail: thumbnail.trim(),
-      image: thumbnail.trim(),
-      trailer_url: trailerUrl.trim(),
-      trailerUrl: trailerUrl.trim(),
-      instructor: instructor.trim(),
-      instructorId: payload.instructorId,
-      subtitle: payload.subtitle,
-      badge: payload.badge,
-      category: payload.category,
-      level: payload.level,
-      mainSlogan: payload.mainSlogan,
-      heroSlogan: payload.heroSlogan,
-      numericPrice: Number(priceBdt) || 1299,
-      numericOriginalPrice: payload.originalPriceBdt ? Number(payload.originalPriceBdt) : undefined,
-      discountPct: payload.discountPct,
-      highlights: payload.highlights,
-      faqs: payload.faqs,
-      whatYouWillLearn: payload.whatYouWillLearn,
-      requirements: payload.requirements,
-      includes: payload.includes,
-    },
-  };
-
-  // 1. Always persist CMS override immediately to prevent data loss
-  await saveCourseCmsOverride(slug, {
-    subtitle: payload.subtitle,
-    badge: payload.badge,
-    category: payload.category,
-    level: payload.level,
-    mainSlogan: payload.mainSlogan,
-    heroSlogan: payload.heroSlogan,
-    numericPrice: Number(priceBdt) || 1299,
-    numericOriginalPrice: payload.originalPriceBdt ? Number(payload.originalPriceBdt) : undefined,
-    discountPct: payload.discountPct,
-    instructorId: payload.instructorId,
-    instructorName: instructor.trim(),
-    highlights: payload.highlights,
-    faqs: payload.faqs,
-  });
-
   try {
-    let response = await fetch(`${backendUrl}/lms/courses/create`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(bodyData),
-      cache: "no-store",
-    });
+    const {
+      title,
+      description = "",
+      thumbnail = "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
+      trailerUrl = "https://youtube.com/watch?v=demo",
+      instructor = "Sakil Ahmed",
+      priceBdt = 1299,
+    } = payload;
 
-    if (!response.ok && response.status === 404) {
-      response = await fetch(`${backendUrl}/admin/courses/create`, {
+    if (!title?.trim()) {
+      return {
+        success: false,
+        error: "Course Title is required.",
+      };
+    }
+
+    const slug = slugify(title) || `course-${Date.now()}`;
+    const backendUrl =
+      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+    const headers = await getAuthHeaders();
+
+    const bodyData = {
+      title: title.trim(),
+      description: description.trim(),
+      thumbnail: thumbnail.trim(),
+      trailerUrl: trailerUrl.trim(),
+      priceBdt: Number(priceBdt) || 1299,
+      instructor: instructor.trim(),
+      metadata: {
+        thumbnail: thumbnail.trim(),
+        image: thumbnail.trim(),
+        trailer_url: trailerUrl.trim(),
+        trailerUrl: trailerUrl.trim(),
+        instructor: instructor.trim(),
+        instructorId: payload.instructorId,
+        subtitle: payload.subtitle,
+        badge: payload.badge,
+        category: payload.category,
+        level: payload.level,
+        mainSlogan: payload.mainSlogan,
+        heroSlogan: payload.heroSlogan,
+        numericPrice: Number(priceBdt) || 1299,
+        numericOriginalPrice: payload.originalPriceBdt ? Number(payload.originalPriceBdt) : undefined,
+        discountPct: payload.discountPct,
+        highlights: payload.highlights,
+        faqs: payload.faqs,
+        whatYouWillLearn: payload.whatYouWillLearn,
+        requirements: payload.requirements,
+        includes: payload.includes,
+      },
+    };
+
+    // 1. Always persist CMS override immediately (failsafe)
+    try {
+      await saveCourseCmsOverride(slug, {
+        subtitle: payload.subtitle,
+        badge: payload.badge,
+        category: payload.category,
+        level: payload.level,
+        mainSlogan: payload.mainSlogan,
+        heroSlogan: payload.heroSlogan,
+        numericPrice: Number(priceBdt) || 1299,
+        numericOriginalPrice: payload.originalPriceBdt ? Number(payload.originalPriceBdt) : undefined,
+        discountPct: payload.discountPct,
+        instructorId: payload.instructorId,
+        instructorName: instructor.trim(),
+        highlights: payload.highlights,
+        faqs: payload.faqs,
+      });
+    } catch (cmsErr: any) {
+      console.warn("CMS OVERRIDE WRITE WARNING:", cmsErr.message);
+    }
+
+    let productData: any = null;
+    try {
+      let response = await fetch(`${backendUrl}/lms/courses/create`, {
         method: "POST",
         headers,
         body: JSON.stringify(bodyData),
         cache: "no-store",
       });
+
+      if (!response.ok && response.status === 404) {
+        response = await fetch(`${backendUrl}/admin/courses/create`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(bodyData),
+          cache: "no-store",
+        });
+      }
+
+      if (response.ok) {
+        const data = await response.json().catch(() => null);
+        productData = data?.product;
+      }
+    } catch (medusaErr: any) {
+      console.warn("MEDUSA CREATE OFFLINE (persisted to CMS override):", medusaErr.message || medusaErr);
     }
 
-    const data = await response.json().catch(() => null);
-
-    revalidatePath("/admin/courses");
-    revalidatePath("/admin");
-    revalidatePath("/courses");
-    revalidatePath("/");
+    try {
+      revalidatePath("/admin/courses");
+      revalidatePath("/admin");
+      revalidatePath("/courses");
+      revalidatePath("/");
+    } catch {}
 
     return {
       success: true,
-      product: data?.product || { id: slug, handle: slug, title: title.trim() },
+      product: productData || { id: slug, handle: slug, title: title.trim() },
       slug,
     };
   } catch (err: any) {
-    console.warn("MEDUSA CREATE OFFLINE (persisted to CMS override):", err.message || err);
-    revalidatePath("/admin/courses");
-    revalidatePath("/admin");
-    revalidatePath("/courses");
-    revalidatePath("/");
-
+    console.error("CREATE ADMIN COURSE ACTION ERROR:", err);
     return {
-      success: true,
-      product: { id: slug, handle: slug, title: title.trim() },
-      slug,
+      success: false,
+      error: err.message || "Failed to create course. Please verify details and try again.",
     };
   }
 }
@@ -259,93 +266,56 @@ export async function updateAdminCourseAction(
   id: string,
   payload: Partial<CoursePayload>
 ) {
-  if (!id) {
-    return { success: false, error: "Course ID is required." };
-  }
-
-  const backendUrl =
-    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-  const headers = await getAuthHeaders();
-
-  const formattedThumbnail = payload.thumbnail?.trim() || "";
-  const formattedTrailer = payload.trailerUrl?.trim() || "";
-  const formattedInstructor = payload.instructor?.trim() || "";
-
-  const bodyData = {
-    ...payload,
-    title: payload.title?.trim(),
-    description: payload.description?.trim(),
-    thumbnail: formattedThumbnail,
-    image: formattedThumbnail,
-    images: formattedThumbnail ? [{ url: formattedThumbnail }] : undefined,
-    trailerUrl: formattedTrailer,
-    instructor: formattedInstructor,
-    priceBdt: payload.priceBdt ? Number(payload.priceBdt) : undefined,
-    metadata: {
-      thumbnail: formattedThumbnail,
-      image: formattedThumbnail,
-      trailer_url: formattedTrailer,
-      trailerUrl: formattedTrailer,
-      instructor: formattedInstructor,
-      instructorId: payload.instructorId,
-      subtitle: payload.subtitle,
-      badge: payload.badge,
-      category: payload.category,
-      level: payload.level,
-      mainSlogan: payload.mainSlogan,
-      heroSlogan: payload.heroSlogan,
-      numericPrice: payload.priceBdt ? Number(payload.priceBdt) : undefined,
-      numericOriginalPrice: payload.originalPriceBdt ? Number(payload.originalPriceBdt) : undefined,
-      discountPct: payload.discountPct,
-      whatYouWillLearn: payload.whatYouWillLearn,
-      requirements: payload.requirements,
-      includes: payload.includes,
-      highlights: payload.highlights,
-      faqs: payload.faqs,
-    },
-  };
-
-  // Always save to persistent courses CMS override
-  await saveCourseCmsOverride(id, {
-    subtitle: payload.subtitle,
-    badge: payload.badge,
-    category: payload.category,
-    level: payload.level,
-    mainSlogan: payload.mainSlogan,
-    heroSlogan: payload.heroSlogan,
-    numericPrice: payload.priceBdt ? Number(payload.priceBdt) : undefined,
-    numericOriginalPrice: payload.originalPriceBdt ? Number(payload.originalPriceBdt) : undefined,
-    discountPct: payload.discountPct,
-    instructorId: payload.instructorId,
-    instructorName: payload.instructor,
-    highlights: payload.highlights,
-    faqs: payload.faqs,
-  });
-
   try {
-    let response = await fetch(`${backendUrl}/lms/courses/${id}`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(bodyData),
-      cache: "no-store",
-    });
-
-    if (!response.ok && response.status === 404) {
-      response = await fetch(`${backendUrl}/admin/courses/${id}`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(bodyData),
-        cache: "no-store",
-      });
+    if (!id) {
+      return { success: false, error: "Course ID is required." };
     }
 
-    const data = await response.json().catch(() => null);
+    const backendUrl =
+      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+    const headers = await getAuthHeaders();
 
-    const courseHandle = data?.product?.handle || id;
+    const formattedThumbnail = payload.thumbnail?.trim() || "";
+    const formattedTrailer = payload.trailerUrl?.trim() || "";
+    const formattedInstructor = payload.instructor?.trim() || "";
 
-    // Save under handle as well if different from id
-    if (courseHandle && courseHandle !== id) {
-      await saveCourseCmsOverride(courseHandle, {
+    const bodyData = {
+      ...payload,
+      title: payload.title?.trim(),
+      description: payload.description?.trim(),
+      thumbnail: formattedThumbnail,
+      image: formattedThumbnail,
+      images: formattedThumbnail ? [{ url: formattedThumbnail }] : undefined,
+      trailerUrl: formattedTrailer,
+      instructor: formattedInstructor,
+      priceBdt: payload.priceBdt ? Number(payload.priceBdt) : undefined,
+      metadata: {
+        thumbnail: formattedThumbnail,
+        image: formattedThumbnail,
+        trailer_url: formattedTrailer,
+        trailerUrl: formattedTrailer,
+        instructor: formattedInstructor,
+        instructorId: payload.instructorId,
+        subtitle: payload.subtitle,
+        badge: payload.badge,
+        category: payload.category,
+        level: payload.level,
+        mainSlogan: payload.mainSlogan,
+        heroSlogan: payload.heroSlogan,
+        numericPrice: payload.priceBdt ? Number(payload.priceBdt) : undefined,
+        numericOriginalPrice: payload.originalPriceBdt ? Number(payload.originalPriceBdt) : undefined,
+        discountPct: payload.discountPct,
+        whatYouWillLearn: payload.whatYouWillLearn,
+        requirements: payload.requirements,
+        includes: payload.includes,
+        highlights: payload.highlights,
+        faqs: payload.faqs,
+      },
+    };
+
+    // Always save to persistent courses CMS override (safe)
+    try {
+      await saveCourseCmsOverride(id, {
         subtitle: payload.subtitle,
         badge: payload.badge,
         category: payload.category,
@@ -360,32 +330,88 @@ export async function updateAdminCourseAction(
         highlights: payload.highlights,
         faqs: payload.faqs,
       });
+    } catch (cmsErr: any) {
+      console.warn("CMS OVERRIDE UPDATE WARNING:", cmsErr.message);
     }
 
-    revalidatePath("/admin/courses");
-    revalidatePath(`/admin/courses/${id}`);
-    revalidatePath(`/admin/courses/${courseHandle}`);
-    revalidatePath("/admin");
-    revalidatePath("/courses");
-    revalidatePath(`/courses/${courseHandle}`);
-    revalidatePath(`/courses/${courseHandle}/curriculum`);
-    revalidatePath(`/courses/${courseHandle}/instructor`);
-    revalidatePath(`/courses/${courseHandle}/reviews`);
-    revalidatePath(`/checkout/${courseHandle}`);
-    revalidatePath(`/learn/${courseHandle}`);
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/courses");
-    revalidatePath("/");
+    let productData: any = null;
+    let courseHandle = id;
+
+    try {
+      let response = await fetch(`${backendUrl}/lms/courses/${id}`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(bodyData),
+        cache: "no-store",
+      });
+
+      if (!response.ok && response.status === 404) {
+        response = await fetch(`${backendUrl}/admin/courses/${id}`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(bodyData),
+          cache: "no-store",
+        });
+      }
+
+      if (response.ok) {
+        const data = await response.json().catch(() => null);
+        productData = data?.product;
+        if (data?.product?.handle) {
+          courseHandle = data.product.handle;
+        }
+      }
+    } catch (medusaErr: any) {
+      console.warn("MEDUSA UPDATE OFFLINE (falling back to CMS override):", medusaErr.message || medusaErr);
+    }
+
+    // Save under handle as well if different from id
+    if (courseHandle && courseHandle !== id) {
+      try {
+        await saveCourseCmsOverride(courseHandle, {
+          subtitle: payload.subtitle,
+          badge: payload.badge,
+          category: payload.category,
+          level: payload.level,
+          mainSlogan: payload.mainSlogan,
+          heroSlogan: payload.heroSlogan,
+          numericPrice: payload.priceBdt ? Number(payload.priceBdt) : undefined,
+          numericOriginalPrice: payload.originalPriceBdt ? Number(payload.originalPriceBdt) : undefined,
+          discountPct: payload.discountPct,
+          instructorId: payload.instructorId,
+          instructorName: payload.instructor,
+          highlights: payload.highlights,
+          faqs: payload.faqs,
+        });
+      } catch {}
+    }
+
+    try {
+      revalidatePath("/admin/courses");
+      revalidatePath(`/admin/courses/${id}`);
+      revalidatePath(`/admin/courses/${courseHandle}`);
+      revalidatePath("/admin");
+      revalidatePath("/courses");
+      revalidatePath(`/courses/${courseHandle}`);
+      revalidatePath(`/courses/${courseHandle}/curriculum`);
+      revalidatePath(`/courses/${courseHandle}/instructor`);
+      revalidatePath(`/courses/${courseHandle}/reviews`);
+      revalidatePath(`/checkout/${courseHandle}`);
+      revalidatePath(`/learn/${courseHandle}`);
+      revalidatePath("/dashboard");
+      revalidatePath("/dashboard/courses");
+      revalidatePath("/");
+    } catch {}
 
     return {
       success: true,
-      product: data?.product || { id, handle: courseHandle, title: payload.title },
+      product: productData || { id, handle: courseHandle, title: payload.title },
     };
   } catch (err: any) {
-    console.warn("MEDUSA UPDATE OFFLINE (falling back to CMS override):", err.message);
+    console.error("UPDATE ADMIN COURSE ACTION ERROR:", err);
     return {
-      success: true,
-      product: { id, handle: id, title: payload.title },
+      success: false,
+      error: err.message || "Failed to update course.",
     };
   }
 }

@@ -15,9 +15,9 @@ export async function writeDataFile(filename: string, data: any): Promise<void> 
 
   for (const target of targets) {
     try {
-      if (fsSync.existsSync(path.dirname(target))) {
-        await fs.writeFile(target, content, "utf8");
-      }
+      const dir = path.dirname(target);
+      await fs.mkdir(dir, { recursive: true });
+      await fs.writeFile(target, content, "utf8");
     } catch {}
   }
 }
