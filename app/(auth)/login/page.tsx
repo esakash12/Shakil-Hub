@@ -43,8 +43,7 @@ function LoginForm() {
     if (result.success) {
       const destination =
         redirectUrl && redirectUrl.startsWith("/") ? redirectUrl : "/dashboard";
-      router.push(destination);
-      router.refresh();
+      window.location.href = destination;
     } else {
       setError(result.error || "Invalid email or password.");
       setLoading(false);

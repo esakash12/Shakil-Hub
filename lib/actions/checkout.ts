@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { clearCartAction } from "@/lib/actions/cart";
+import { getSessionCookieOptions } from "@/lib/security/cookies";
 import { getCourseBySlug, getLiveCourseBySlug, CourseDetail } from "@/lib/data/courses";
 import { getShopProductBySlug } from "@/lib/data/shop";
 import { savePersistentOrder } from "@/lib/data/orders";
@@ -290,22 +291,10 @@ export async function processManualCheckout(
     // Add or update order
     pendingOrders = [orderRecord, ...pendingOrders.filter((o) => o.orderId !== orderRecord.orderId)];
 
-    cookieStore.set("sakil_pending_orders", JSON.stringify(pendingOrders), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-      path: "/",
-    });
+    cookieStore.set("sakil_pending_orders", JSON.stringify(pendingOrders), getSessionCookieOptions(60 * 60 * 24 * 30));
 
     // Store active order for immediate success page rendering
-    cookieStore.set(`sakil_order_${orderRecord.orderId}`, JSON.stringify(orderRecord), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    cookieStore.set(`sakil_order_${orderRecord.orderId}`, JSON.stringify(orderRecord), getSessionCookieOptions());
 
     // 5. Clear cart
     await clearCartAction();

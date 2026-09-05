@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { getCourseBySlug, CourseDetail } from "@/lib/data/courses";
+import { getSessionCookieOptions } from "@/lib/security/cookies";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
@@ -62,13 +63,7 @@ export async function getOrCreateCart(): Promise<string> {
       const data = await res.json().catch(() => ({}));
       const cartId = data.cart?.id;
       if (cartId) {
-        cookieStore.set("medusa_cart_id", cartId, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: 60 * 60 * 24 * 7,
-          path: "/",
-        });
+        cookieStore.set("medusa_cart_id", cartId, getSessionCookieOptions());
         return cartId;
       }
     }
@@ -77,13 +72,7 @@ export async function getOrCreateCart(): Promise<string> {
   }
 
   const fallbackId = `cart_${Date.now()}`;
-  cookieStore.set("medusa_cart_id", fallbackId, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7,
-    path: "/",
-  });
+  cookieStore.set("medusa_cart_id", fallbackId, getSessionCookieOptions());
   return fallbackId;
 }
 
@@ -131,13 +120,7 @@ export async function addToCartAction(
       items = [newItem]; // In a course platform, usually 1 course at checkout or replace
     }
 
-    cookieStore.set("sakil_cart_items", JSON.stringify(items), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    cookieStore.set("sakil_cart_items", JSON.stringify(items), getSessionCookieOptions());
 
     const subtotal = items.reduce((acc, i) => acc + i.originalPrice * i.quantity, 0);
     const total = items.reduce((acc, i) => acc + i.price * i.quantity, 0);

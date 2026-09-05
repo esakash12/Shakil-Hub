@@ -57,12 +57,17 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect authenticated students away from login/register pages only when visiting login directly without query params
+  // Redirect authenticated students away from login/register pages
   if (isStudentAuthPath && customerToken) {
-    const redirectParam = searchParams.get("redirect");
     const hasError = searchParams.has("error");
-    if (!redirectParam && !hasError) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+    const isLogout = searchParams.get("logout") === "true";
+    if (!hasError && !isLogout) {
+      const redirectParam = searchParams.get("redirect");
+      const target =
+        redirectParam && redirectParam.startsWith("/")
+          ? redirectParam
+          : "/dashboard";
+      return NextResponse.redirect(new URL(target, request.url));
     }
   }
 

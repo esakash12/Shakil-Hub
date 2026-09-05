@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getClientIp, checkRateLimit } from "@/lib/security/rate-limit";
 import { sanitizeString } from "@/lib/security/sanitize";
 import { adminLoginSchema } from "@/lib/security/schemas";
+import { getSessionCookieOptions } from "@/lib/security/cookies";
 
 import crypto from "crypto";
 
@@ -153,13 +154,7 @@ export async function adminLoginAction(formData: FormData) {
   const finalToken = adminJwt || signAdminToken(email);
 
   const cookieStore = await cookies();
-  cookieStore.set(ADMIN_COOKIE_NAME, finalToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-  });
+  cookieStore.set(ADMIN_COOKIE_NAME, finalToken, getSessionCookieOptions());
 
   return {
     success: true,

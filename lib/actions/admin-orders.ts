@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { getSessionCookieOptions } from "@/lib/security/cookies";
 import {
   getPersistentOrders,
   updatePersistentOrderStatus,
@@ -184,13 +185,7 @@ export async function approveOrderAction(orderId: string): Promise<{
           return o;
         });
 
-        cookieStore.set("sakil_pending_orders", JSON.stringify(updated), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: 60 * 60 * 24 * 30,
-          path: "/",
-        });
+        cookieStore.set("sakil_pending_orders", JSON.stringify(updated), getSessionCookieOptions(60 * 60 * 24 * 30));
       } catch {}
     }
 
@@ -200,13 +195,7 @@ export async function approveOrderAction(orderId: string): Promise<{
       try {
         const single = JSON.parse(singleOrderRaw);
         single.status = "approved";
-        cookieStore.set(`sakil_order_${orderId}`, JSON.stringify(single), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: 60 * 60 * 24 * 7,
-          path: "/",
-        });
+        cookieStore.set(`sakil_order_${orderId}`, JSON.stringify(single), getSessionCookieOptions());
       } catch {}
     }
 
@@ -297,13 +286,7 @@ export async function rejectOrderAction(
           return o;
         });
 
-        cookieStore.set("sakil_pending_orders", JSON.stringify(updated), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: 60 * 60 * 24 * 30,
-          path: "/",
-        });
+        cookieStore.set("sakil_pending_orders", JSON.stringify(updated), getSessionCookieOptions(60 * 60 * 24 * 30));
       } catch {}
     }
 
@@ -313,13 +296,7 @@ export async function rejectOrderAction(
       try {
         const single = JSON.parse(singleOrderRaw);
         single.status = "rejected";
-        cookieStore.set(`sakil_order_${orderId}`, JSON.stringify(single), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: 60 * 60 * 24 * 7,
-          path: "/",
-        });
+        cookieStore.set(`sakil_order_${orderId}`, JSON.stringify(single), getSessionCookieOptions());
       } catch {}
     }
 
@@ -368,13 +345,7 @@ export async function deleteAdminOrderAction(orderId: string): Promise<{
         const filtered = orders.filter(
           (o) => o.orderId !== orderId && o.id !== orderId && o.orderNumber !== orderId
         );
-        cookieStore.set("sakil_pending_orders", JSON.stringify(filtered), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: 60 * 60 * 24 * 30,
-          path: "/",
-        });
+        cookieStore.set("sakil_pending_orders", JSON.stringify(filtered), getSessionCookieOptions(60 * 60 * 24 * 30));
       } catch {}
     }
 

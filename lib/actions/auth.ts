@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { savePersistentCustomer, findCustomerByEmail } from "@/lib/data/customers";
+import { getSessionCookieOptions } from "@/lib/security/cookies";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
@@ -146,6 +147,37 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
         // Continue
       }
     } else {
+      // 2b. Check persistent customer database (customers.json) fallback
+      const existing = await findCustomerByEmail(email);
+      if (existing) {
+        const { hashPassword } = await import("@/lib/data/customers");
+        const hashed = hashPassword(password);
+        if (!existing.passwordHash) {
+          existing.passwordHash = hashed;
+          await savePersistentCustomer(existing);
+        }
+        if (existing.passwordHash === hashed) {
+          const finalProfile = {
+            id: existing.id,
+            first_name: existing.firstName || "Student",
+            last_name: existing.lastName || "",
+            email: existing.email,
+          };
+
+          await purgeAllSessionCookies();
+
+          const cookieStore = await cookies();
+          const fallbackToken = `std_tok_${Buffer.from(email).toString("base64")}_${Date.now()}`;
+          cookieStore.set("sakil_customer_token", fallbackToken, getSessionCookieOptions());
+          cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
+
+          return {
+            success: true,
+            customer: finalProfile,
+          };
+        }
+      }
+
       // 3. Medusa v1 Fallback: POST /store/auth
       const v1Res = await fetch(`${BACKEND_URL}/store/auth`, {
         method: "POST",
@@ -183,13 +215,7 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
 
     // Set Session Token Cookie & Customer Profile Info
     const cookieStore = await cookies();
-    cookieStore.set("sakil_customer_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-    });
+    cookieStore.set("sakil_customer_token", token, getSessionCookieOptions());
 
     const finalProfile = {
       id: customerObj?.id,
@@ -198,13 +224,7 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
       email: customerObj?.email || email,
     };
 
-    cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
 
     return {
       success: true,
@@ -217,7 +237,11 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
       if (existing) {
         const { hashPassword } = await import("@/lib/data/customers");
         const hashed = hashPassword(password);
-        const isMatch = !existing.passwordHash || existing.passwordHash === hashed;
+        if (!existing.passwordHash) {
+          existing.passwordHash = hashed;
+          await savePersistentCustomer(existing);
+        }
+        const isMatch = existing.passwordHash === hashed;
 
         if (isMatch) {
           const finalProfile = {
@@ -231,20 +255,8 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
 
           const cookieStore = await cookies();
           const fallbackToken = `std_tok_${Buffer.from(email).toString("base64")}_${Date.now()}`;
-          cookieStore.set("sakil_customer_token", fallbackToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 7,
-            path: "/",
-          });
-          cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 7,
-            path: "/",
-          });
+          cookieStore.set("sakil_customer_token", fallbackToken, getSessionCookieOptions());
+          cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
 
           return {
             success: true,
@@ -362,13 +374,7 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
 
     // Save session in Cookie & Customer Info
     const cookieStore = await cookies();
-    cookieStore.set("sakil_customer_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    cookieStore.set("sakil_customer_token", token, getSessionCookieOptions());
 
     const finalProfile = {
       id: customerId,
@@ -377,13 +383,7 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
       email: customerObj?.email || email,
     };
 
-    cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
 
     return {
       success: true,
@@ -415,13 +415,7 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
 
       const fallbackToken = `std_tok_${Buffer.from(email).toString("base64")}_${Date.now()}`;
       const cookieStore = await cookies();
-      cookieStore.set("sakil_customer_token", fallbackToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
-        path: "/",
-      });
+      cookieStore.set("sakil_customer_token", fallbackToken, getSessionCookieOptions());
 
       const finalProfile = {
         id: customerId,
@@ -430,13 +424,7 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
         email: email,
       };
 
-      cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
-        path: "/",
-      });
+      cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
 
       return {
         success: true,
@@ -687,13 +675,7 @@ export async function updateCustomerProfileAction(formData: FormData): Promise<{
       });
     }
 
-    cookieStore.set("sakil_customer_info", JSON.stringify(updatedProfile), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    cookieStore.set("sakil_customer_info", JSON.stringify(updatedProfile), getSessionCookieOptions());
 
     return {
       success: true,

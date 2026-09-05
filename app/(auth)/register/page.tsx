@@ -26,8 +26,7 @@ function RegisterForm() {
     if (result.success) {
       const destination =
         redirectUrl && redirectUrl.startsWith("/") ? redirectUrl : "/dashboard";
-      router.push(destination);
-      router.refresh();
+      window.location.href = destination;
     } else {
       setError(result.error || "Registration failed. Please try again.");
       setLoading(false);
