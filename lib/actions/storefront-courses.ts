@@ -168,24 +168,6 @@ export async function getLiveCourseAction(slug: string): Promise<{
       // Backend unreachable
     }
 
-    // Fallback: Check if course exists in persistent CMS overrides
-    const cmsOverride = await getCourseCmsOverride(slug);
-    if (cmsOverride) {
-      const fallbackProduct = {
-        handle: slug,
-        title: slug
-          .split("-")
-          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-          .join(" "),
-        metadata: cmsOverride,
-      };
-      const fallbackCourse = mapMedusaProductToCourse(fallbackProduct);
-      return {
-        success: true,
-        course: await applyCmsOverrides(fallbackCourse, slug),
-      };
-    }
-
     // Strict 404: Course does not exist
     return {
       success: false,
@@ -194,25 +176,6 @@ export async function getLiveCourseAction(slug: string): Promise<{
     };
   } catch (err: any) {
     console.error("SERVER ACTION getLiveCourseAction ERROR:", err.message || err);
-    try {
-      const cmsOverride = await getCourseCmsOverride(slug);
-      if (cmsOverride) {
-        const fallbackProduct = {
-          handle: slug,
-          title: slug
-            .split("-")
-            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(" "),
-          metadata: cmsOverride,
-        };
-        const fallbackCourse = mapMedusaProductToCourse(fallbackProduct);
-        return {
-          success: true,
-          course: await applyCmsOverrides(fallbackCourse, slug),
-        };
-      }
-    } catch {}
-
     return {
       success: false,
       course: null,
@@ -295,18 +258,8 @@ export async function getLiveStorefrontCoursesAction(): Promise<{
     console.error("SERVER ACTION getLiveStorefrontCoursesAction ERROR:", err);
   }
 
-  // Fallback default courses
-  const defaultSlugs = [
-    "premiere-pro-masterclass",
-    "after-effects-masterclass",
-    "davinci-resolve-color-grading",
-  ];
-  const enriched = await Promise.all(
-    defaultSlugs.map((s) => applyCmsOverrides(getCourseBySlug(s), s))
-  );
-
   return {
     success: true,
-    courses: enriched,
+    courses: [],
   };
 }

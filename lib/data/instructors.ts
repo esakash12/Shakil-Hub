@@ -8,16 +8,34 @@ import { writeDataFile } from "./storage-helper";
 export * from "./instructor-types";
 
 const INSTRUCTORS_FILE = path.join(process.cwd(), "lib", "data", "instructors.json");
+const STANDALONE_INSTRUCTORS_FILE = path.join(
+  process.cwd(),
+  ".next",
+  "standalone",
+  "lib",
+  "data",
+  "instructors.json"
+);
 
 /**
  * Reads all persistent instructors from disk
  */
 export async function getPersistentInstructors(): Promise<InstructorItem[]> {
   try {
-    const data = await fs.readFile(INSTRUCTORS_FILE, "utf8");
-    const parsed = JSON.parse(data);
-    if (Array.isArray(parsed)) {
-      return parsed;
+    let data: string | null = null;
+    try {
+      data = await fs.readFile(INSTRUCTORS_FILE, "utf8");
+    } catch {
+      try {
+        data = await fs.readFile(STANDALONE_INSTRUCTORS_FILE, "utf8");
+      } catch {}
+    }
+
+    if (data) {
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
     }
   } catch (err: any) {
     if (err.code === "ENOENT") {

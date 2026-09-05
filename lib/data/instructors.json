@@ -1,95 +1,21 @@
 [
   {
-    "id": "rashedul-hasan",
-    "name": "Rashedul Hasan",
-    "role": "Lead Video Editor & Filmmaker",
-    "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
-    "experience": "8+ Years",
-    "projects": "500+",
-    "students": "10K+",
-    "bio": "Commercial video editor and YouTube creator with over 8 years of industry experience. Specializes in Adobe Premiere Pro speed-ramping, narrative pacing, and sound design.",
-    "socials": {
-      "youtube": "https://youtube.com",
-      "instagram": "https://instagram.com",
-      "facebook": "https://facebook.com",
-      "linkedin": "https://linkedin.com"
-    },
-    "courseSlugs": [
-      "premiere-pro-masterclass",
-      "after-effects-masterclass"
-    ],
-    "courses": [
-      {
-        "slug": "premiere-pro-masterclass",
-        "title": "Premiere Pro Masterclass: Complete Video Editing",
-        "badge": "Bestseller",
-        "price": "৳1,299"
-      },
-      {
-        "slug": "after-effects-masterclass",
-        "title": "After Effects Masterclass: VFX & Motion Graphics",
-        "badge": "Hot & New",
-        "price": "৳1,499"
-      }
-    ],
-    "createdAt": "2026-01-01T00:00:00.000Z",
-    "updatedAt": "2026-09-01T00:00:00.000Z"
-  },
-  {
     "id": "sakil-ahmed",
     "name": "Sakil Ahmed",
-    "role": "Senior Motion Designer & VFX Director",
+    "role": "Lead Filmmaker & Video Editor",
     "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80",
-    "experience": "7+ Years",
+    "experience": "8+ Years",
     "projects": "400+",
-    "students": "8K+",
-    "bio": "Passionate motion graphics artist and visual storyteller. Worked with high-profile advertising agencies and produced 3D broadcast packages for international brands.",
+    "students": "10K+",
+    "bio": "Commercial filmmaker and video editor with 8+ years of industry experience.",
     "socials": {
       "youtube": "https://youtube.com",
       "instagram": "https://instagram.com",
       "facebook": "https://facebook.com",
       "linkedin": "https://linkedin.com"
     },
-    "courseSlugs": [
-      "after-effects-masterclass"
-    ],
-    "courses": [
-      {
-        "slug": "after-effects-masterclass",
-        "title": "After Effects Masterclass: VFX & Motion Graphics",
-        "badge": "Hot & New",
-        "price": "৳1,499"
-      }
-    ],
-    "createdAt": "2026-01-01T00:00:00.000Z",
-    "updatedAt": "2026-09-01T00:00:00.000Z"
-  },
-  {
-    "id": "tanvir-hasan",
-    "name": "Tanvir Hasan",
-    "role": "Certified Colorist & Cinematographer",
-    "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80",
-    "experience": "6+ Years",
-    "projects": "300+",
-    "students": "5K+",
-    "bio": "Certified DaVinci Resolve Studio colorist. Color graded 50+ music videos, documentary films, and television commercials with Hollywood color management workflows.",
-    "socials": {
-      "youtube": "https://youtube.com",
-      "instagram": "https://instagram.com",
-      "facebook": "https://facebook.com",
-      "linkedin": "https://linkedin.com"
-    },
-    "courseSlugs": [
-      "davinci-resolve-color-grading"
-    ],
-    "courses": [
-      {
-        "slug": "davinci-resolve-color-grading",
-        "title": "DaVinci Resolve Studio: Hollywood Color Grading",
-        "badge": "Top Rated",
-        "price": "৳1,199"
-      }
-    ],
+    "courseSlugs": [],
+    "courses": [],
     "createdAt": "2026-01-01T00:00:00.000Z",
     "updatedAt": "2026-09-01T00:00:00.000Z"
   }

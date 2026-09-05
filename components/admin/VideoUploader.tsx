@@ -153,9 +153,51 @@ export default function VideoUploader({
         }
       };
 
+      const uploadViaServer = () => {
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+
+          const serverXhr = new XMLHttpRequest();
+          xhrRef.current = serverXhr;
+
+          serverXhr.upload.onprogress = (ev) => {
+            if (ev.lengthComputable) {
+              const p = Math.round((ev.loaded / ev.total) * 100);
+              setProgress(p);
+            }
+          };
+
+          serverXhr.onload = () => {
+            setIsUploading(false);
+            try {
+              const res = JSON.parse(serverXhr.responseText);
+              if (res.success && res.objectKey) {
+                onChange(res.objectKey, res.publicUrl || `/api/r2/${res.objectKey}`);
+              } else {
+                setErrorMsg(res.error || "Server video upload failed. Check R2 credentials or use a YouTube link.");
+              }
+            } catch {
+              setErrorMsg("Cloudflare R2 CORS rejected the upload. Please allow origin http://3.6.15.167:3000 in Cloudflare R2 CORS settings.");
+            }
+          };
+
+          serverXhr.onerror = () => {
+            setIsUploading(false);
+            setErrorMsg("Cloudflare R2 upload blocked by CORS policy. Please allow origin http://3.6.15.167:3000 in your Cloudflare R2 bucket settings.");
+          };
+
+          serverXhr.open("POST", "/api/upload/video", true);
+          serverXhr.send(formData);
+        } catch {
+          setIsUploading(false);
+          setErrorMsg("Direct R2 upload failed. Please verify Cloudflare R2 CORS settings.");
+        }
+      };
+
       xhr.onerror = () => {
-        setIsUploading(false);
-        setErrorMsg("Network error during direct R2 video upload.");
+        // Direct browser-to-R2 failed (CORS block) -> Automatic resilient server proxy fallback
+        uploadViaServer();
       };
 
       xhr.open("PUT", uploadUrl, true);
@@ -163,7 +205,7 @@ export default function VideoUploader({
       xhr.send(file);
     } catch (err: any) {
       setIsUploading(false);
-      setErrorMsg(err.message || "An error occurred during direct R2 upload.");
+      setErrorMsg(err.message || "An error occurred during video upload.");
     }
   };
 
