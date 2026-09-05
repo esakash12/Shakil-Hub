@@ -3,6 +3,8 @@ import fs from "fs/promises";
 import path from "path";
 import { InstructorItem } from "./instructor-types";
 
+import { writeDataFile } from "./storage-helper";
+
 export * from "./instructor-types";
 
 const INSTRUCTORS_FILE = path.join(process.cwd(), "lib", "data", "instructors.json");
@@ -19,7 +21,7 @@ export async function getPersistentInstructors(): Promise<InstructorItem[]> {
     }
   } catch (err: any) {
     if (err.code === "ENOENT") {
-      await fs.writeFile(INSTRUCTORS_FILE, JSON.stringify([], null, 2), "utf8");
+      await writeDataFile("instructors.json", []);
     }
   }
   return [];
@@ -30,7 +32,8 @@ export async function getPersistentInstructors(): Promise<InstructorItem[]> {
  */
 export async function getInstructorById(id: string): Promise<InstructorItem | null> {
   const instructors = await getPersistentInstructors();
-  return instructors.find((i) => i.id === id || i.name.toLowerCase() === id.toLowerCase()) || null;
+  const target = (id || "").toLowerCase().trim();
+  return instructors.find((i) => (i.id || "").toLowerCase().trim() === target || (i.name || "").toLowerCase().trim() === target) || null;
 }
 
 /**
@@ -40,33 +43,20 @@ export async function createInstructor(
   payload: Omit<InstructorItem, "id" | "createdAt" | "updatedAt"> & { id?: string }
 ): Promise<InstructorItem> {
   const instructors = await getPersistentInstructors();
-  const slugId =
-    payload.id?.trim() ||
+  const id =
+    payload.id ||
     payload.name
       .toLowerCase()
       .trim()
       .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_-]+/g, "-") ||
-    `inst-${Date.now()}`;
+      .replace(/[\s_-]+/g, "-");
 
-  // Check if exists
-  const existingIndex = instructors.findIndex((i) => i.id === slugId);
+  const existingIndex = instructors.findIndex((i) => i.id === id);
   const now = new Date().toISOString();
 
   const newInstructor: InstructorItem = {
-    id: slugId,
-    name: payload.name.trim(),
-    role: payload.role?.trim() || "Course Instructor",
-    avatar:
-      payload.avatar?.trim() ||
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
-    experience: payload.experience?.trim() || "5+ Years",
-    projects: payload.projects?.trim() || "100+",
-    students: payload.students?.trim() || "1K+",
-    bio: payload.bio?.trim() || "",
-    socials: payload.socials || {},
-    courseSlugs: payload.courseSlugs || [],
-    courses: payload.courses || [],
+    ...payload,
+    id,
     createdAt: existingIndex >= 0 ? instructors[existingIndex].createdAt : now,
     updatedAt: now,
   };
@@ -77,7 +67,7 @@ export async function createInstructor(
     instructors.push(newInstructor);
   }
 
-  await fs.writeFile(INSTRUCTORS_FILE, JSON.stringify(instructors, null, 2), "utf8");
+  await writeDataFile("instructors.json", instructors);
   return newInstructor;
 }
 
@@ -89,7 +79,8 @@ export async function updateInstructor(
   updates: Partial<InstructorItem>
 ): Promise<InstructorItem | null> {
   const instructors = await getPersistentInstructors();
-  const index = instructors.findIndex((i) => i.id === id);
+  const target = (id || "").toLowerCase().trim();
+  const index = instructors.findIndex((i) => (i.id || "").toLowerCase().trim() === target || (i.name || "").toLowerCase().trim() === target);
 
   if (index === -1) {
     return null;
@@ -98,7 +89,7 @@ export async function updateInstructor(
   const updated: InstructorItem = {
     ...instructors[index],
     ...updates,
-    id, // protect ID
+    id: instructors[index].id, // protect ID
     socials: {
       ...instructors[index].socials,
       ...(updates.socials || {}),
@@ -107,7 +98,7 @@ export async function updateInstructor(
   };
 
   instructors[index] = updated;
-  await fs.writeFile(INSTRUCTORS_FILE, JSON.stringify(instructors, null, 2), "utf8");
+  await writeDataFile("instructors.json", instructors);
   return updated;
 }
 
@@ -115,13 +106,19 @@ export async function updateInstructor(
  * Deletes an instructor by ID
  */
 export async function deleteInstructor(id: string): Promise<boolean> {
+  if (!id) return false;
+  const target = id.toLowerCase().trim();
   const instructors = await getPersistentInstructors();
-  const filtered = instructors.filter((i) => i.id !== id);
+  const filtered = instructors.filter((i) => {
+    const iId = (i.id || "").toLowerCase().trim();
+    const iName = (i.name || "").toLowerCase().trim();
+    return iId !== target && iName !== target;
+  });
 
   if (filtered.length === instructors.length) {
     return false;
   }
 
-  await fs.writeFile(INSTRUCTORS_FILE, JSON.stringify(filtered, null, 2), "utf8");
+  await writeDataFile("instructors.json", filtered);
   return true;
 }

@@ -1,5 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
+import crypto from "crypto";
+import { writeDataFile } from "./storage-helper";
 
 export interface CustomerNotice {
   id: string;
@@ -16,6 +18,7 @@ export interface CustomerRecord {
   lastName: string;
   email: string;
   phone?: string;
+  passwordHash?: string;
   status?: "active" | "banned" | "temp_banned";
   banReason?: string;
   tempBanUntil?: string;
@@ -24,6 +27,10 @@ export interface CustomerRecord {
   notices?: CustomerNotice[];
   createdAt: string;
   updatedAt?: string;
+}
+
+export function hashPassword(password: string): string {
+  return crypto.createHash("sha256").update(password).digest("hex");
 }
 
 const CUSTOMERS_FILE_PATH = path.join(
@@ -45,7 +52,7 @@ export async function getPersistentCustomers(): Promise<CustomerRecord[]> {
     }
   } catch (err: any) {
     if (err.code === "ENOENT") {
-      await fs.writeFile(CUSTOMERS_FILE_PATH, JSON.stringify([], null, 2), "utf8");
+      await writeDataFile("customers.json", []);
     }
   }
   return [];
@@ -70,6 +77,7 @@ export async function savePersistentCustomer(
       const merged: CustomerRecord = {
         ...prev,
         ...customer,
+        passwordHash: customer.passwordHash || prev.passwordHash,
         status: customer.status || prev.status || "active",
         customEnrolledSlugs: customer.customEnrolledSlugs || prev.customEnrolledSlugs || [],
         revokedSlugs: customer.revokedSlugs || prev.revokedSlugs || [],
@@ -85,6 +93,7 @@ export async function savePersistentCustomer(
         lastName: customer.lastName || "",
         email: normalizedEmail,
         phone: customer.phone,
+        passwordHash: customer.passwordHash,
         status: customer.status || "active",
         customEnrolledSlugs: customer.customEnrolledSlugs || [],
         revokedSlugs: customer.revokedSlugs || [],
@@ -95,7 +104,7 @@ export async function savePersistentCustomer(
       updated = [newRecord, ...existing];
     }
 
-    await fs.writeFile(CUSTOMERS_FILE_PATH, JSON.stringify(updated, null, 2), "utf8");
+    await writeDataFile("customers.json", updated);
     return updated;
   } catch (err) {
     console.error("FAILED TO SAVE PERSISTENT CUSTOMER:", err);
@@ -306,7 +315,7 @@ export async function deletePersistentCustomer(email: string): Promise<boolean> 
     const filtered = existing.filter(
       (c) => c.email.toLowerCase().trim() !== normalized
     );
-    await fs.writeFile(CUSTOMERS_FILE_PATH, JSON.stringify(filtered, null, 2), "utf8");
+    await writeDataFile("customers.json", filtered);
     return true;
   } catch (err) {
     console.error("FAILED TO DELETE PERSISTENT CUSTOMER:", err);
@@ -319,7 +328,7 @@ export async function deletePersistentCustomer(email: string): Promise<boolean> 
  */
 export async function clearAllPersistentCustomers(): Promise<void> {
   try {
-    await fs.writeFile(CUSTOMERS_FILE_PATH, JSON.stringify([], null, 2), "utf8");
+    await writeDataFile("customers.json", []);
   } catch (err) {
     console.error("FAILED TO CLEAR PERSISTENT CUSTOMERS:", err);
   }

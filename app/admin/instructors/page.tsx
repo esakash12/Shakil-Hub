@@ -229,9 +229,10 @@ export default function AdminInstructorsPage() {
     try {
       const res = await deleteAdminInstructorAction(instructorToDelete.id);
       if (res.success) {
-        await loadData();
+        setInstructors((prev) => prev.filter((i) => i.id !== instructorToDelete.id));
         setIsDeleteModalOpen(false);
         setInstructorToDelete(null);
+        await loadData();
       } else {
         alert(res.error || "Failed to delete instructor.");
       }
