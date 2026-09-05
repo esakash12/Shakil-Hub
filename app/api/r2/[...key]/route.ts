@@ -61,9 +61,12 @@ export async function GET(
 
   try {
     const s3Client = getR2Client();
+    const rangeHeader = request.headers.get("range");
+
     const command = new GetObjectCommand({
       Bucket: bucketName,
       Key: objectKey,
+      Range: rangeHeader || undefined,
     });
 
     const response = await s3Client.send(command);
@@ -85,14 +88,28 @@ export async function GET(
       },
     });
 
+    const isPartial = Boolean(rangeHeader && response.ContentRange);
+    const status = isPartial ? 206 : 200;
+
+    const headers: Record<string, string> = {
+      "Content-Type": contentType,
+      "Accept-Ranges": "bytes",
+      "Cache-Control": "public, max-age=31536000, immutable",
+    };
+
+    if (response.ContentLength !== undefined) {
+      headers["Content-Length"] = response.ContentLength.toString();
+    }
+    if (response.ContentRange) {
+      headers["Content-Range"] = response.ContentRange;
+    }
+    if (response.ETag) {
+      headers["ETag"] = response.ETag;
+    }
+
     return new NextResponse(webStream, {
-      status: 200,
-      headers: {
-        "Content-Type": contentType,
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "Content-Length": response.ContentLength?.toString() || "",
-        "ETag": response.ETag || "",
-      },
+      status,
+      headers,
     });
   } catch (err: any) {
     console.error(`R2 Media Proxy error for key "${objectKey}":`, err.message || err);
