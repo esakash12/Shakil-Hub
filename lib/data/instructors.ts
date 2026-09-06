@@ -2,15 +2,42 @@ import "server-only";
 import fs from "fs/promises";
 import path from "path";
 import { InstructorItem } from "./instructor-types";
-
 import { readDataFile, writeDataFile } from "./storage-helper";
+import { prisma, isPrismaReady } from "../db/prisma";
 
 export * from "./instructor-types";
 
 /**
- * Reads all persistent instructors from disk (with 4-layer storage hierarchy)
+ * Reads all persistent instructors from PostgreSQL via Prisma or storage fallback
  */
 export async function getPersistentInstructors(): Promise<InstructorItem[]> {
+  if (prisma && (await isPrismaReady())) {
+    try {
+      const dbInstructors = await prisma.instructor.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+      if (dbInstructors && dbInstructors.length > 0) {
+        return dbInstructors.map((i) => ({
+          id: i.id,
+          name: i.name,
+          role: i.role,
+          avatar: i.avatar || "",
+          experience: i.experience || "",
+          projects: i.projects || "",
+          students: i.students || "",
+          bio: i.bio || "",
+          socials: (i.socials as any) || {},
+          courseSlugs: i.courseSlugs || [],
+          courses: (i.courses as any) || [],
+          createdAt: i.createdAt.toISOString(),
+          updatedAt: i.updatedAt ? i.updatedAt.toISOString() : undefined,
+        }));
+      }
+    } catch (err) {
+      console.warn("Prisma instructors query failed, falling back to file store:", err);
+    }
+  }
+
   try {
     const list = await readDataFile<InstructorItem[]>("instructors.json", []);
     if (Array.isArray(list)) {
@@ -63,6 +90,42 @@ export async function createInstructor(
   }
 
   await writeDataFile("instructors.json", instructors);
+
+  if (prisma && (await isPrismaReady())) {
+    try {
+      await prisma.instructor.upsert({
+        where: { id },
+        update: {
+          name: newInstructor.name,
+          role: newInstructor.role,
+          avatar: newInstructor.avatar || "",
+          experience: newInstructor.experience || "",
+          projects: newInstructor.projects || "",
+          students: newInstructor.students || "",
+          bio: newInstructor.bio || "",
+          socials: (newInstructor.socials as any) || {},
+          courseSlugs: newInstructor.courseSlugs || [],
+          courses: (newInstructor.courses as any) || [],
+        },
+        create: {
+          id,
+          name: newInstructor.name,
+          role: newInstructor.role,
+          avatar: newInstructor.avatar || "",
+          experience: newInstructor.experience || "",
+          projects: newInstructor.projects || "",
+          students: newInstructor.students || "",
+          bio: newInstructor.bio || "",
+          socials: (newInstructor.socials as any) || {},
+          courseSlugs: newInstructor.courseSlugs || [],
+          courses: (newInstructor.courses as any) || [],
+        },
+      });
+    } catch (err) {
+      console.warn("Prisma instructor upsert warning:", err);
+    }
+  }
+
   return newInstructor;
 }
 
@@ -94,6 +157,29 @@ export async function updateInstructor(
 
   instructors[index] = updated;
   await writeDataFile("instructors.json", instructors);
+
+  if (prisma && (await isPrismaReady())) {
+    try {
+      await prisma.instructor.update({
+        where: { id: updated.id },
+        data: {
+          name: updated.name,
+          role: updated.role,
+          avatar: updated.avatar || "",
+          experience: updated.experience || "",
+          projects: updated.projects || "",
+          students: updated.students || "",
+          bio: updated.bio || "",
+          socials: (updated.socials as any) || {},
+          courseSlugs: updated.courseSlugs || [],
+          courses: (updated.courses as any) || [],
+        },
+      });
+    } catch (err) {
+      console.warn("Prisma instructor update warning:", err);
+    }
+  }
+
   return updated;
 }
 
@@ -115,5 +201,21 @@ export async function deleteInstructor(id: string): Promise<boolean> {
   }
 
   await writeDataFile("instructors.json", filtered);
+
+  if (prisma && (await isPrismaReady())) {
+    try {
+      await prisma.instructor.deleteMany({
+        where: {
+          OR: [
+            { id: target },
+            { name: { equals: target, mode: "insensitive" } },
+          ],
+        },
+      });
+    } catch (err) {
+      console.warn("Prisma instructor delete warning:", err);
+    }
+  }
+
   return true;
 }

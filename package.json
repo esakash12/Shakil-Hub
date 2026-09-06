@@ -6,19 +6,25 @@
     "dev": "next dev",
     "build": "next build && node -e \"const fs=require('fs'); if(fs.existsSync('.next/static')){fs.cpSync('.next/static','.next/standalone/.next/static',{recursive:true});} if(fs.existsSync('storage')){fs.cpSync('storage','.next/standalone/storage',{recursive:true});}\"",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate-data": "tsx scripts/migrate-to-postgres.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1121.0",
     "@aws-sdk/s3-request-presigner": "^3.1121.0",
     "@medusajs/medusa-js": "^6.1.10",
+    "@prisma/client": "^6.19.3",
     "clsx": "^2.1.1",
     "framer-motion": "^13.1.1",
     "lucide-react": "^0.475.0",
     "next": "^16.3.3",
+    "prisma": "^6.19.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwind-merge": "^2.6.0",
+    "tsx": "^4.23.13",
     "zod": "^4.5.4"
   },
   "devDependencies": {

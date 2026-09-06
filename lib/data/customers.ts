@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { readDataFile, writeDataFile } from "./storage-helper";
+import { prisma, isPrismaReady } from "../db/prisma";
 
 export interface CustomerNotice {
   id: string;
@@ -32,9 +33,38 @@ export function hashPassword(password: string): string {
 }
 
 /**
- * Ensures customers.json exists and returns all registered student customer accounts
+ * Ensures customers are retrieved from PostgreSQL via Prisma when connected,
+ * otherwise safely falls back to persistent storage
  */
 export async function getPersistentCustomers(): Promise<CustomerRecord[]> {
+  if (prisma && (await isPrismaReady())) {
+    try {
+      const dbUsers = await prisma.user.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+      if (dbUsers && dbUsers.length > 0) {
+        return dbUsers.map((u) => ({
+          id: u.id,
+          firstName: u.firstName || "Student",
+          lastName: u.lastName || "",
+          email: u.email,
+          phone: u.phone || undefined,
+          passwordHash: u.passwordHash || undefined,
+          status: (u.status as any) || "active",
+          banReason: u.banReason || undefined,
+          tempBanUntil: u.tempBanUntil || undefined,
+          customEnrolledSlugs: u.customEnrolledSlugs || [],
+          revokedSlugs: u.revokedSlugs || [],
+          notices: (u.notices as any) || [],
+          createdAt: u.createdAt.toISOString(),
+          updatedAt: u.updatedAt ? u.updatedAt.toISOString() : undefined,
+        }));
+      }
+    } catch (err) {
+      console.warn("Prisma user query failed, falling back to persistent file store:", err);
+    }
+  }
+
   try {
     const list = await readDataFile<CustomerRecord[]>("customers.json", []);
     if (Array.isArray(list)) {
@@ -118,6 +148,47 @@ export async function savePersistentCustomer(
     }
 
     await writeDataFile("customers.json", updated);
+
+    if (prisma && (await isPrismaReady())) {
+      const recordToSync = index >= 0 ? updated[index] : updated[0];
+      if (recordToSync) {
+        try {
+          await prisma.user.upsert({
+            where: { email: normalizedEmail },
+            update: {
+              firstName: recordToSync.firstName,
+              lastName: recordToSync.lastName,
+              phone: recordToSync.phone || null,
+              passwordHash: recordToSync.passwordHash || null,
+              status: recordToSync.status || "active",
+              banReason: recordToSync.banReason || null,
+              tempBanUntil: recordToSync.tempBanUntil || null,
+              customEnrolledSlugs: recordToSync.customEnrolledSlugs || [],
+              revokedSlugs: recordToSync.revokedSlugs || [],
+              notices: (recordToSync.notices as any) || [],
+            },
+            create: {
+              id: recordToSync.id,
+              email: normalizedEmail,
+              firstName: recordToSync.firstName || "Student",
+              lastName: recordToSync.lastName || "",
+              phone: recordToSync.phone || null,
+              passwordHash: recordToSync.passwordHash || null,
+              role: "student",
+              status: recordToSync.status || "active",
+              banReason: recordToSync.banReason || null,
+              tempBanUntil: recordToSync.tempBanUntil || null,
+              customEnrolledSlugs: recordToSync.customEnrolledSlugs || [],
+              revokedSlugs: recordToSync.revokedSlugs || [],
+              notices: (recordToSync.notices as any) || [],
+            },
+          });
+        } catch (syncErr) {
+          console.warn("Prisma user sync warning (data safely preserved in storage):", syncErr);
+        }
+      }
+    }
+
     return updated;
   } catch (err) {
     console.error("FAILED TO SAVE PERSISTENT CUSTOMER:", err);

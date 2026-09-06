@@ -1,4 +1,5 @@
 import { readDataFile, writeDataFile } from "./storage-helper";
+import { prisma, isPrismaReady } from "../db/prisma";
 
 export interface OrderItem {
   id: string;
@@ -18,9 +19,38 @@ export interface OrderItem {
 }
 
 /**
- * Ensures orders.json file exists and returns list of orders
+ * Ensures orders are retrieved from PostgreSQL via Prisma when available,
+ * otherwise falls back to persistent storage
  */
 export async function getPersistentOrders(): Promise<OrderItem[]> {
+  if (prisma && (await isPrismaReady())) {
+    try {
+      const dbOrders = await prisma.order.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+      if (dbOrders && dbOrders.length > 0) {
+        return dbOrders.map((o) => ({
+          id: o.id,
+          orderNumber: o.orderNumber,
+          studentName: o.studentName,
+          email: o.email,
+          courseTitle: o.courseTitle,
+          courseSlug: o.courseSlug,
+          amount: o.amount,
+          paymentMethod: o.paymentMethod,
+          senderNumber: o.senderNumber,
+          trxId: o.trxId,
+          status: o.status as any,
+          createdAt: o.createdAt.toISOString(),
+          verifiedAt: o.verifiedAt ? o.verifiedAt.toISOString() : undefined,
+          rejectionReason: o.rejectionReason || undefined,
+        }));
+      }
+    } catch (err) {
+      console.warn("Prisma orders query failed, falling back to persistent storage:", err);
+    }
+  }
+
   try {
     const list = await readDataFile<OrderItem[]>("orders.json", []);
     if (Array.isArray(list)) {
@@ -33,7 +63,7 @@ export async function getPersistentOrders(): Promise<OrderItem[]> {
 }
 
 /**
- * Saves or updates an order in orders.json
+ * Saves or updates an order in orders.json and PostgreSQL via Prisma
  */
 export async function savePersistentOrder(order: OrderItem): Promise<OrderItem[]> {
   try {
@@ -51,6 +81,59 @@ export async function savePersistentOrder(order: OrderItem): Promise<OrderItem[]
     }
 
     await writeDataFile("orders.json", updated);
+
+    if (prisma && (await isPrismaReady())) {
+      try {
+        const email = order.email.toLowerCase().trim();
+        await prisma.user.upsert({
+          where: { email },
+          update: {},
+          create: {
+            email,
+            firstName: order.studentName ? order.studentName.split(" ")[0] : "Student",
+            lastName: order.studentName ? order.studentName.split(" ").slice(1).join(" ") : "",
+            phone: order.senderNumber || "",
+            role: "student",
+            status: "active",
+          },
+        });
+
+        await prisma.order.upsert({
+          where: { orderNumber: order.orderNumber },
+          update: {
+            studentName: order.studentName,
+            courseTitle: order.courseTitle,
+            courseSlug: order.courseSlug,
+            amount: order.amount,
+            paymentMethod: order.paymentMethod,
+            senderNumber: order.senderNumber,
+            trxId: order.trxId,
+            status: order.status,
+            rejectionReason: order.rejectionReason || null,
+            verifiedAt: order.verifiedAt ? new Date(order.verifiedAt) : null,
+          },
+          create: {
+            id: order.id,
+            orderNumber: order.orderNumber,
+            studentName: order.studentName,
+            email,
+            courseTitle: order.courseTitle,
+            courseSlug: order.courseSlug,
+            amount: order.amount,
+            paymentMethod: order.paymentMethod,
+            senderNumber: order.senderNumber,
+            trxId: order.trxId,
+            status: order.status,
+            rejectionReason: order.rejectionReason || null,
+            createdAt: order.createdAt ? new Date(order.createdAt) : new Date(),
+            verifiedAt: order.verifiedAt ? new Date(order.verifiedAt) : null,
+          },
+        });
+      } catch (syncErr) {
+        console.warn("Prisma order sync warning (data saved to JSON):", syncErr);
+      }
+    }
+
     return updated;
   } catch (err) {
     console.error("FAILED TO SAVE PERSISTENT ORDER:", err);
@@ -79,6 +162,24 @@ export async function updatePersistentOrderStatus(
     if (extra?.rejectionReason) target.rejectionReason = extra.rejectionReason;
 
     await writeDataFile("orders.json", existing);
+
+    if (prisma && (await isPrismaReady())) {
+      try {
+        await prisma.order.updateMany({
+          where: {
+            OR: [{ id: orderId }, { orderNumber: orderId }],
+          },
+          data: {
+            status,
+            verifiedAt: extra?.verifiedAt ? new Date(extra.verifiedAt) : undefined,
+            rejectionReason: extra?.rejectionReason || undefined,
+          },
+        });
+      } catch (syncErr) {
+        console.warn("Prisma update order status warning:", syncErr);
+      }
+    }
+
     return target;
   } catch (err) {
     console.error("FAILED TO UPDATE PERSISTENT ORDER STATUS:", err);
@@ -87,7 +188,7 @@ export async function updatePersistentOrderStatus(
 }
 
 /**
- * Permanently deletes an order from orders.json
+ * Permanently deletes an order from orders.json and database
  */
 export async function deletePersistentOrder(
   orderId: string
@@ -103,6 +204,19 @@ export async function deletePersistentOrder(
     const deleted = existing[targetIndex];
     const updated = existing.filter((_, idx) => idx !== targetIndex);
     await writeDataFile("orders.json", updated);
+
+    if (prisma && (await isPrismaReady())) {
+      try {
+        await prisma.order.deleteMany({
+          where: {
+            OR: [{ id: orderId }, { orderNumber: orderId }],
+          },
+        });
+      } catch (syncErr) {
+        console.warn("Prisma delete order warning:", syncErr);
+      }
+    }
+
     return deleted;
   } catch (err) {
     console.error("FAILED TO DELETE PERSISTENT ORDER:", err);

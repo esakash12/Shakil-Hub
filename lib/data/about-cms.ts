@@ -1,13 +1,30 @@
 import "server-only";
 import { AboutCmsData, DEFAULT_ABOUT_CMS } from "./about-cms-types";
 import { readDataFile, writeDataFile } from "./storage-helper";
+import { prisma, isPrismaReady } from "../db/prisma";
 
 export * from "./about-cms-types";
 
 /**
- * Reads persistent About CMS content from disk
+ * Reads persistent About CMS content from PostgreSQL via Prisma or storage fallback
  */
 export async function getPersistentAboutCms(): Promise<AboutCmsData> {
+  if (prisma && (await isPrismaReady())) {
+    try {
+      const setting = await prisma.platformSetting.findUnique({
+        where: { key: "about_cms" },
+      });
+      if (setting && setting.value && typeof setting.value === "object") {
+        return {
+          ...DEFAULT_ABOUT_CMS,
+          ...(setting.value as any),
+        };
+      }
+    } catch (err) {
+      console.warn("Prisma about CMS query failed, falling back to storage:", err);
+    }
+  }
+
   try {
     const parsed = await readDataFile<AboutCmsData>("about-cms.json", DEFAULT_ABOUT_CMS);
     if (parsed && typeof parsed === "object") {
@@ -23,7 +40,7 @@ export async function getPersistentAboutCms(): Promise<AboutCmsData> {
 }
 
 /**
- * Updates persistent About CMS content on disk
+ * Updates persistent About CMS content in database and disk
  */
 export async function updatePersistentAboutCms(
   updates: Partial<AboutCmsData>
@@ -40,6 +57,19 @@ export async function updatePersistentAboutCms(
   } catch (err) {
     console.error("Failed to write about-cms.json:", err);
   }
+
+  if (prisma && (await isPrismaReady())) {
+    try {
+      await prisma.platformSetting.upsert({
+        where: { key: "about_cms" },
+        update: { value: merged as any },
+        create: { key: "about_cms", value: merged as any },
+      });
+    } catch (err) {
+      console.warn("Prisma about CMS upsert warning:", err);
+    }
+  }
+
   return merged;
 }
 

@@ -1,0 +1,172 @@
+// Sakil Hub Prisma Schema for PostgreSQL
+// Unified Database Architecture
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String   @id @default(cuid())
+  email               String   @unique
+  firstName           String?  @map("first_name")
+  lastName            String?  @map("last_name")
+  phone               String?
+  passwordHash        String?  @map("password_hash")
+  role                String   @default("student") // student, admin, instructor
+  status              String   @default("active")  // active, banned, temp_banned
+  banReason           String?  @map("ban_reason")
+  tempBanUntil        String?  @map("temp_ban_until")
+  customEnrolledSlugs String[] @default([]) @map("custom_enrolled_slugs")
+  revokedSlugs        String[] @default([]) @map("revoked_slugs")
+  notices             Json?    @default("[]")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  orders              Order[]
+  progress            CourseProgress[]
+  certificates        Certificate[]
+
+  @@map("users")
+}
+
+model Course {
+  id                   String   @id @default(cuid())
+  slug                 String   @unique
+  title                String
+  subtitle             String?  @default("")
+  badge                String?  @default("Bestseller")
+  category             String   @default("Video Editing")
+  rating               Float    @default(5.0)
+  reviewsCount         String?  @default("0") @map("reviews_count")
+  studentsCount        String?  @default("0") @map("students_count")
+  updatedDate          String?  @default("") @map("updated_date")
+  level                String   @default("Beginner to Advanced")
+  price                String?  @default("1299")
+  originalPrice        String?  @default("2858") @map("original_price")
+  discountPct          String?  @default("") @map("discount_pct")
+  numericPrice         Int      @default(0) @map("numeric_price")
+  numericOriginalPrice Int      @default(0) @map("numeric_original_price")
+  image                String?  @default("")
+  thumbnail            String?  @default("")
+  trailerImage         String?  @default("") @map("trailer_image")
+  trailerVideo         String?  @default("") @map("trailer_video")
+  instructorId         String?  @map("instructor_id")
+  instructorName       String?  @map("instructor_name")
+  highlights           Json?    @default("{}")
+  faqs                 Json?    @default("[]")
+  curriculum           Json?    @default("[]")
+  status               String   @default("published")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@map("courses")
+}
+
+model Instructor {
+  id          String   @id
+  name        String
+  role        String   @default("Instructor")
+  avatar      String?  @default("")
+  experience  String?  @default("")
+  projects    String?  @default("")
+  students    String?  @default("")
+  bio         String?  @default("")
+  socials     Json?    @default("{}")
+  courseSlugs String[] @default([]) @map("course_slugs")
+  courses     Json?    @default("[]")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("instructors")
+}
+
+model Order {
+  id              String    @id @default(cuid())
+  orderNumber     String    @unique @map("order_number")
+  studentName     String    @map("student_name")
+  email           String
+  courseTitle     String    @map("course_title")
+  courseSlug      String    @map("course_slug")
+  amount          Int
+  paymentMethod   String    @map("payment_method")
+  senderNumber    String    @map("sender_number")
+  trxId           String    @map("trx_id")
+  status          String    @default("pending_verification") // pending_verification, approved, rejected
+  rejectionReason String?   @map("rejection_reason")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  verifiedAt      DateTime? @map("verified_at")
+
+  user            User?     @relation(fields: [email], references: [email])
+
+  @@map("orders")
+}
+
+model ShopProduct {
+  id               String   @id @default(cuid())
+  title            String
+  slug             String   @unique
+  category         String   @default("Digital Product")
+  shortDescription String?  @default("") @map("short_description")
+  fullDescription  String?  @default("") @map("full_description")
+  price            Int      @default(0)
+  originalPrice    Int?     @default(0) @map("original_price")
+  discountBadge    String?  @default("") @map("discount_badge")
+  thumbnail        String?  @default("")
+  images           String[] @default([])
+  badge            String?  @default("")
+  features         String[] @default([])
+  deliveryMethod   Json?    @map("delivery_method")
+  faqs             Json?    @default("[]")
+  stock            String?  @default("unlimited")
+  rating           Float    @default(5.0)
+  reviewsCount     Int      @default(0) @map("reviews_count")
+  salesCount       Int      @default(0) @map("sales_count")
+  status           String   @default("active")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("shop_products")
+}
+
+model PlatformSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("platform_settings")
+}
+
+model CourseProgress {
+  id                 String   @id @default(cuid())
+  userEmail          String   @map("user_email")
+  courseSlug         String   @map("course_slug")
+  completedLessons   String[] @default([]) @map("completed_lessons")
+  lastWatchedLesson  String?  @map("last_watched_lesson")
+  percent            Int      @default(0)
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  user               User     @relation(fields: [userEmail], references: [email])
+
+  @@unique([userEmail, courseSlug])
+  @@map("course_progress")
+}
+
+model Certificate {
+  id            String   @id @default(cuid())
+  certificateNo String   @unique @map("certificate_no")
+  userEmail     String   @map("user_email")
+  userName      String   @map("user_name")
+  courseSlug    String   @map("course_slug")
+  courseTitle   String   @map("course_title")
+  issueDate     DateTime @default(now()) @map("issue_date")
+  pdfUrl        String?  @map("pdf_url")
+
+  user          User     @relation(fields: [userEmail], references: [email])
+
+  @@map("certificates")
+}
