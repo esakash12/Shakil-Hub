@@ -1,6 +1,6 @@
 "use server";
 
-import { mapMedusaProductToCourse, CourseDetail, getCourseBySlug } from "@/lib/data/courses";
+import { mapMedusaProductToCourse, CourseDetail, getLiveCourseBySlug, getLiveStorefrontCourses } from "@/lib/data/courses";
 import { getCourseCmsOverride } from "@/lib/data/courses-cms";
 import { getInstructorById, getPersistentInstructors } from "@/lib/data/instructors";
 
@@ -182,6 +182,19 @@ export async function getLiveCourseAction(slug: string): Promise<{
       // Backend unreachable
     }
 
+    // 4. Primary/Fallback scan directly from PostgreSQL via Prisma
+    try {
+      const dbCourse = await getLiveCourseBySlug(slug);
+      if (dbCourse) {
+        return {
+          success: true,
+          course: await applyCmsOverrides(dbCourse, slug),
+        };
+      }
+    } catch (e) {
+      // Database query error
+    }
+
     // Strict 404: Course does not exist
     return {
       success: false,
@@ -266,7 +279,23 @@ export async function getLiveStorefrontCoursesAction(): Promise<{
         }
       }
     } catch (e) {
-      // Continue
+      // Backend offline or unreachable
+    }
+
+    // 3. Fallback: Query directly from PostgreSQL via Prisma
+    try {
+      const dbCourses = await getLiveStorefrontCourses();
+      if (dbCourses && dbCourses.length > 0) {
+        const enriched = await Promise.all(
+          dbCourses.map((c: CourseDetail) => applyCmsOverrides(c, c.slug))
+        );
+        return {
+          success: true,
+          courses: enriched,
+        };
+      }
+    } catch (e) {
+      // Database query error
     }
   } catch (err: any) {
     console.error("SERVER ACTION getLiveStorefrontCoursesAction ERROR:", err);
