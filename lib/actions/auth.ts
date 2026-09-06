@@ -205,14 +205,8 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
     const existing = await findCustomerByEmail(email);
     const { hashPassword } = await import("@/lib/data/customers");
 
-    const finalFirstName = (existing?.firstName && existing.firstName !== "Student")
-      ? existing.firstName
-      : (customerObj?.first_name && customerObj.first_name !== "Student" ? customerObj.first_name : (existing?.firstName || "Student"));
-
-    const finalLastName = existing?.lastName !== undefined && existing.lastName !== ""
-      ? existing.lastName
-      : (customerObj?.last_name || "");
-
+    const finalFirstName = existing?.firstName || customerObj?.first_name || "Student";
+    const finalLastName = existing?.lastName !== undefined ? existing.lastName : (customerObj?.last_name || "");
     const finalPhone = existing?.phone || customerObj?.phone || "";
 
     await savePersistentCustomer({
@@ -611,13 +605,13 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
       }
 
       // 3. Authoritative Profile Attribute Reconciliation from customers.json
-      if (dbCust.firstName && dbCust.firstName !== "Student") {
+      if (dbCust.firstName) {
         candidateProfile.first_name = dbCust.firstName;
       }
-      if (dbCust.lastName !== undefined && dbCust.lastName !== "") {
+      if (dbCust.lastName !== undefined) {
         candidateProfile.last_name = dbCust.lastName;
       }
-      if (dbCust.phone !== undefined && dbCust.phone !== "") {
+      if (dbCust.phone !== undefined) {
         candidateProfile.phone = dbCust.phone;
       }
       if (dbCust.id && !candidateProfile.id) {

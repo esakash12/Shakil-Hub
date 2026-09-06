@@ -5,7 +5,7 @@ import { clearCartAction } from "@/lib/actions/cart";
 import { getSessionCookieOptions } from "@/lib/security/cookies";
 import { getCourseBySlug, getLiveCourseBySlug, CourseDetail } from "@/lib/data/courses";
 import { getShopProductBySlug } from "@/lib/data/shop";
-import { savePersistentOrder } from "@/lib/data/orders";
+import { savePersistentOrder, getPersistentOrders } from "@/lib/data/orders";
 import { getClientIp, checkRateLimit } from "@/lib/security/rate-limit";
 import { sanitizeObject } from "@/lib/security/sanitize";
 import {
@@ -179,6 +179,34 @@ export async function processManualCheckout(
       itemAmount = course?.numericPrice || itemAmount;
     }
 
+    // 1b. Prevent duplicate pending orders for the same course (Only for courses, not products)
+    if (itemType === "course") {
+      try {
+        const allOrders = await getPersistentOrders();
+        const normalizedSlug = courseSlug.trim().toLowerCase();
+        const normalizedEmail = cleanEmail.trim().toLowerCase();
+
+        const existingPending = allOrders.find((o) => {
+          const oSlug = (o.courseSlug || "").trim().toLowerCase();
+          const oEmail = (o.email || "").trim().toLowerCase();
+          const isPending =
+            o.status === "pending_verification" ||
+            (o.status as any) === "pending" ||
+            (o.status as any) === "processing";
+          return isPending && oSlug === normalizedSlug && oEmail === normalizedEmail;
+        });
+
+        if (existingPending) {
+          return {
+            success: false,
+            error: `এই কোর্সে আপনার একটি অর্ডার ইতোমধ্যে পেন্ডিং অবস্থায় ভেরিফিকেশনের অপেক্ষায় আছে (Order #${existingPending.orderNumber || existingPending.id})। অনুগ্রহ করে অ্যাডমিন ভেরিফিকেশন সম্পন্ন হওয়া পর্যন্ত অপেক্ষা করুন অথবা ড্যাশবোর্ডের Pending Orders চেক করুন।`,
+          };
+        }
+      } catch (checkErr) {
+        console.error("Error checking existing pending orders:", checkErr);
+      }
+    }
+
     const orderId = `SKL-${Date.now().toString().slice(-6)}`;
     const orderNumber = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -341,21 +369,29 @@ export async function getOrderDetailsAction(orderId: string): Promise<OrderDetai
       } catch {}
     }
 
-    // 3. Fallback simulated order receipt
-    return {
-      orderId,
-      orderNumber: `ORD-${orderId.replace(/[^\d]/g, "") || "84920"}`,
-      courseSlug: "premiere-pro-masterclass",
-      courseTitle: "Premiere Pro Masterclass: Zero to Pro",
-      amount: 1299,
-      paymentMethod: "bKash",
-      senderNumber: "017XXXXXXXX",
-      trxId: "9J4K2L8M1",
-      fullName: "Student",
-      email: "student@sakilhub.com",
-      createdAt: new Date().toISOString(),
-      status: "pending_verification",
-    };
+    // 3. Check persistent orders.json
+    try {
+      const allOrders = await getPersistentOrders();
+      const found = allOrders.find((o) => o.id === orderId || o.orderNumber === orderId);
+      if (found) {
+        return {
+          orderId: found.id,
+          orderNumber: found.orderNumber,
+          courseSlug: found.courseSlug,
+          courseTitle: found.courseTitle,
+          amount: found.amount,
+          paymentMethod: found.paymentMethod,
+          senderNumber: found.senderNumber,
+          trxId: found.trxId,
+          fullName: found.studentName,
+          email: found.email,
+          createdAt: found.createdAt,
+          status: found.status === "approved" ? "verified" : "pending_verification",
+        };
+      }
+    } catch {}
+
+    return null;
   } catch (err) {
     console.error("GET ORDER DETAILS ERROR:", err);
     return null;

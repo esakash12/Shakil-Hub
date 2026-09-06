@@ -12,10 +12,14 @@ export default function GeneralCheckoutPage() {
     async function redirect() {
       try {
         const cartData = await getCartAction();
-        const slug = cartData?.items?.[0]?.courseSlug || "premiere-pro-masterclass";
-        router.replace(`/checkout/${slug}`);
+        const slug = cartData?.items?.[0]?.courseSlug;
+        if (slug) {
+          router.replace(`/checkout/${slug}`);
+        } else {
+          router.replace("/courses");
+        }
       } catch {
-        router.replace("/checkout/premiere-pro-masterclass");
+        router.replace("/courses");
       }
     }
     redirect();

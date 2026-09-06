@@ -171,15 +171,7 @@ export async function getAllCoursesProgressAction(): Promise<
 
   const result: Record<string, CourseProgressResult> = {};
 
-  const knownSlugs = [
-    "premiere-pro-masterclass",
-    "after-effects-masterclass",
-    "davinci-resolve-color-grading",
-  ];
-
-  const allSlugs = Array.from(
-    new Set([...knownSlugs, ...Object.keys(progressMap)])
-  );
+  const allSlugs = Object.keys(progressMap);
 
   for (const slug of allSlugs) {
     const completedLessonIds = progressMap[slug] || [];

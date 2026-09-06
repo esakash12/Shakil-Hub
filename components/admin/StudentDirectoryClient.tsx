@@ -42,11 +42,7 @@ interface StudentDirectoryClientProps {
   availableCourses?: { slug: string; title: string }[];
 }
 
-const DEFAULT_COURSES = [
-  { slug: "premiere-pro-masterclass", title: "Premiere Pro Masterclass" },
-  { slug: "after-effects-masterclass", title: "After Effects Masterclass" },
-  { slug: "davinci-resolve-color-grading", title: "DaVinci Resolve Color Grading" },
-];
+const DEFAULT_COURSES: { slug: string; title: string }[] = [];
 
 export default function StudentDirectoryClient({
   initialStudents = [],

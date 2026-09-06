@@ -4,8 +4,11 @@ import Link from "next/link";
 import { ChevronRight, LayoutDashboard, ArrowLeft } from "lucide-react";
 import ClassroomPlayerContainer from "@/components/learn/ClassroomPlayerContainer";
 import CourseCurriculumSidebar from "@/components/learn/CourseCurriculumSidebar";
+import { redirect, notFound } from "next/navigation";
 import { getLiveCourseAction } from "@/lib/actions/storefront-courses";
-import { getCourseBySlug, CourseDetail, CourseLesson } from "@/lib/data/courses";
+import { CourseDetail, CourseLesson } from "@/lib/data/courses";
+
+export const dynamic = "force-dynamic";
 
 interface DashboardLearnPageProps {
   params: Promise<{
@@ -13,24 +16,19 @@ interface DashboardLearnPageProps {
   }>;
 }
 
-export function generateStaticParams() {
-  return [
-    { slug: "premiere-pro-masterclass" },
-    { slug: "after-effects-masterclass" },
-    { slug: "davinci-resolve-color-grading" },
-  ];
-}
-
 export async function generateMetadata({
   params,
 }: DashboardLearnPageProps): Promise<Metadata> {
   const resolvedParams = await params;
-  const slug = resolvedParams?.slug || "premiere-pro-masterclass";
-  const course = getCourseBySlug(slug);
+  const slug = resolvedParams?.slug;
+  if (!slug) return { title: "Classroom | Sakil Hub" };
+
+  const live = await getLiveCourseAction(slug);
+  const title = live?.success && live.course ? live.course.title : "Classroom";
 
   return {
-    title: `Classroom: ${course.title} | Sakil Hub`,
-    description: `Watch ${course.title} lessons in your dedicated classroom workspace.`,
+    title: `Classroom: ${title} | Sakil Hub`,
+    description: `Watch lessons in your dedicated classroom workspace.`,
   };
 }
 
@@ -38,15 +36,15 @@ export default async function DashboardLearnPage({
   params,
 }: DashboardLearnPageProps) {
   const resolvedParams = await params;
-  const slug = resolvedParams?.slug || "premiere-pro-masterclass";
+  const slug = resolvedParams?.slug;
+  if (!slug) notFound();
 
-  let course: CourseDetail = getCourseBySlug(slug);
-  try {
-    const live = await getLiveCourseAction(slug);
-    if (live.success && live.course) {
-      course = live.course;
-    }
-  } catch {}
+  const live = await getLiveCourseAction(slug);
+  if (!live.success || !live.course) {
+    notFound();
+  }
+
+  const course: CourseDetail = live.course;
 
   const allLessons: CourseLesson[] =
     course.curriculum && course.curriculum.length > 0

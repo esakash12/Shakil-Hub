@@ -18,14 +18,14 @@ import { getLiveCourseAction } from "@/lib/actions/storefront-courses";
 import { getStorefrontShopProductBySlugAction } from "@/lib/actions/shop";
 import { getLMSSettingsAction, LMSSettingsPayload } from "@/lib/actions/admin-settings";
 import { getCustomerProfile } from "@/lib/actions/auth";
-import { getEnrolledCoursesAction } from "@/lib/actions/student";
+import { getEnrolledCoursesAction, getPendingOrdersAction } from "@/lib/actions/student";
 import { getCourseBySlug, getFirstLessonId, CourseDetail } from "@/lib/data/courses";
 import DynamicCheckoutForm, { CustomerFormData } from "@/components/checkout/DynamicCheckoutForm";
 
 export default function CheckoutSlugPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = (params?.slug as string) || "premiere-pro-masterclass";
+  const slug = (params?.slug as string) || "";
 
   const [itemType, setItemType] = useState<"course" | "product">("course");
   const [course, setCourse] = useState<CourseDetail>(() => getCourseBySlug(slug));
@@ -50,11 +50,12 @@ export default function CheckoutSlugPage() {
     let isMounted = true;
     async function loadData() {
       try {
-        const [courseRes, settingsRes, profile, enrolledCourses] = await Promise.all([
+        const [courseRes, settingsRes, profile, enrolledCourses, pendingOrders] = await Promise.all([
           getLiveCourseAction(slug),
           getLMSSettingsAction(),
           getCustomerProfile(),
-          getEnrolledCoursesAction(),
+          getEnrolledCoursesAction().catch(() => []),
+          getPendingOrdersAction().catch(() => []),
         ]);
 
         if (isMounted) {
@@ -97,11 +98,25 @@ export default function CheckoutSlugPage() {
           // Ownership verification: If student already owns this masterclass, route straight into classroom
           const isAlreadyEnrolled =
             Array.isArray(enrolledCourses) &&
-            enrolledCourses.some((c) => c.slug === slug);
+            enrolledCourses.some((c) => c.slug?.toLowerCase() === slug.toLowerCase());
 
           if (isAlreadyEnrolled) {
             const firstLessonId = getFirstLessonId(courseRes.course);
             router.replace(firstLessonId ? `/learn/${slug}/${firstLessonId}` : `/dashboard/courses`);
+            return;
+          }
+
+          // Pending verification check: If student has a pending order for this course, route to pending dashboard
+          const isPendingCourse =
+            Array.isArray(pendingOrders) &&
+            pendingOrders.some(
+              (o) =>
+                o.courseSlug?.toLowerCase() === slug.toLowerCase() &&
+                (o.status === "pending_verification" || (o.status as any) === "pending" || (o.status as any) === "processing")
+            );
+
+          if (isPendingCourse) {
+            router.replace("/dashboard/pending");
             return;
           }
 

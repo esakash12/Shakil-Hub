@@ -2,19 +2,21 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Zap, Loader2, Play, CheckCircle2 } from "lucide-react";
+import { Zap, Loader2, Play, CheckCircle2, Clock } from "lucide-react";
 import { getCourseBySlug, getFirstLessonId, CourseDetail } from "@/lib/data/courses";
 
 interface StickyBottomCTAProps {
   initialCourse?: CourseDetail;
   slug?: string;
   isEnrolled?: boolean;
+  isPending?: boolean;
 }
 
 export default function StickyBottomCTA({
   initialCourse,
   slug: propSlug,
   isEnrolled: initialIsEnrolled = false,
+  isPending: initialIsPending = false,
 }: StickyBottomCTAProps = {}) {
   const params = useParams();
   const router = useRouter();
@@ -23,6 +25,7 @@ export default function StickyBottomCTA({
   const [course, setCourse] = useState<CourseDetail>(() => initialCourse || (slug ? getCourseBySlug(slug) : ({} as CourseDetail)));
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(initialIsEnrolled);
+  const [isPending, setIsPending] = useState(initialIsPending);
 
   useEffect(() => {
     if (initialCourse) {
@@ -34,6 +37,10 @@ export default function StickyBottomCTA({
     setIsEnrolled(Boolean(initialIsEnrolled));
   }, [initialIsEnrolled]);
 
+  useEffect(() => {
+    setIsPending(Boolean(initialIsPending));
+  }, [initialIsPending]);
+
   const firstLessonId = getFirstLessonId(course);
 
   const handleAction = () => {
@@ -43,6 +50,8 @@ export default function StickyBottomCTA({
       } else {
         router.push(`/courses/${course.slug}#curriculum`);
       }
+    } else if (isPending) {
+      router.push("/dashboard/pending");
     } else {
       setIsEnrolling(true);
       router.push(`/checkout/${course.slug}`);
@@ -55,9 +64,9 @@ export default function StickyBottomCTA({
       className="fixed bottom-14 md:bottom-0 left-0 right-0 z-40 lg:hidden bg-[#07090e]/95 backdrop-blur-2xl border-t border-cyan-500/25 py-2.5 px-4 sm:px-6 shadow-[0_-10px_35px_rgba(0,0,0,0.95)] select-none"
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-        {/* Left Side: Price & Discount or Enrolled Badge */}
+        {/* Left Side: Price & Discount or Enrolled/Pending Badge */}
         <div className="flex flex-col justify-center">
-          {!isEnrolled ? (
+          {!isEnrolled && !isPending ? (
             <div className="space-y-0.5">
               <div className="flex items-baseline gap-2">
                 <span className="text-lg sm:text-xl font-black text-white tracking-tight">
@@ -73,6 +82,11 @@ export default function StickyBottomCTA({
                 </span>
                 <span className="text-[10px] text-gray-400 font-medium">Lifetime Access</span>
               </div>
+            </div>
+          ) : isPending ? (
+            <div className="flex items-center gap-1.5 text-amber-300 text-xs font-bold">
+              <Clock className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
+              <span>Verification Pending</span>
             </div>
           ) : (
             <div className="flex items-center gap-1.5 text-cyan-300 text-xs font-bold">
@@ -91,6 +105,8 @@ export default function StickyBottomCTA({
             className={`px-5 sm:px-7 py-3 rounded-xl border text-black font-black text-xs sm:text-sm flex items-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.45)] active:scale-95 transition-all disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer ${
               isEnrolled
                 ? "bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 border-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                : isPending
+                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-black border-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.35)]"
                 : "bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 border-cyan-200/60 shadow-[0_0_25px_rgba(6,182,212,0.5)]"
             }`}
           >
@@ -103,6 +119,11 @@ export default function StickyBottomCTA({
               <>
                 <Play className="w-4 h-4 fill-black" />
                 <span>Continue</span>
+              </>
+            ) : isPending ? (
+              <>
+                <Clock className="w-4 h-4 text-black animate-pulse" />
+                <span>View Pending →</span>
               </>
             ) : (
               <>

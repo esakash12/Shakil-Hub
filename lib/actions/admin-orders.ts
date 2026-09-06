@@ -55,7 +55,7 @@ export async function fetchAdminOrders(): Promise<{
             studentName: o.fullName || o.studentName || "Student",
             email: o.email || "student@sakilhub.com",
             courseTitle: o.courseTitle || "Masterclass",
-            courseSlug: o.courseSlug || "premiere-pro-masterclass",
+            courseSlug: o.courseSlug || "",
             amount: Number(o.amount) || 1299,
             paymentMethod: o.paymentMethod || "bKash",
             senderNumber: o.senderNumber || "017XXXXXXXX",
@@ -89,7 +89,7 @@ export async function fetchAdminOrders(): Promise<{
               studentName: meta.student_name || o.shipping_address?.first_name || "Student",
               email: o.email || "student@sakilhub.com",
               courseTitle: meta.course_title || "Digital Masterclass",
-              courseSlug: meta.course_slug || "premiere-pro-masterclass",
+              courseSlug: meta.course_slug || "",
               amount: (o.total || 129900) / 100,
               paymentMethod: meta.payment_method || "bKash",
               senderNumber: meta.sender_number || "017XXXXXXXX",
@@ -191,7 +191,7 @@ export async function approveOrderAction(orderId: string): Promise<{
       verifiedAt: new Date().toISOString(),
     });
 
-    const targetSlug = updatedPersistent?.courseSlug || "premiere-pro-masterclass";
+    const targetSlug = updatedPersistent?.courseSlug || "";
 
     // 2. Update in session cookie if present
     const pendingOrdersRaw = cookieStore.get("sakil_pending_orders")?.value;

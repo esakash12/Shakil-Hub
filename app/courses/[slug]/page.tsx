@@ -2,7 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight, Sparkles, Star, CheckCircle2 } from "lucide-react";
+import { ChevronRight, Sparkles, Star, CheckCircle2, Clock } from "lucide-react";
 import CourseAnchorNav from "@/components/course/CourseAnchorNav";
 import CourseAbout from "@/components/course/CourseAbout";
 import CourseCurriculum from "@/components/course/CourseCurriculum";
@@ -13,7 +13,7 @@ import MobileHeroTrailerPlayer from "@/components/course/MobileHeroTrailerPlayer
 import MobileQuickStatsAndFeatures from "@/components/course/MobileQuickStatsAndFeatures";
 import MobileCurriculumPlayer from "@/components/course/MobileCurriculumPlayer";
 import { getLiveCourseAction } from "@/lib/actions/storefront-courses";
-import { getEnrolledCoursesAction } from "@/lib/actions/student";
+import { getEnrolledCoursesAction, getPendingOrdersAction } from "@/lib/actions/student";
 import { CourseDetail } from "@/lib/data/courses";
 
 export const dynamic = "force-dynamic";
@@ -57,9 +57,10 @@ export default async function CourseSinglePage({ params }: CoursePageProps) {
     notFound();
   }
 
-  const [live, enrolledCourses] = await Promise.all([
+  const [live, enrolledCourses, pendingOrders] = await Promise.all([
     getLiveCourseAction(slug),
     getEnrolledCoursesAction().catch(() => []),
+    getPendingOrdersAction().catch(() => []),
   ]);
 
   if (!live.success || !live.course) {
@@ -68,7 +69,11 @@ export default async function CourseSinglePage({ params }: CoursePageProps) {
 
   const course: CourseDetail = live.course;
   const isEnrolled =
-    Array.isArray(enrolledCourses) && enrolledCourses.some((c) => c.slug === slug);
+    Array.isArray(enrolledCourses) && enrolledCourses.some((c) => c.slug?.toLowerCase() === slug.toLowerCase());
+  const isPending =
+    !isEnrolled &&
+    Array.isArray(pendingOrders) &&
+    pendingOrders.some((o) => o.courseSlug?.toLowerCase() === slug.toLowerCase());
 
   return (
     <div className="space-y-4 sm:space-y-6 lg:space-y-8 select-none">
@@ -80,7 +85,12 @@ export default async function CourseSinglePage({ params }: CoursePageProps) {
         <MobileHeroTrailerPlayer course={course} isEnrolled={isEnrolled} />
 
         {/* Step 2: Quick Stats & Features (Price, Duration, Features from Desktop Card) */}
-        <MobileQuickStatsAndFeatures course={course} slug={slug} isEnrolled={isEnrolled} />
+        <MobileQuickStatsAndFeatures
+          course={course}
+          slug={slug}
+          isEnrolled={isEnrolled}
+          isPending={isPending}
+        />
 
         {/* Step 3: Curriculum Player (2nd Player - Plays Free Previews Clicked Below) */}
         <MobileCurriculumPlayer course={course} />
@@ -109,11 +119,24 @@ export default async function CourseSinglePage({ params }: CoursePageProps) {
 
         {/* Status / Masterclass Badge */}
         <div className="w-fit">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-semibold shadow-[0_0_12px_rgba(6,182,212,0.15)]">
+          <div
+            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${
+              isEnrolled
+                ? "bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.15)]"
+                : isPending
+                ? "bg-amber-500/15 border border-amber-500/30 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.15)]"
+                : "bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.15)]"
+            }`}
+          >
             {isEnrolled ? (
               <>
                 <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
                 <span className="text-cyan-300 font-bold">Enrolled Student Access</span>
+              </>
+            ) : isPending ? (
+              <>
+                <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                <span className="text-amber-300 font-bold">Enrollment Pending Verification</span>
               </>
             ) : (
               <>

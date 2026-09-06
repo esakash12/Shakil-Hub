@@ -59,13 +59,19 @@ export default async function MyCoursesPage({
               </p>
             </div>
           </div>
-          <Link
-            href={`/learn/${enrolledCourses[0]?.slug || "premiere-pro-masterclass"}/${enrolledCourses[0]?.firstLessonId || "2-3-basic-timeline"}`}
-            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs shadow-md transition-all shrink-0"
-          >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span>Start Learning</span>
-          </Link>
+          {enrolledCourses.length > 0 && (
+            <Link
+              href={
+                enrolledCourses[0].firstLessonId
+                  ? `/learn/${enrolledCourses[0].slug}/${enrolledCourses[0].firstLessonId}`
+                  : `/courses/${enrolledCourses[0].slug}`
+              }
+              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs shadow-md transition-all shrink-0"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Start Learning</span>
+            </Link>
+          )}
         </div>
       )}
 

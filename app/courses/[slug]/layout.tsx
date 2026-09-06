@@ -3,7 +3,7 @@ import CourseStickySidebar from "@/components/course/CourseStickySidebar";
 import StickyBottomCTA from "@/components/course/StickyBottomCTA";
 import { CoursePreviewProvider } from "@/components/course/CoursePreviewContext";
 import { getLiveCourseAction } from "@/lib/actions/storefront-courses";
-import { getEnrolledCoursesAction } from "@/lib/actions/student";
+import { getEnrolledCoursesAction, getPendingOrdersAction } from "@/lib/actions/student";
 import { CourseDetail } from "@/lib/data/courses";
 
 export const dynamic = "force-dynamic";
@@ -21,9 +21,10 @@ export default async function CourseLayout({
     notFound();
   }
 
-  const [live, enrolledCourses] = await Promise.all([
+  const [live, enrolledCourses, pendingOrders] = await Promise.all([
     getLiveCourseAction(slug),
     getEnrolledCoursesAction().catch(() => []),
+    getPendingOrdersAction().catch(() => []),
   ]);
 
   if (!live.success || !live.course) {
@@ -32,7 +33,11 @@ export default async function CourseLayout({
 
   const course: CourseDetail = live.course;
   const isEnrolled =
-    Array.isArray(enrolledCourses) && enrolledCourses.some((c) => c.slug === slug);
+    Array.isArray(enrolledCourses) && enrolledCourses.some((c) => c.slug?.toLowerCase() === slug.toLowerCase());
+  const isPending =
+    !isEnrolled &&
+    Array.isArray(pendingOrders) &&
+    pendingOrders.some((o) => o.courseSlug?.toLowerCase() === slug.toLowerCase());
 
   return (
     <CoursePreviewProvider course={course}>
@@ -44,12 +49,22 @@ export default async function CourseLayout({
 
           {/* Right Column: Widened Sticky Video & Checkout Card (5 Cols) - Desktop Only */}
           <aside className="hidden lg:block lg:col-span-5 min-w-0">
-            <CourseStickySidebar initialCourse={course} slug={slug} isEnrolled={isEnrolled} />
+            <CourseStickySidebar
+              initialCourse={course}
+              slug={slug}
+              isEnrolled={isEnrolled}
+              isPending={isPending}
+            />
           </aside>
         </div>
 
         {/* Mobile Sticky Bottom Floating CTA (Always persistent on mobile) */}
-        <StickyBottomCTA initialCourse={course} slug={slug} isEnrolled={isEnrolled} />
+        <StickyBottomCTA
+          initialCourse={course}
+          slug={slug}
+          isEnrolled={isEnrolled}
+          isPending={isPending}
+        />
       </div>
     </CoursePreviewProvider>
   );

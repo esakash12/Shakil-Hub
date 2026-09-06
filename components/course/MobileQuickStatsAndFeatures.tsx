@@ -22,22 +22,29 @@ interface MobileQuickStatsAndFeaturesProps {
   course: CourseDetail;
   slug?: string;
   isEnrolled?: boolean;
+  isPending?: boolean;
 }
 
 export default function MobileQuickStatsAndFeatures({
   course,
   slug = "",
   isEnrolled: initialIsEnrolled = false,
+  isPending: initialIsPending = false,
 }: MobileQuickStatsAndFeaturesProps) {
   const router = useRouter();
 
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(initialIsEnrolled);
+  const [isPending, setIsPending] = useState(initialIsPending);
 
   useEffect(() => {
     setIsEnrolled(Boolean(initialIsEnrolled));
   }, [initialIsEnrolled]);
+
+  useEffect(() => {
+    setIsPending(Boolean(initialIsPending));
+  }, [initialIsPending]);
 
   useEffect(() => {
     try {
@@ -64,6 +71,8 @@ export default function MobileQuickStatsAndFeatures({
       } else {
         router.push(`/courses/${slug}#curriculum`);
       }
+    } else if (isPending) {
+      router.push("/dashboard/pending");
     } else {
       setIsEnrolling(true);
       router.push(`/checkout/${slug}`);
@@ -84,7 +93,7 @@ export default function MobileQuickStatsAndFeatures({
     <div className="space-y-4 rounded-2xl bg-[#0e1320]/95 border border-cyan-500/25 p-5 shadow-[0_10px_35px_rgba(0,0,0,0.7)] backdrop-blur-2xl select-none">
       {/* 1. Price & Discount Header */}
       <div className="space-y-1.5">
-        {!isEnrolled ? (
+        {!isEnrolled && !isPending ? (
           <div>
             <div className="flex items-baseline gap-3">
               <span className="text-3xl font-black text-white tracking-tight drop-shadow-sm">
@@ -100,6 +109,16 @@ export default function MobileQuickStatsAndFeatures({
             <p className="text-[11px] text-gray-400 mt-1 flex items-center gap-1.5">
               <Sparkles className="w-3 h-3 text-cyan-400" />
               <span>Special promotional lifetime access</span>
+            </p>
+          </div>
+        ) : isPending ? (
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-amber-300 font-bold text-sm bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-xl">
+              <Clock className="w-5 h-5 text-amber-400 shrink-0 animate-pulse" />
+              <span>Enrollment Pending Verification</span>
+            </div>
+            <p className="text-xs text-amber-400/70">
+              Your order is awaiting manual payment confirmation by admin.
             </p>
           </div>
         ) : (
@@ -164,6 +183,8 @@ export default function MobileQuickStatsAndFeatures({
           className={`w-full py-3 rounded-xl border font-black text-sm flex items-center justify-center gap-2.5 transition-all duration-200 active:scale-95 disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer ${
             isEnrolled
               ? "bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 text-black border-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+              : isPending
+              ? "bg-gradient-to-r from-amber-500 to-orange-500 text-black border-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.35)]"
               : "bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 text-black border-cyan-200/60 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-[1.01]"
           }`}
         >
@@ -176,6 +197,11 @@ export default function MobileQuickStatsAndFeatures({
             <>
               <Play className="w-4 h-4 fill-black" />
               <span>Continue Learning</span>
+            </>
+          ) : isPending ? (
+            <>
+              <Clock className="w-4 h-4 text-black animate-pulse" />
+              <span>View Pending Order →</span>
             </>
           ) : (
             <>

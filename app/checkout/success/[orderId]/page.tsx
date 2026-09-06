@@ -22,13 +22,13 @@ export default async function CheckoutSuccessPage({
   const { orderId } = await params;
   const order = await getOrderDetailsAction(orderId);
 
-  const displayOrderId = order?.orderId || orderId || "SKL-84920";
-  const courseTitle = order?.courseTitle || "Masterclass";
-  const courseSlug = order?.courseSlug || "premiere-pro-masterclass";
-  const amount = order?.amount || 1299;
-  const paymentMethod = order?.paymentMethod || "bKash";
-  const senderNumber = order?.senderNumber || "017XXXXXXXX";
-  const trxId = order?.trxId || "TRX-VERIFY";
+  const displayOrderId = order?.orderId || orderId || "";
+  const courseTitle = order?.courseTitle || "Masterclass / Digital Product";
+  const courseSlug = order?.courseSlug || "";
+  const amount = order?.amount || 0;
+  const paymentMethod = order?.paymentMethod || "Mobile Banking";
+  const senderNumber = order?.senderNumber || "";
+  const trxId = order?.trxId || "";
 
   return (
     <div className="min-h-screen bg-black text-white py-10 sm:py-16 select-none">

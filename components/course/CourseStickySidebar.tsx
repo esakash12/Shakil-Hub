@@ -24,12 +24,14 @@ interface CourseStickySidebarProps {
   initialCourse?: CourseDetail;
   slug?: string;
   isEnrolled?: boolean;
+  isPending?: boolean;
 }
 
 export default function CourseStickySidebar({
   initialCourse,
   slug = "",
   isEnrolled: initialIsEnrolled = false,
+  isPending: initialIsPending = false,
 }: CourseStickySidebarProps) {
   const router = useRouter();
 
@@ -37,6 +39,7 @@ export default function CourseStickySidebar({
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(initialIsEnrolled);
+  const [isPending, setIsPending] = useState(initialIsPending);
 
   const {
     activeVideoSrc,
@@ -56,6 +59,10 @@ export default function CourseStickySidebar({
   useEffect(() => {
     setIsEnrolled(Boolean(initialIsEnrolled));
   }, [initialIsEnrolled]);
+
+  useEffect(() => {
+    setIsPending(Boolean(initialIsPending));
+  }, [initialIsPending]);
 
   useEffect(() => {
     try {
@@ -82,6 +89,8 @@ export default function CourseStickySidebar({
       } else {
         router.push(`/courses/${slug}#curriculum`);
       }
+    } else if (isPending) {
+      router.push("/dashboard/pending");
     } else {
       setIsEnrolling(true);
       router.push(`/checkout/${slug}`);
@@ -158,7 +167,7 @@ export default function CourseStickySidebar({
 
         {/* 3. Scaled-Down Sleek Price & Discount Header */}
         <div className="space-y-0.5">
-          {!isEnrolled ? (
+          {!isEnrolled && !isPending ? (
             <div>
               <div className="flex items-baseline gap-2">
                 <span className="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-sm">
@@ -174,6 +183,16 @@ export default function CourseStickySidebar({
               <p className="text-[9px] text-gray-400 mt-0.5 flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5 text-cyan-400" />
                 <span>Special promotional lifetime access</span>
+              </p>
+            </div>
+          ) : isPending ? (
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-amber-300 font-bold text-xs bg-amber-500/10 border border-amber-500/20 px-2.5 py-1.5 rounded-lg">
+                <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-pulse" />
+                <span>Enrollment Pending Verification</span>
+              </div>
+              <p className="text-[9px] text-amber-400/70">
+                Order submitted. Awaiting manual payment approval.
               </p>
             </div>
           ) : (
@@ -211,6 +230,8 @@ export default function CourseStickySidebar({
             className={`w-full py-2.5 rounded-xl border font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer ${
               isEnrolled
                 ? "bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 text-black border-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]"
+                : isPending
+                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-black border-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.35)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)]"
                 : "bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-black border-cyan-200/60 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.65)] hover:scale-[1.01]"
             }`}
           >
@@ -223,6 +244,11 @@ export default function CourseStickySidebar({
               <>
                 <Play className="w-3.5 h-3.5 fill-black" />
                 <span>Continue Learning</span>
+              </>
+            ) : isPending ? (
+              <>
+                <Clock className="w-3.5 h-3.5 text-black animate-pulse" />
+                <span>View Pending Order →</span>
               </>
             ) : (
               <>

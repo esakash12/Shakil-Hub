@@ -8,6 +8,7 @@ import { processManualCheckout } from "@/lib/actions/checkout";
 import { getLiveCourseAction } from "@/lib/actions/storefront-courses";
 import { getStorefrontShopProductBySlugAction } from "@/lib/actions/shop";
 import { getLMSSettingsAction, LMSSettingsPayload } from "@/lib/actions/admin-settings";
+import { getPendingOrdersAction } from "@/lib/actions/student";
 import { getCourseBySlug, CourseDetail } from "@/lib/data/courses";
 import PaymentSelectionModal from "@/components/checkout/PaymentSelectionModal";
 import ThemedGatewayModal from "@/components/checkout/ThemedGatewayModal";
@@ -17,7 +18,7 @@ function PayGatewayInner() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const slug = (params?.slug as string) || "premiere-pro-masterclass";
+  const slug = (params?.slug as string) || "";
 
   const [itemType, setItemType] = useState<"course" | "product">("course");
   const [course, setCourse] = useState<CourseDetail>(() => getCourseBySlug(slug));
@@ -78,15 +79,30 @@ function PayGatewayInner() {
     let isMounted = true;
     async function loadData() {
       try {
-        const [courseRes, settingsRes] = await Promise.all([
+        const [courseRes, settingsRes, pendingOrders] = await Promise.all([
           getLiveCourseAction(slug),
           getLMSSettingsAction(),
+          getPendingOrdersAction().catch(() => []),
         ]);
 
         if (isMounted) {
           if (courseRes.success && courseRes.course) {
             setCourse(courseRes.course);
             setItemType("course");
+
+            // Prevent re-paying / duplicate checkout if course order is already pending
+            const isPendingCourse =
+              Array.isArray(pendingOrders) &&
+              pendingOrders.some(
+                (o) =>
+                  o.courseSlug?.toLowerCase() === slug.toLowerCase() &&
+                  (o.status === "pending_verification" || (o.status as any) === "pending" || (o.status as any) === "processing")
+              );
+
+            if (isPendingCourse) {
+              router.replace("/dashboard/pending");
+              return;
+            }
           } else {
             let foundProduct = false;
             try {

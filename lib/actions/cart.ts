@@ -162,22 +162,14 @@ export async function getCartAction(): Promise<CartState> {
     }
   }
 
-  // If cart is empty, default to premiere pro masterclass
   if (items.length === 0) {
-    const defaultCourse = getCourseBySlug("premiere-pro-masterclass");
-    items = [
-      {
-        id: `${cartId}_default`,
-        courseSlug: defaultCourse.slug,
-        title: defaultCourse.title,
-        subtitle: defaultCourse.subtitle,
-        instructor: defaultCourse.instructor.name,
-        thumbnail: defaultCourse.image,
-        price: defaultCourse.numericPrice,
-        originalPrice: defaultCourse.numericOriginalPrice,
-        quantity: 1,
-      },
-    ];
+    return {
+      id: cartId,
+      items: [],
+      subtotal: 0,
+      total: 0,
+      discount: 0,
+    };
   }
 
   const subtotal = items.reduce((acc, i) => acc + i.originalPrice * i.quantity, 0);

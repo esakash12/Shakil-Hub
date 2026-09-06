@@ -19,7 +19,7 @@ export default function CourseTabs({
 }: CourseTabsProps = {}) {
   const pathname = usePathname();
   const params = useParams();
-  const slug = propSlug || (params?.slug as string) || "premiere-pro-masterclass";
+  const slug = propSlug || (params?.slug as string) || "";
 
   const revCount =
     reviewsCount !== undefined
