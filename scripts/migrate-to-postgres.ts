@@ -2,22 +2,36 @@
  * Sakil Hub - Safe Database Migration Script
  * Migrates existing data from local JSON storage files into PostgreSQL via Prisma.
  *
- * Safe & Idempotent: Uses upsert for all records so it can be run multiple times
- * without creating duplicates or overwriting newer changes.
+ * Fully standalone: Reads JSON directly using fs/path with zero external server-only imports.
+ * Safe & Idempotent: Uses upsert for all records.
  */
 
+import fs from "fs";
+import path from "path";
 import { PrismaClient } from "@prisma/client";
-import { getPersistentCustomers } from "../lib/data/customers";
-import { getPersistentOrders } from "../lib/data/orders";
-import { getPersistentInstructors } from "../lib/data/instructors";
-import { getPersistentShopProducts } from "../lib/data/shop";
-import { getPersistentCourseCmsMap } from "../lib/data/courses-cms";
-import { getLiveStorefrontCourses } from "../lib/data/courses";
-import { getPersistentBranding } from "../lib/data/branding";
-import { getPersistentHomeCms } from "../lib/data/home-cms";
-import { getPersistentAboutCms } from "../lib/data/about-cms";
 
 const prisma = new PrismaClient();
+
+function readLocalJson<T>(filename: string, defaultValue: T): T {
+  const possiblePaths = [
+    path.join(process.cwd(), "storage", "data", filename),
+    path.join(process.cwd(), ".next", "standalone", "storage", "data", filename),
+    path.join(process.cwd(), "lib", "data", filename),
+    path.join(process.cwd(), ".next", "standalone", "lib", "data", filename),
+  ];
+
+  for (const p of possiblePaths) {
+    try {
+      if (fs.existsSync(p)) {
+        const content = fs.readFileSync(p, "utf8");
+        if (content && content.trim()) {
+          return JSON.parse(content) as T;
+        }
+      }
+    } catch {}
+  }
+  return defaultValue;
+}
 
 async function main() {
   console.log("==================================================");
@@ -41,11 +55,11 @@ async function main() {
 
   // 2. Migrate Customers / Users
   console.log("\n📦 [1/6] Migrating Users & Customers...");
-  const customers = await getPersistentCustomers();
+  const customers = readLocalJson<any[]>("customers.json", []);
   let userCount = 0;
   for (const c of customers) {
     if (!c.email) continue;
-    const email = c.email.toLowerCase().trim();
+    const email = String(c.email).toLowerCase().trim();
     await prisma.user.upsert({
       where: { email },
       update: {
@@ -56,12 +70,12 @@ async function main() {
         status: c.status || "active",
         banReason: c.banReason || null,
         tempBanUntil: c.tempBanUntil || null,
-        customEnrolledSlugs: c.customEnrolledSlugs || [],
-        revokedSlugs: c.revokedSlugs || [],
-        notices: (c.notices as any) || [],
+        customEnrolledSlugs: Array.isArray(c.customEnrolledSlugs) ? c.customEnrolledSlugs : [],
+        revokedSlugs: Array.isArray(c.revokedSlugs) ? c.revokedSlugs : [],
+        notices: Array.isArray(c.notices) ? (c.notices as any) : [],
       },
       create: {
-        id: c.id,
+        id: c.id || `cus_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
         email,
         firstName: c.firstName || "",
         lastName: c.lastName || "",
@@ -71,9 +85,9 @@ async function main() {
         status: c.status || "active",
         banReason: c.banReason || null,
         tempBanUntil: c.tempBanUntil || null,
-        customEnrolledSlugs: c.customEnrolledSlugs || [],
-        revokedSlugs: c.revokedSlugs || [],
-        notices: (c.notices as any) || [],
+        customEnrolledSlugs: Array.isArray(c.customEnrolledSlugs) ? c.customEnrolledSlugs : [],
+        revokedSlugs: Array.isArray(c.revokedSlugs) ? c.revokedSlugs : [],
+        notices: Array.isArray(c.notices) ? (c.notices as any) : [],
         createdAt: c.createdAt ? new Date(c.createdAt) : new Date(),
         updatedAt: c.updatedAt ? new Date(c.updatedAt) : new Date(),
       },
@@ -84,7 +98,7 @@ async function main() {
 
   // 3. Migrate Instructors
   console.log("\n📦 [2/6] Migrating Instructors...");
-  const instructors = await getPersistentInstructors();
+  const instructors = readLocalJson<any[]>("instructors.json", []);
   let instructorCount = 0;
   for (const inst of instructors) {
     if (!inst.id) continue;
@@ -99,8 +113,8 @@ async function main() {
         students: inst.students || "",
         bio: inst.bio || "",
         socials: (inst.socials as any) || {},
-        courseSlugs: inst.courseSlugs || [],
-        courses: (inst.courses as any) || [],
+        courseSlugs: Array.isArray(inst.courseSlugs) ? inst.courseSlugs : [],
+        courses: Array.isArray(inst.courses) ? (inst.courses as any) : [],
       },
       create: {
         id: inst.id,
@@ -112,8 +126,8 @@ async function main() {
         students: inst.students || "",
         bio: inst.bio || "",
         socials: (inst.socials as any) || {},
-        courseSlugs: inst.courseSlugs || [],
-        courses: (inst.courses as any) || [],
+        courseSlugs: Array.isArray(inst.courseSlugs) ? inst.courseSlugs : [],
+        courses: Array.isArray(inst.courses) ? (inst.courses as any) : [],
         createdAt: inst.createdAt ? new Date(inst.createdAt) : new Date(),
         updatedAt: inst.updatedAt ? new Date(inst.updatedAt) : new Date(),
       },
@@ -122,33 +136,27 @@ async function main() {
   }
   console.log(`   -> Successfully upserted ${instructorCount} instructors.`);
 
-  // 4. Migrate Courses (Combining Base Catalog + CMS Overrides)
+  // 4. Migrate Courses from CMS map
   console.log("\n📦 [3/6] Migrating Courses & CMS Overrides...");
-  const cmsMap = await getPersistentCourseCmsMap();
-  const liveCourses = await getLiveStorefrontCourses().catch(() => []);
-  const allSlugs = Array.from(
-    new Set([...liveCourses.map((c) => c.slug), ...Object.keys(cmsMap)])
-  );
-
+  const cmsMap = readLocalJson<Record<string, any>>("courses-cms.json", {});
   let courseCount = 0;
-  for (const slug of allSlugs) {
-    const course = liveCourses.find((c) => c.slug === slug);
-    const cms = cmsMap[slug] || {};
-    const finalTitle = cms.title || course?.title || slug.replace(/-/g, " ");
-    const finalSubtitle = cms.subtitle !== undefined ? cms.subtitle : (course?.subtitle || "");
-    const finalBadge = cms.badge !== undefined ? cms.badge : (course?.badge || "Bestseller");
-    const finalCategory = cms.category || course?.category || "Video Editing";
-    const finalLevel = cms.level || course?.level || "Beginner to Advanced";
-    const finalNumericPrice = cms.numericPrice !== undefined ? cms.numericPrice : (course?.numericPrice || 1299);
-    const finalNumericOriginal = cms.numericOriginalPrice !== undefined ? cms.numericOriginalPrice : (course?.numericOriginalPrice || 2858);
-    const finalDiscount = cms.discountPct !== undefined ? cms.discountPct : (course?.discountPct || "63% OFF");
-    const finalPrice = cms.price !== undefined ? cms.price : (course?.price || "1299");
-    const finalOriginalPrice = cms.originalPrice !== undefined ? cms.originalPrice : (course?.originalPrice || "2858");
-    const finalInstructorName = cms.instructorName || course?.instructor?.name || "Sakil Ahmed";
-    const finalInstructorId = cms.instructorId || course?.instructorId || "sakil-ahmed";
-    const finalHighlights = cms.highlights || course?.highlights || {};
-    const finalFaqs = (cms.faqs && cms.faqs.length > 0) ? cms.faqs : (course?.faqs || []);
-    const finalCurriculum = course?.curriculum || cms.curriculum || [];
+  for (const [slug, cms] of Object.entries(cmsMap)) {
+    if (!slug) continue;
+    const finalTitle = cms.title || slug.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    const finalSubtitle = cms.subtitle || "";
+    const finalBadge = cms.badge || "Bestseller";
+    const finalCategory = cms.category || "Video Editing";
+    const finalLevel = cms.level || "Beginner to Advanced";
+    const finalNumericPrice = cms.numericPrice !== undefined ? cms.numericPrice : 1299;
+    const finalNumericOriginal = cms.numericOriginalPrice !== undefined ? cms.numericOriginalPrice : 2858;
+    const finalDiscount = cms.discountPct || "63% OFF";
+    const finalPrice = cms.price || String(finalNumericPrice);
+    const finalOriginalPrice = cms.originalPrice || String(finalNumericOriginal);
+    const finalInstructorName = cms.instructorName || "Sakil Ahmed";
+    const finalInstructorId = cms.instructorId || "sakil-ahmed";
+    const finalHighlights = cms.highlights || {};
+    const finalFaqs = cms.faqs || [];
+    const finalCurriculum = cms.curriculum || [];
 
     await prisma.course.upsert({
       where: { slug },
@@ -157,20 +165,20 @@ async function main() {
         subtitle: finalSubtitle,
         badge: finalBadge,
         category: finalCategory,
-        rating: course?.rating || 5.0,
-        reviewsCount: String(course?.reviewsCount || "0"),
-        studentsCount: String(course?.studentsCount || "0"),
-        updatedDate: course?.updatedDate || "",
+        rating: 5.0,
+        reviewsCount: "0",
+        studentsCount: "0",
+        updatedDate: "",
         level: finalLevel,
         price: String(finalPrice),
         originalPrice: String(finalOriginalPrice),
         discountPct: String(finalDiscount),
         numericPrice: finalNumericPrice,
         numericOriginalPrice: finalNumericOriginal,
-        image: course?.image || "",
-        thumbnail: course?.thumbnail || course?.image || "",
-        trailerImage: course?.trailerImage || "",
-        trailerVideo: course?.trailerVideo || "",
+        image: "",
+        thumbnail: "",
+        trailerImage: "",
+        trailerVideo: "",
         instructorId: finalInstructorId,
         instructorName: finalInstructorName,
         highlights: finalHighlights as any,
@@ -184,20 +192,20 @@ async function main() {
         subtitle: finalSubtitle,
         badge: finalBadge,
         category: finalCategory,
-        rating: course?.rating || 5.0,
-        reviewsCount: String(course?.reviewsCount || "0"),
-        studentsCount: String(course?.studentsCount || "0"),
-        updatedDate: course?.updatedDate || "",
+        rating: 5.0,
+        reviewsCount: "0",
+        studentsCount: "0",
+        updatedDate: "",
         level: finalLevel,
         price: String(finalPrice),
         originalPrice: String(finalOriginalPrice),
         discountPct: String(finalDiscount),
         numericPrice: finalNumericPrice,
         numericOriginalPrice: finalNumericOriginal,
-        image: course?.image || "",
-        thumbnail: course?.thumbnail || course?.image || "",
-        trailerImage: course?.trailerImage || "",
-        trailerVideo: course?.trailerVideo || "",
+        image: "",
+        thumbnail: "",
+        trailerImage: "",
+        trailerVideo: "",
         instructorId: finalInstructorId,
         instructorName: finalInstructorName,
         highlights: finalHighlights as any,
@@ -212,11 +220,11 @@ async function main() {
 
   // 5. Migrate Orders
   console.log("\n📦 [4/6] Migrating Orders...");
-  const orders = await getPersistentOrders();
+  const orders = readLocalJson<any[]>("orders.json", []);
   let orderCount = 0;
   for (const o of orders) {
     if (!o.orderNumber) continue;
-    const email = o.email.toLowerCase().trim();
+    const email = String(o.email).toLowerCase().trim();
 
     // Ensure user exists before creating order relation
     await prisma.user.upsert({
@@ -238,7 +246,7 @@ async function main() {
         studentName: o.studentName,
         courseTitle: o.courseTitle,
         courseSlug: o.courseSlug,
-        amount: o.amount,
+        amount: Number(o.amount) || 0,
         paymentMethod: o.paymentMethod,
         senderNumber: o.senderNumber,
         trxId: o.trxId,
@@ -247,13 +255,13 @@ async function main() {
         verifiedAt: o.verifiedAt ? new Date(o.verifiedAt) : null,
       },
       create: {
-        id: o.id,
+        id: o.id || `ord_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
         orderNumber: o.orderNumber,
         studentName: o.studentName,
         email,
         courseTitle: o.courseTitle,
         courseSlug: o.courseSlug,
-        amount: o.amount,
+        amount: Number(o.amount) || 0,
         paymentMethod: o.paymentMethod,
         senderNumber: o.senderNumber,
         trxId: o.trxId,
@@ -269,7 +277,7 @@ async function main() {
 
   // 6. Migrate Shop Digital Products
   console.log("\n📦 [5/6] Migrating Shop Digital Products...");
-  const shopProducts = await getPersistentShopProducts();
+  const shopProducts = readLocalJson<any[]>("shop.json", []);
   let productCount = 0;
   for (const p of shopProducts) {
     if (!p.slug) continue;
@@ -280,41 +288,41 @@ async function main() {
         category: p.category || "Digital Product",
         shortDescription: p.shortDescription || "",
         fullDescription: p.fullDescription || "",
-        price: p.price || 0,
-        originalPrice: p.originalPrice || 0,
+        price: Number(p.price) || 0,
+        originalPrice: p.originalPrice ? Number(p.originalPrice) : null,
         discountBadge: p.discountBadge || "",
         thumbnail: p.thumbnail || "",
-        images: p.images || [],
+        images: Array.isArray(p.images) ? p.images : [],
         badge: p.badge || "",
-        features: p.features || [],
+        features: Array.isArray(p.features) ? p.features : [],
         deliveryMethod: (p.deliveryMethod as any) || {},
-        faqs: (p.faqs as any) || [],
+        faqs: Array.isArray(p.faqs) ? (p.faqs as any) : [],
         stock: String(p.stock || "unlimited"),
-        rating: p.rating || 5.0,
-        reviewsCount: p.reviewsCount || 0,
-        salesCount: p.salesCount || 0,
+        rating: p.rating ? Number(p.rating) : 5.0,
+        reviewsCount: p.reviewsCount ? Number(p.reviewsCount) : 0,
+        salesCount: p.salesCount ? Number(p.salesCount) : 0,
         status: p.status || "active",
       },
       create: {
-        id: p.id,
+        id: p.id || `prod_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
         title: p.title,
         slug: p.slug,
         category: p.category || "Digital Product",
         shortDescription: p.shortDescription || "",
         fullDescription: p.fullDescription || "",
-        price: p.price || 0,
-        originalPrice: p.originalPrice || 0,
+        price: Number(p.price) || 0,
+        originalPrice: p.originalPrice ? Number(p.originalPrice) : null,
         discountBadge: p.discountBadge || "",
         thumbnail: p.thumbnail || "",
-        images: p.images || [],
+        images: Array.isArray(p.images) ? p.images : [],
         badge: p.badge || "",
-        features: p.features || [],
+        features: Array.isArray(p.features) ? p.features : [],
         deliveryMethod: (p.deliveryMethod as any) || {},
-        faqs: (p.faqs as any) || [],
+        faqs: Array.isArray(p.faqs) ? (p.faqs as any) : [],
         stock: String(p.stock || "unlimited"),
-        rating: p.rating || 5.0,
-        reviewsCount: p.reviewsCount || 0,
-        salesCount: p.salesCount || 0,
+        rating: p.rating ? Number(p.rating) : 5.0,
+        reviewsCount: p.reviewsCount ? Number(p.reviewsCount) : 0,
+        salesCount: p.salesCount ? Number(p.salesCount) : 0,
         status: p.status || "active",
         createdAt: p.createdAt ? new Date(p.createdAt) : new Date(),
         updatedAt: p.updatedAt ? new Date(p.updatedAt) : new Date(),
@@ -325,10 +333,10 @@ async function main() {
   console.log(`   -> Successfully upserted ${productCount} shop products.`);
 
   // 7. Migrate Platform Settings (Branding, Home CMS, About CMS)
-  console.log("\n📦 [6/6] Migrating Platform Settings (Branding, Home, About CMS)...");
-  const branding = await getPersistentBranding();
-  const homeCms = await getPersistentHomeCms();
-  const aboutCms = await getPersistentAboutCms();
+  console.log("\n📦 [6/6] Migrating Platform Settings...");
+  const branding = readLocalJson<any>("branding.json", {});
+  const homeCms = readLocalJson<any>("home-cms.json", {});
+  const aboutCms = readLocalJson<any>("about-cms.json", {});
 
   await prisma.platformSetting.upsert({
     where: { key: "branding" },
