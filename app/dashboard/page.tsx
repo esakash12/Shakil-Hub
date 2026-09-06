@@ -7,25 +7,21 @@ import {
   getEnrolledCoursesAction,
   EnrolledCourseItem,
   getStudentNoticesAction,
-  getPendingOrdersAction,
-  PendingStudentOrder,
 } from "@/lib/actions/student";
 import { getUserCertificatesAction, CertificateItem } from "@/lib/actions/certificates";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import RecentCertificates from "@/components/dashboard/RecentCertificates";
 import QuickLinks from "@/components/dashboard/QuickLinks";
 import StudentNoticeBanner from "@/components/dashboard/StudentNoticeBanner";
-import PendingOrdersSection from "@/components/dashboard/PendingOrdersSection";
 import { GraduationCap, ArrowRight, Sparkles, Play, Clock } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function DashboardPage() {
-  const [customer, enrolledCourses, pendingOrders, certificates, notices] = await Promise.all([
+  const [customer, enrolledCourses, certificates, notices] = await Promise.all([
     getCustomerProfile(),
     getEnrolledCoursesAction(),
-    getPendingOrdersAction(),
     getUserCertificatesAction(),
     getStudentNoticesAction(),
   ]);
@@ -51,9 +47,6 @@ export default async function DashboardPage() {
     <div className="space-y-6 sm:space-y-8 select-none">
       {/* Admin Notices & Direct Alerts */}
       <StudentNoticeBanner initialNotices={notices} />
-
-      {/* Pending Payment Verification Section */}
-      <PendingOrdersSection orders={pendingOrders} />
 
       {/* Personalized Greeting Header */}
       <div className="space-y-1">

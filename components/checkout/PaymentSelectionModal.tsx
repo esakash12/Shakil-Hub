@@ -172,10 +172,7 @@ export default function PaymentSelectionModal({
               <button
                 key={method.id}
                 type="button"
-                onClick={() => {
-                  setSelectedMethod(method.id);
-                  onSelect(method.id);
-                }}
+                onClick={() => setSelectedMethod(method.id)}
                 className={`group relative p-2 sm:p-3 rounded-xl border text-center flex flex-col items-center justify-between gap-1 transition-all duration-200 cursor-pointer ${
                   isSelected
                     ? "border-[#0066FF] ring-2 ring-[#0066FF]/20 bg-blue-50/50 shadow-xs"

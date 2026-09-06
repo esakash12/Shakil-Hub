@@ -232,7 +232,7 @@ export default async function AdminDashboardPage() {
                           <div className="font-medium text-white">{item.studentName}</div>
                           <div className="text-[10px] text-gray-500">{item.email}</div>
                         </td>
-                        <td className="p-3.5 text-gray-300 font-medium max-w-[160px] truncate">
+                        <td className="p-3.5 text-gray-300 font-medium max-w-[240px] 2xl:max-w-md truncate">
                           {item.courseTitle}
                         </td>
                         <td className="p-3.5 font-mono font-bold text-white">
