@@ -1,54 +1,13 @@
 import "server-only";
 import { DigitalProduct, ShopProductPayload } from "./shop-types";
 import { readDataFile, writeDataFile } from "./storage-helper";
-import { prisma, isPrismaReady } from "../db/prisma";
 
 export * from "./shop-types";
 
 /**
- * Reads all digital products from PostgreSQL via Prisma or storage fallback
+ * Reads all digital products from disk
  */
 export async function getPersistentShopProducts(): Promise<DigitalProduct[]> {
-  if (prisma && (await isPrismaReady())) {
-    try {
-      const dbProducts = await prisma.shopProduct.findMany({
-        orderBy: { createdAt: "desc" },
-      });
-      if (dbProducts && dbProducts.length > 0) {
-        return dbProducts.map((p) => ({
-          id: p.id,
-          title: p.title,
-          slug: p.slug,
-          category: p.category,
-          shortDescription: p.shortDescription || "",
-          fullDescription: p.fullDescription || "",
-          price: p.price,
-          originalPrice: p.originalPrice || undefined,
-          discountBadge: p.discountBadge || undefined,
-          thumbnail: p.thumbnail || "",
-          images: p.images || [],
-          badge: p.badge || undefined,
-          features: p.features || [],
-          deliveryMethod: (p.deliveryMethod as any) || {
-            type: "download_link",
-            label: "Instant Delivery",
-            instructions: "Access instructions will be delivered immediately after purchase.",
-          },
-          faqs: (p.faqs as any) || [],
-          stock: (p.stock as any) || "unlimited",
-          rating: p.rating || 5.0,
-          reviewsCount: p.reviewsCount || 0,
-          salesCount: p.salesCount || 0,
-          status: p.status as any,
-          createdAt: p.createdAt.toISOString(),
-          updatedAt: p.updatedAt ? p.updatedAt.toISOString() : undefined,
-        }));
-      }
-    } catch (err) {
-      console.warn("Prisma shop query failed, falling back to storage:", err);
-    }
-  }
-
   try {
     const list = await readDataFile<DigitalProduct[]>("shop.json", []);
     if (Array.isArray(list)) {
@@ -150,60 +109,6 @@ export async function createShopProduct(payload: ShopProductPayload): Promise<Di
   products.unshift(newProduct);
   await savePersistentShopProducts(products);
 
-  if (prisma && (await isPrismaReady())) {
-    try {
-      await prisma.shopProduct.upsert({
-        where: { slug: newProduct.slug },
-        update: {
-          title: newProduct.title,
-          category: newProduct.category,
-          shortDescription: newProduct.shortDescription,
-          fullDescription: newProduct.fullDescription,
-          price: newProduct.price,
-          originalPrice: newProduct.originalPrice || null,
-          discountBadge: newProduct.discountBadge || null,
-          thumbnail: newProduct.thumbnail,
-          images: newProduct.images || [],
-          badge: newProduct.badge || null,
-          features: newProduct.features || [],
-          deliveryMethod: (newProduct.deliveryMethod as any) || {},
-          faqs: (newProduct.faqs as any) || [],
-          stock: String(newProduct.stock || "unlimited"),
-          rating: newProduct.rating || 5.0,
-          reviewsCount: newProduct.reviewsCount || 0,
-          salesCount: newProduct.salesCount || 0,
-          status: newProduct.status,
-        },
-        create: {
-          id: newProduct.id,
-          title: newProduct.title,
-          slug: newProduct.slug,
-          category: newProduct.category,
-          shortDescription: newProduct.shortDescription,
-          fullDescription: newProduct.fullDescription,
-          price: newProduct.price,
-          originalPrice: newProduct.originalPrice || null,
-          discountBadge: newProduct.discountBadge || null,
-          thumbnail: newProduct.thumbnail,
-          images: newProduct.images || [],
-          badge: newProduct.badge || null,
-          features: newProduct.features || [],
-          deliveryMethod: (newProduct.deliveryMethod as any) || {},
-          faqs: (newProduct.faqs as any) || [],
-          stock: String(newProduct.stock || "unlimited"),
-          rating: newProduct.rating || 5.0,
-          reviewsCount: newProduct.reviewsCount || 0,
-          salesCount: newProduct.salesCount || 0,
-          status: newProduct.status,
-          createdAt: new Date(newProduct.createdAt!),
-          updatedAt: new Date(newProduct.updatedAt!),
-        },
-      });
-    } catch (err) {
-      console.warn("Prisma shop product upsert warning:", err);
-    }
-  }
-
   return newProduct;
 }
 
@@ -244,33 +149,6 @@ export async function updateShopProduct(
   products[index] = updated;
   await savePersistentShopProducts(products);
 
-  if (prisma && (await isPrismaReady())) {
-    try {
-      await prisma.shopProduct.updateMany({
-        where: { id: updated.id },
-        data: {
-          title: updated.title,
-          category: updated.category,
-          shortDescription: updated.shortDescription,
-          fullDescription: updated.fullDescription,
-          price: updated.price,
-          originalPrice: updated.originalPrice || null,
-          discountBadge: updated.discountBadge || null,
-          thumbnail: updated.thumbnail,
-          images: updated.images || [],
-          badge: updated.badge || null,
-          features: updated.features || [],
-          deliveryMethod: (updated.deliveryMethod as any) || undefined,
-          faqs: (updated.faqs as any) || undefined,
-          stock: String(updated.stock || "unlimited"),
-          status: updated.status,
-        },
-      });
-    } catch (err) {
-      console.warn("Prisma update shop product warning:", err);
-    }
-  }
-
   return updated;
 }
 
@@ -284,16 +162,5 @@ export async function deleteShopProduct(id: string): Promise<boolean> {
     return false;
   }
   await savePersistentShopProducts(filtered);
-
-  if (prisma && (await isPrismaReady())) {
-    try {
-      await prisma.shopProduct.deleteMany({
-        where: { id },
-      });
-    } catch (err) {
-      console.warn("Prisma delete shop product warning:", err);
-    }
-  }
-
   return true;
 }

@@ -1,5 +1,3 @@
-import { prisma, isPrismaReady } from "../db/prisma";
-
 export interface LessonItem {
   id: string;
   title: string;
@@ -414,54 +412,6 @@ export function mapMedusaProductToCourse(product: any): CourseDetail {
  * Fetches published masterclasses live from the Medusa Store and LMS APIs without cache.
  */
 export async function getLiveStorefrontCourses(): Promise<CourseDetail[]> {
-  if (prisma && (await isPrismaReady())) {
-    try {
-      const dbCourses = await prisma.course.findMany();
-      if (dbCourses && dbCourses.length > 0) {
-        return dbCourses.map((c) => ({
-          slug: c.slug,
-          title: c.title,
-          subtitle: c.subtitle || "",
-          description: c.subtitle || "",
-          badge: c.badge || "",
-          category: c.category,
-          rating: c.rating,
-          reviewsCount: c.reviewsCount || "0",
-          studentsCount: c.studentsCount || "0",
-          updatedDate: c.updatedDate || "",
-          level: c.level,
-          price: c.price || "1299",
-          originalPrice: c.originalPrice || "2858",
-          discountPct: c.discountPct || "",
-          numericPrice: c.numericPrice,
-          numericOriginalPrice: c.numericOriginalPrice,
-          image: c.image || "",
-          thumbnail: c.thumbnail || c.image || "",
-          trailerImage: c.trailerImage || "",
-          trailerVideo: c.trailerVideo || "",
-          instructorId: c.instructorId || "",
-          instructor: {
-            name: c.instructorName || "Sakil Ahmed",
-            role: "Instructor",
-            avatar: "",
-            bio: "",
-            experience: "",
-            projects: "",
-            students: "",
-          },
-          highlights: (c.highlights as any) || {},
-          faqs: (c.faqs as any) || [],
-          curriculum: (c.curriculum as any) || [],
-          whatYouWillLearn: [],
-          includes: [],
-          requirements: [],
-        }));
-      }
-    } catch (err) {
-      console.warn("Prisma getLiveStorefrontCourses error:", err);
-    }
-  }
-
   const backendUrl =
     process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
   const publishableKey =
@@ -513,57 +463,6 @@ export async function getLiveStorefrontCourses(): Promise<CourseDetail[]> {
  * Fetches a single masterclass by handle or ID directly from Medusa with strict cache bypass.
  */
 export async function getLiveCourseBySlug(slug: string): Promise<CourseDetail | null> {
-  // Check PostgreSQL via Prisma first if available
-  if (prisma && (await isPrismaReady())) {
-    try {
-      const c = await prisma.course.findUnique({
-        where: { slug },
-      });
-      if (c) {
-        return {
-          slug: c.slug,
-          title: c.title,
-          subtitle: c.subtitle || "",
-          description: c.subtitle || "",
-          badge: c.badge || "",
-          category: c.category,
-          rating: c.rating,
-          reviewsCount: c.reviewsCount || "0",
-          studentsCount: c.studentsCount || "0",
-          updatedDate: c.updatedDate || "",
-          level: c.level,
-          price: c.price || "1299",
-          originalPrice: c.originalPrice || "2858",
-          discountPct: c.discountPct || "",
-          numericPrice: c.numericPrice,
-          numericOriginalPrice: c.numericOriginalPrice,
-          image: c.image || "",
-          thumbnail: c.thumbnail || c.image || "",
-          trailerImage: c.trailerImage || "",
-          trailerVideo: c.trailerVideo || "",
-          instructorId: c.instructorId || "",
-          instructor: {
-            name: c.instructorName || "Sakil Ahmed",
-            role: "Instructor",
-            avatar: "",
-            bio: "",
-            experience: "",
-            projects: "",
-            students: "",
-          },
-          highlights: (c.highlights as any) || {},
-          faqs: (c.faqs as any) || [],
-          curriculum: (c.curriculum as any) || [],
-          whatYouWillLearn: [],
-          includes: [],
-          requirements: [],
-        };
-      }
-    } catch (err) {
-      console.warn("Prisma getLiveCourseBySlug warning:", err);
-    }
-  }
-
   const backendUrl =
     process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
   const publishableKey =

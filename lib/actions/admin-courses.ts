@@ -6,7 +6,6 @@ import fs from "fs/promises";
 import path from "path";
 
 import { saveCourseCmsOverride, getCourseCmsOverride, CourseFaqItem } from "@/lib/data/courses-cms";
-import { prisma, isPrismaReady } from "@/lib/db/prisma";
 
 async function persistBase64Image(dataUri?: string): Promise<string> {
   if (!dataUri || !dataUri.startsWith("data:")) return dataUri || "";
@@ -179,57 +178,8 @@ export async function createAdminCourseAction(payload: CoursePayload) {
       console.warn("CMS OVERRIDE WRITE WARNING:", cmsErr.message);
     }
 
-    // 2. Persist in PostgreSQL via Prisma
-    if (prisma && (await isPrismaReady())) {
-      try {
-        await prisma.course.upsert({
-          where: { slug },
-          update: {
-            title: title.trim(),
-            subtitle: payload.subtitle || "",
-            badge: payload.badge || "Bestseller",
-            category: payload.category || "Video Editing",
-            level: payload.level || "Beginner to Advanced",
-            numericPrice: Number(priceBdt) || 1299,
-            numericOriginalPrice: payload.originalPriceBdt ? Number(payload.originalPriceBdt) : 2858,
-            discountPct: payload.discountPct || "",
-            image: safeThumbnail,
-            thumbnail: safeThumbnail,
-            trailerImage: safeThumbnail,
-            trailerVideo: trailerUrl.trim(),
-            instructorId: payload.instructorId || "sakil-ahmed",
-            instructorName: instructor.trim(),
-            highlights: (payload.highlights as any) || {},
-            faqs: (payload.faqs as any) || [],
-          },
-          create: {
-            slug,
-            title: title.trim(),
-            subtitle: payload.subtitle || "",
-            badge: payload.badge || "Bestseller",
-            category: payload.category || "Video Editing",
-            level: payload.level || "Beginner to Advanced",
-            numericPrice: Number(priceBdt) || 1299,
-            numericOriginalPrice: payload.originalPriceBdt ? Number(payload.originalPriceBdt) : 2858,
-            discountPct: payload.discountPct || "",
-            image: safeThumbnail,
-            thumbnail: safeThumbnail,
-            trailerImage: safeThumbnail,
-            trailerVideo: trailerUrl.trim(),
-            instructorId: payload.instructorId || "sakil-ahmed",
-            instructorName: instructor.trim(),
-            highlights: (payload.highlights as any) || {},
-            faqs: (payload.faqs as any) || [],
-            curriculum: [],
-            status: "published",
-          },
-        });
-      } catch (prismaErr: any) {
-        console.warn("Prisma course create warning:", prismaErr.message || prismaErr);
-      }
-    }
-
     let productData: any = null;
+    let createError = "";
 
     try {
       let response = await fetch(`${backendUrl}/lms/courses/create`, {
@@ -252,18 +202,21 @@ export async function createAdminCourseAction(payload: CoursePayload) {
 
       if (response.ok && (resData?.success !== false || resData?.product)) {
         productData = resData?.product;
+      } else {
+        createError = resData?.message || `Medusa rejected creation with HTTP ${response.status}`;
+        console.error("MEDUSA CREATE ERROR:", response.status, resData);
       }
     } catch (medusaErr: any) {
-      console.warn("Medusa sync skipped (PostgreSQL is active):", medusaErr.message);
+      createError = medusaErr.message || "Failed to reach Medusa backend.";
+      console.warn("MEDUSA CREATE FAILED:", medusaErr.message || medusaErr);
     }
 
-    // If Medusa is offline, use the PostgreSQL / CMS record
-    productData = productData || {
-      id: slug,
-      handle: slug,
-      title: title.trim(),
-      thumbnail: safeThumbnail,
-    };
+    if (!productData) {
+      return {
+        success: false,
+        error: createError || "Failed to create course in Medusa database. Please check inputs.",
+      };
+    }
 
     try {
       revalidatePath("/admin/courses");
@@ -479,36 +432,6 @@ export async function updateAdminCourseAction(
       } catch {}
     }
 
-    // Update directly in PostgreSQL via Prisma
-    if (prisma && (await isPrismaReady())) {
-      try {
-        await prisma.course.updateMany({
-          where: {
-            OR: [{ id }, { slug: id }, { slug: courseHandle }],
-          },
-          data: {
-            title: payload.title?.trim(),
-            subtitle: payload.subtitle,
-            badge: payload.badge,
-            category: payload.category,
-            level: payload.level,
-            numericPrice: payload.priceBdt ? Number(payload.priceBdt) : undefined,
-            numericOriginalPrice: payload.originalPriceBdt ? Number(payload.originalPriceBdt) : undefined,
-            discountPct: payload.discountPct,
-            image: formattedThumbnail || undefined,
-            thumbnail: formattedThumbnail || undefined,
-            trailerVideo: formattedTrailer || undefined,
-            instructorId: payload.instructorId,
-            instructorName: formattedInstructor,
-            highlights: (payload.highlights as any) || undefined,
-            faqs: (payload.faqs as any) || undefined,
-          },
-        });
-      } catch (dbErr: any) {
-        console.warn("Prisma update course warning:", dbErr.message || dbErr);
-      }
-    }
-
     try {
       revalidatePath("/admin/courses");
       revalidatePath(`/admin/courses/${id}`);
@@ -540,7 +463,7 @@ export async function updateAdminCourseAction(
 }
 
 /**
- * Hard Delete a masterclass permanently from PostgreSQL database, storefront catalog, and student dashboards
+ * Hard Delete a masterclass permanently from Medusa database, storefront catalog, and student dashboards
  */
 export async function deleteAdminCourseAction(idOrSlug: string): Promise<{
   success: boolean;
@@ -551,39 +474,35 @@ export async function deleteAdminCourseAction(idOrSlug: string): Promise<{
     return { success: false, error: "Course ID or Slug is required." };
   }
 
+  const backendUrl =
+    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+  const headers = await getAuthHeaders();
+
   try {
-    // 1. Delete directly from PostgreSQL via Prisma (Primary single DB)
-    if (prisma && (await isPrismaReady())) {
-      try {
-        await prisma.course.deleteMany({
-          where: {
-            OR: [{ id: idOrSlug }, { slug: idOrSlug }],
-          },
-        });
-      } catch (dbErr: any) {
-        console.warn("Prisma delete course warning:", dbErr.message || dbErr);
-      }
+    // 1. Delete from Medusa backend /lms/courses/:id
+    let response = await fetch(`${backendUrl}/lms/courses/${idOrSlug}`, {
+      method: "DELETE",
+      headers,
+      cache: "no-store",
+    });
+
+    if (!response.ok && response.status === 404) {
+      response = await fetch(`${backendUrl}/admin/products/${idOrSlug}`, {
+        method: "DELETE",
+        headers,
+        cache: "no-store",
+      });
     }
 
-    // 2. Delete from Medusa backend safely (no crash if Medusa is offline)
-    try {
-      const backendUrl =
-        process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-      const headers = await getAuthHeaders();
-      await fetch(`${backendUrl}/lms/courses/${idOrSlug}`, {
+    if (!response.ok && response.status === 404) {
+      response = await fetch(`${backendUrl}/admin/courses/${idOrSlug}`, {
         method: "DELETE",
         headers,
         cache: "no-store",
-      }).catch(() => null);
+      });
+    }
 
-      await fetch(`${backendUrl}/admin/courses/${idOrSlug}`, {
-        method: "DELETE",
-        headers,
-        cache: "no-store",
-      }).catch(() => null);
-    } catch {}
-
-    // 3. Scrub course slug from persistent student customer records
+    // 2. Scrub course slug from persistent student customer records
     try {
       const { getPersistentCustomers, savePersistentCustomer } = await import("@/lib/data/customers");
       const customers = await getPersistentCustomers();

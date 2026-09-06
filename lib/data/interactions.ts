@@ -19,7 +19,6 @@ export interface QuestionItem {
 }
 
 import { readDataFile, writeDataFile } from "./storage-helper";
-import { prisma, isPrismaReady } from "../db/prisma";
 
 const PROGRESS_FILE = "student-progress.json";
 const NOTES_FILE = "student-notes.json";
@@ -46,25 +45,6 @@ export async function getPersistentProgress(
 ): Promise<string[]> {
   if (!email || !courseSlug) return [];
   const normalizedEmail = email.toLowerCase().trim();
-
-  if (prisma && (await isPrismaReady())) {
-    try {
-      const record = await prisma.courseProgress.findUnique({
-        where: {
-          userEmail_courseSlug: {
-            userEmail: normalizedEmail,
-            courseSlug,
-          },
-        },
-      });
-      if (record && record.completedLessons) {
-        return record.completedLessons;
-      }
-    } catch (err) {
-      console.warn("Prisma progress query failed, falling back to file:", err);
-    }
-  }
-
   const all = await readJsonFile<ProgressStorage>(PROGRESS_FILE, {});
   return all[normalizedEmail]?.[courseSlug] || [];
 }
@@ -96,32 +76,6 @@ export async function markPersistentLessonCompleted(
   if (!current.includes(lessonId)) {
     all[normalizedEmail][courseSlug] = [...current, lessonId];
     await writeJsonFile(PROGRESS_FILE, all);
-
-    if (prisma && (await isPrismaReady())) {
-      try {
-        await prisma.user.upsert({
-          where: { email: normalizedEmail },
-          update: {},
-          create: { email: normalizedEmail, firstName: "Student", role: "student", status: "active" },
-        });
-        await prisma.courseProgress.upsert({
-          where: {
-            userEmail_courseSlug: {
-              userEmail: normalizedEmail,
-              courseSlug,
-            },
-          },
-          update: { completedLessons: all[normalizedEmail][courseSlug] },
-          create: {
-            userEmail: normalizedEmail,
-            courseSlug,
-            completedLessons: all[normalizedEmail][courseSlug],
-          },
-        });
-      } catch (err) {
-        console.warn("Prisma progress upsert warning:", err);
-      }
-    }
   }
 
   return { success: true, completedLessonIds: all[normalizedEmail][courseSlug] };
@@ -155,32 +109,6 @@ export async function togglePersistentLessonCompleted(
 
   all[normalizedEmail][courseSlug] = updated;
   await writeJsonFile(PROGRESS_FILE, all);
-
-  if (prisma && (await isPrismaReady())) {
-    try {
-      await prisma.user.upsert({
-        where: { email: normalizedEmail },
-        update: {},
-        create: { email: normalizedEmail, firstName: "Student", role: "student", status: "active" },
-      });
-      await prisma.courseProgress.upsert({
-        where: {
-          userEmail_courseSlug: {
-            userEmail: normalizedEmail,
-            courseSlug,
-          },
-        },
-        update: { completedLessons: updated },
-        create: {
-          userEmail: normalizedEmail,
-          courseSlug,
-          completedLessons: updated,
-        },
-      });
-    } catch (err) {
-      console.warn("Prisma progress upsert warning:", err);
-    }
-  }
 
   return { success: true, isCompleted, completedLessonIds: updated };
 }

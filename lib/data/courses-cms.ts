@@ -2,7 +2,6 @@ import "server-only";
 import fs from "fs/promises";
 import path from "path";
 import { readDataFile, writeDataFile } from "./storage-helper";
-import { prisma, isPrismaReady } from "../db/prisma";
 
 export interface CourseFaqItem {
   question: string;
@@ -10,13 +9,10 @@ export interface CourseFaqItem {
 }
 
 export interface CourseCmsOverride {
-  title?: string;
   subtitle?: string;
   badge?: string;
   category?: string;
   level?: string;
-  price?: string;
-  originalPrice?: string;
   mainSlogan?: string;
   heroSlogan?: string;
   numericPrice?: number;
@@ -39,38 +35,9 @@ export interface CourseCmsOverride {
 export type CoursesCmsMap = Record<string, CourseCmsOverride>;
 
 /**
- * Reads all course CMS overrides from disk/database
+ * Reads all course CMS overrides from disk
  */
 export async function getPersistentCoursesCms(): Promise<CoursesCmsMap> {
-  if (prisma && (await isPrismaReady())) {
-    try {
-      const dbCourses = await prisma.course.findMany();
-      if (dbCourses && dbCourses.length > 0) {
-        const result: CoursesCmsMap = {};
-        for (const c of dbCourses) {
-          result[c.slug] = {
-            title: c.title,
-            subtitle: c.subtitle || "",
-            badge: c.badge || "",
-            category: c.category,
-            level: c.level,
-            numericPrice: c.numericPrice,
-            numericOriginalPrice: c.numericOriginalPrice,
-            discountPct: c.discountPct || "",
-            instructorId: c.instructorId || "",
-            instructorName: c.instructorName || "",
-            highlights: (c.highlights as any) || {},
-            faqs: (c.faqs as any) || [],
-            curriculum: (c.curriculum as any) || [],
-          };
-        }
-        return result;
-      }
-    } catch (err) {
-      console.warn("Prisma courses query failed, falling back to file store:", err);
-    }
-  }
-
   try {
     const data = await readDataFile<CoursesCmsMap>("courses-cms.json", {});
     if (data && typeof data === "object") {
@@ -81,8 +48,6 @@ export async function getPersistentCoursesCms(): Promise<CoursesCmsMap> {
   }
   return {};
 }
-
-export const getPersistentCourseCmsMap = getPersistentCoursesCms;
 
 /**
  * Gets CMS override for a single course slug or id
@@ -117,48 +82,6 @@ export async function saveCourseCmsOverride(
 
     all[slugOrId] = merged;
     await writeDataFile("courses-cms.json", all);
-
-    if (prisma && (await isPrismaReady())) {
-      try {
-        await prisma.course.upsert({
-          where: { slug: slugOrId },
-          update: {
-            title: merged.title || undefined,
-            subtitle: merged.subtitle !== undefined ? merged.subtitle : undefined,
-            badge: merged.badge !== undefined ? merged.badge : undefined,
-            category: merged.category !== undefined ? merged.category : undefined,
-            level: merged.level !== undefined ? merged.level : undefined,
-            numericPrice: merged.numericPrice !== undefined ? merged.numericPrice : undefined,
-            numericOriginalPrice: merged.numericOriginalPrice !== undefined ? merged.numericOriginalPrice : undefined,
-            discountPct: merged.discountPct !== undefined ? merged.discountPct : undefined,
-            instructorId: merged.instructorId !== undefined ? merged.instructorId : undefined,
-            instructorName: merged.instructorName !== undefined ? merged.instructorName : undefined,
-            highlights: merged.highlights !== undefined ? (merged.highlights as any) : undefined,
-            faqs: merged.faqs !== undefined ? (merged.faqs as any) : undefined,
-            curriculum: merged.curriculum !== undefined ? (merged.curriculum as any) : undefined,
-          },
-          create: {
-            slug: slugOrId,
-            title: merged.title || slugOrId.replace(/-/g, " "),
-            subtitle: merged.subtitle || "",
-            badge: merged.badge || "Bestseller",
-            category: merged.category || "Video Editing",
-            level: merged.level || "Beginner to Advanced",
-            numericPrice: merged.numericPrice || 0,
-            numericOriginalPrice: merged.numericOriginalPrice || 0,
-            discountPct: merged.discountPct || "",
-            instructorId: merged.instructorId || "sakil-ahmed",
-            instructorName: merged.instructorName || "Sakil Ahmed",
-            highlights: (merged.highlights as any) || {},
-            faqs: (merged.faqs as any) || [],
-            curriculum: (merged.curriculum as any) || [],
-          },
-        });
-      } catch (prismaErr) {
-        console.warn("Prisma course CMS upsert warning:", prismaErr);
-      }
-    }
-
     return merged;
   } catch (err) {
     console.error("Failed to save course CMS override:", err);
