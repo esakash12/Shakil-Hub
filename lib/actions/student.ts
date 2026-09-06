@@ -237,48 +237,45 @@ export interface PendingStudentOrder {
   paymentMethod: string;
   trxId: string;
   senderNumber?: string;
-  status: "pending_verification" | "pending" | "processing";
+  status: "pending_verification" | "pending" | "processing" | "approved" | "rejected";
   createdAt: string;
+  rejectionReason?: string;
 }
 
 /**
- * Server Action: Fetches pending verification orders for the current student
+ * Server Action: Fetches all orders for the current student (session + persistent disk store)
  */
-export async function getPendingOrdersAction(): Promise<PendingStudentOrder[]> {
+export async function getAllStudentOrdersAction(): Promise<PendingStudentOrder[]> {
   try {
     const cookieStore = await cookies();
     const customer = await getCustomerProfile();
     const userEmail = customer?.email?.toLowerCase().trim() || "";
 
-    const pendingMap = new Map<string, PendingStudentOrder>();
+    const orderMap = new Map<string, PendingStudentOrder>();
 
-    // 1. Check pending orders in session cookies
+    // 1. Check orders in session cookies
     const pendingOrdersRaw = cookieStore.get("sakil_pending_orders")?.value;
     if (pendingOrdersRaw) {
       try {
         const sessionOrders: any[] = JSON.parse(pendingOrdersRaw);
         if (Array.isArray(sessionOrders)) {
           sessionOrders.forEach((o) => {
-            if (
-              o &&
-              (o.status === "pending_verification" ||
-                o.status === "pending" ||
-                o.status === "processing")
-            ) {
+            if (o) {
               const id = o.orderId || o.id || o.orderNumber || o.trxId;
               if (id) {
-                pendingMap.set(id, {
+                orderMap.set(id, {
                   id,
                   orderNumber: o.orderNumber || o.orderId || id,
-                  courseSlug: o.courseSlug || "premiere-pro-masterclass",
+                  courseSlug: o.courseSlug || "",
                   courseTitle: o.courseTitle || "Masterclass",
                   courseThumbnail: o.thumbnail || o.image,
                   amount: o.amount || 1499,
                   paymentMethod: o.paymentMethod || o.method || "bKash",
                   trxId: o.trxId || "N/A",
                   senderNumber: o.senderNumber,
-                  status: "pending_verification",
+                  status: o.status || "pending_verification",
                   createdAt: o.createdAt || new Date().toISOString(),
+                  rejectionReason: o.rejectionReason,
                 });
               }
             }
@@ -293,49 +290,48 @@ export async function getPendingOrdersAction(): Promise<PendingStudentOrder[]> {
         const { getPersistentOrders } = await import("@/lib/data/orders");
         const persistentOrders = await getPersistentOrders();
         persistentOrders.forEach((o) => {
-          if (
-            o.email &&
-            o.email.toLowerCase().trim() === userEmail &&
-            (o.status === "pending_verification" ||
-              (o.status as any) === "pending" ||
-              (o.status as any) === "processing")
-          ) {
+          if (o.email && o.email.toLowerCase().trim() === userEmail) {
             const id = o.id || o.orderNumber || o.trxId;
-            pendingMap.set(id, {
+            orderMap.set(id, {
               id,
               orderNumber: o.orderNumber || id,
-              courseSlug: o.courseSlug || "premiere-pro-masterclass",
+              courseSlug: o.courseSlug || "",
               courseTitle: o.courseTitle || "Masterclass",
               amount: o.amount || 1499,
               paymentMethod: o.paymentMethod || "bKash",
               trxId: o.trxId || "N/A",
               senderNumber: o.senderNumber,
-              status: "pending_verification",
+              status: o.status || "pending_verification",
               createdAt: o.createdAt || new Date().toISOString(),
+              rejectionReason: o.rejectionReason,
             });
           }
         });
       } catch (err) {
-        console.error("GET PERSISTENT ORDERS FOR PENDING ACTION ERROR:", err);
+        console.error("GET PERSISTENT ORDERS FOR STUDENT ERROR:", err);
       }
     }
 
-    const pendingList = Array.from(pendingMap.values());
+    const orderList = Array.from(orderMap.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
 
     // Enrich course titles and thumbnails with live course metadata
     const enrichedList = await Promise.all(
-      pendingList.map(async (item) => {
+      orderList.map(async (item) => {
         try {
-          const live = await getLiveCourseAction(item.courseSlug);
-          if (live?.success && live.course) {
-            return {
-              ...item,
-              courseTitle: live.course.title || item.courseTitle,
-              courseThumbnail:
-                live.course.thumbnail ||
-                live.course.image ||
-                item.courseThumbnail,
-            };
+          if (item.courseSlug) {
+            const live = await getLiveCourseAction(item.courseSlug);
+            if (live?.success && live.course) {
+              return {
+                ...item,
+                courseTitle: live.course.title || item.courseTitle,
+                courseThumbnail:
+                  live.course.thumbnail ||
+                  live.course.image ||
+                  item.courseThumbnail,
+              };
+            }
           }
         } catch {}
         return item;
@@ -344,7 +340,20 @@ export async function getPendingOrdersAction(): Promise<PendingStudentOrder[]> {
 
     return enrichedList;
   } catch (err) {
-    console.error("GET PENDING ORDERS ACTION ERROR:", err);
+    console.error("GET ALL STUDENT ORDERS ACTION ERROR:", err);
     return [];
   }
+}
+
+/**
+ * Server Action: Fetches pending verification orders for the current student
+ */
+export async function getPendingOrdersAction(): Promise<PendingStudentOrder[]> {
+  const allOrders = await getAllStudentOrdersAction();
+  return allOrders.filter(
+    (o) =>
+      o.status === "pending_verification" ||
+      (o.status as any) === "pending" ||
+      (o.status as any) === "processing"
+  );
 }

@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Clock, CheckCircle2, Play, AlertCircle } from "lucide-react";
 import { PendingStudentOrder } from "@/lib/actions/student";
 
@@ -26,6 +27,12 @@ export default function PendingOrdersSection({ orders }: PendingOrdersSectionPro
             </span>
           </h2>
         </div>
+        <Link
+          href="/dashboard/pending"
+          className="text-xs text-amber-400 hover:text-amber-300 font-medium transition-colors"
+        >
+          View Pending Sector →
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-4">

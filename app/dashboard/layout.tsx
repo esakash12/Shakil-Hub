@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { getCustomerProfile } from "@/lib/actions/auth";
+import { getPendingOrdersAction } from "@/lib/actions/student";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 
 export const metadata: Metadata = {
@@ -23,7 +24,11 @@ export default async function DashboardLayout({
     cookieStore.get("sakil_customer_info")?.value
   );
 
-  const customer = await getCustomerProfile();
+  const [customer, pendingOrders] = await Promise.all([
+    getCustomerProfile(),
+    getPendingOrdersAction(),
+  ]);
+
   if (!customer) {
     if (hasToken) {
       redirect("/login?error=account_suspended&logout=true");
@@ -35,8 +40,11 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-black text-white py-4 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
-          {/* Persistent Left Sidebar with Server-Fetched Profile */}
-          <DashboardSidebar initialProfile={customer} />
+          {/* Persistent Left Sidebar with Server-Fetched Profile & Pending Badge */}
+          <DashboardSidebar
+            initialProfile={customer}
+            initialPendingCount={pendingOrders.length}
+          />
 
           {/* Main Content Area */}
           <div className="flex-1 w-full min-w-0">{children}</div>

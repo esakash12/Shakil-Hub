@@ -15,7 +15,6 @@ import {
   Play,
   Award,
   ShoppingBag,
-  Clock,
 } from "lucide-react";
 import { adminLogoutAction } from "@/lib/actions/admin-auth";
 
@@ -28,12 +27,6 @@ export default function AdminSidebar() {
       href: "/admin",
       icon: LayoutDashboard,
       exact: true,
-    },
-    {
-      label: "Pending Orders",
-      href: "/admin/pending",
-      icon: Clock,
-      exact: false,
     },
     {
       label: "Enrollments",
@@ -116,11 +109,6 @@ export default function AdminSidebar() {
               >
                 <Icon className={`w-4 h-4 ${active ? "text-blue-400" : "text-gray-500"}`} />
                 <span>{item.label}</span>
-                {item.href === "/admin/pending" && (
-                  <span className="ml-auto px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 uppercase tracking-wider">
-                    Verify
-                  </span>
-                )}
               </Link>
             );
           })}

@@ -12,14 +12,19 @@ import {
   Settings,
   LogOut,
   User,
+  Clock,
 } from "lucide-react";
 import { logoutAction, CustomerProfile } from "@/lib/actions/auth";
 
 interface DashboardSidebarProps {
   initialProfile?: CustomerProfile | null;
+  initialPendingCount?: number;
 }
 
-export default function DashboardSidebar({ initialProfile }: DashboardSidebarProps = {}) {
+export default function DashboardSidebar({
+  initialProfile,
+  initialPendingCount = 0,
+}: DashboardSidebarProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const [profile, setProfile] = useState<CustomerProfile | null>(initialProfile || null);
@@ -33,6 +38,7 @@ export default function DashboardSidebar({ initialProfile }: DashboardSidebarPro
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, exact: true },
     { name: "My Courses", href: "/dashboard/courses", icon: GraduationCap, exact: false },
+    { name: "Pending Orders", href: "/dashboard/pending", icon: Clock, exact: false },
     { name: "Wishlist", href: "/dashboard/wishlist", icon: Heart, exact: false },
     { name: "My Certificates", href: "/dashboard/certificates", icon: Award, exact: false },
     { name: "Settings", href: "/dashboard/settings", icon: Settings, exact: false },
@@ -94,6 +100,11 @@ export default function DashboardSidebar({ initialProfile }: DashboardSidebarPro
               >
                 <Icon className="w-4 h-4 shrink-0" />
                 <span>{item.name}</span>
+                {item.name === "Pending Orders" && initialPendingCount > 0 && (
+                  <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">
+                    {initialPendingCount}
+                  </span>
+                )}
               </Link>
             );
           })}

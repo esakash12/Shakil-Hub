@@ -251,7 +251,7 @@ export async function approveOrderAction(orderId: string): Promise<{
     } catch {}
 
     // Revalidate routes
-    revalidatePath("/admin/pending");
+    revalidatePath("/dashboard/pending");
     revalidatePath("/admin/enrollments");
     revalidatePath("/admin");
     revalidatePath("/admin/students");
@@ -325,7 +325,7 @@ export async function rejectOrderAction(
     }
 
     // Revalidate routes
-    revalidatePath("/admin/pending");
+    revalidatePath("/dashboard/pending");
     revalidatePath("/admin/enrollments");
     revalidatePath("/admin");
     revalidatePath("/admin/students");
@@ -402,7 +402,7 @@ export async function deleteAdminOrderAction(orderId: string): Promise<{
     } catch {}
 
     // Revalidate routes
-    revalidatePath("/admin/pending");
+    revalidatePath("/dashboard/pending");
     revalidatePath("/admin/enrollments");
     revalidatePath("/admin");
     revalidatePath("/admin/students");
