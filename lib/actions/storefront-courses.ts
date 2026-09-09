@@ -1,6 +1,7 @@
 "use server";
 
-import { mapMedusaProductToCourse, CourseDetail, getCourseBySlug } from "@/lib/data/courses";
+import { CourseDetail } from "@/lib/data/courses";
+import { getLiveCourseBySlug, getLiveStorefrontCourses } from "@/lib/data/courses-db";
 import { getCourseCmsOverride } from "@/lib/data/courses-cms";
 import { getInstructorById, getPersistentInstructors } from "@/lib/data/instructors";
 
@@ -77,8 +78,7 @@ async function applyCmsOverrides(course: CourseDetail, slug: string): Promise<Co
 }
 
 /**
- * Server Action: Fetches a single masterclass by handle or ID directly from the backend.
- * Runs 100% on the Next.js Node.js server to completely eliminate browser CORS and network errors.
+ * Server Action: Fetches a single masterclass by handle or ID directly from PostgreSQL database.
  */
 export async function getLiveCourseAction(slug: string): Promise<{
   success: boolean;
@@ -89,100 +89,16 @@ export async function getLiveCourseAction(slug: string): Promise<{
     return { success: false, course: null, error: "Slug is required" };
   }
 
-  const backendUrl =
-    process.env.MEDUSA_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
-    "http://localhost:9000";
-  const publishableKey =
-    process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
-
   try {
-    // 1. Direct LMS Course lookup by handle or ID
-    try {
-      const lmsRes = await fetch(`${backendUrl}/lms/courses/${slug}`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store",
-      });
-
-      if (lmsRes.ok) {
-        const lmsData = await lmsRes.json().catch(() => null);
-        if (lmsData?.product) {
-          const course = mapMedusaProductToCourse(lmsData.product);
-          return {
-            success: true,
-            course: await applyCmsOverrides(course, slug),
-          };
-        }
-      }
-    } catch (e) {
-      // Continue to next strategy
+    const rawCourse = await getLiveCourseBySlug(slug);
+    if (rawCourse) {
+      const course = await applyCmsOverrides(rawCourse, slug);
+      return {
+        success: true,
+        course,
+      };
     }
 
-    // 2. Query Storefront API
-    try {
-      const res = await fetch(
-        `${backendUrl}/store/products?handle=${slug}&fields=*metadata`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "x-publishable-api-key": publishableKey,
-          },
-          cache: "no-store",
-        }
-      );
-
-      if (res.ok) {
-        const data = await res.json().catch(() => null);
-        if (data?.products?.[0]) {
-          const course = mapMedusaProductToCourse(data.products[0]);
-          return {
-            success: true,
-            course: await applyCmsOverrides(course, slug),
-          };
-        }
-      }
-    } catch (e) {
-      // Continue to next strategy
-    }
-
-    // 3. Fallback scan all courses in LMS
-    try {
-      const allCoursesRes = await fetch(`${backendUrl}/lms/courses`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store",
-      });
-
-      if (allCoursesRes.ok) {
-        const allData = await allCoursesRes.json().catch(() => null);
-        if (allData?.courses && Array.isArray(allData.courses)) {
-          const found = allData.courses.find(
-            (c: any) =>
-              c.handle === slug ||
-              c.id === slug ||
-              c.title
-                ?.toLowerCase()
-                .replace(/[^\w\s-]/g, "")
-                .trim()
-                .replace(/[\s_-]+/g, "-") === slug
-          );
-          if (found) {
-            const course = mapMedusaProductToCourse(found);
-            return {
-              success: true,
-              course: await applyCmsOverrides(course, slug),
-            };
-          }
-        }
-      }
-    } catch (e) {
-      // Backend unreachable
-    }
-
-    // Strict 404: Course does not exist
     return {
       success: false,
       course: null,
@@ -199,81 +115,26 @@ export async function getLiveCourseAction(slug: string): Promise<{
 }
 
 /**
- * Server Action: Fetches all published masterclasses for the storefront catalog.
+ * Server Action: Fetches all published masterclasses directly from PostgreSQL database.
  */
 export async function getLiveStorefrontCoursesAction(): Promise<{
   success: boolean;
   courses: CourseDetail[];
 }> {
-  const backendUrl =
-    process.env.MEDUSA_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
-    "http://localhost:9000";
-  const publishableKey =
-    process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
-
   try {
-    // 1. Query Direct LMS Catalog API
-    try {
-      const lmsRes = await fetch(`${backendUrl}/lms/courses`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store",
-      });
-
-      if (lmsRes.ok) {
-        const lmsData = await lmsRes.json().catch(() => null);
-        if (lmsData?.courses && Array.isArray(lmsData.courses) && lmsData.courses.length > 0) {
-          const mapped = lmsData.courses.map(mapMedusaProductToCourse);
-          const enriched = await Promise.all(
-            mapped.map((c: CourseDetail) => applyCmsOverrides(c, c.slug))
-          );
-          return {
-            success: true,
-            courses: enriched,
-          };
-        }
-      }
-    } catch (e) {
-      // Continue
-    }
-
-    // 2. Query Medusa Store API
-    try {
-      const res = await fetch(
-        `${backendUrl}/store/products?limit=50&fields=*metadata`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "x-publishable-api-key": publishableKey,
-          },
-          cache: "no-store",
-        }
-      );
-
-      if (res.ok) {
-        const data = await res.json().catch(() => null);
-        if (data?.products && Array.isArray(data.products) && data.products.length > 0) {
-          const mapped = data.products.map(mapMedusaProductToCourse);
-          const enriched = await Promise.all(
-            mapped.map((c: CourseDetail) => applyCmsOverrides(c, c.slug))
-          );
-          return {
-            success: true,
-            courses: enriched,
-          };
-        }
-      }
-    } catch (e) {
-      // Continue
-    }
+    const dbCourses = await getLiveStorefrontCourses();
+    const enriched = await Promise.all(
+      dbCourses.map((c: CourseDetail) => applyCmsOverrides(c, c.slug))
+    );
+    return {
+      success: true,
+      courses: enriched,
+    };
   } catch (err: any) {
     console.error("SERVER ACTION getLiveStorefrontCoursesAction ERROR:", err);
+    return {
+      success: true,
+      courses: [],
+    };
   }
-
-  return {
-    success: true,
-    courses: [],
-  };
 }

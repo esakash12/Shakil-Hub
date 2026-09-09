@@ -4,12 +4,6 @@ import { cookies } from "next/headers";
 import { getCourseBySlug, CourseDetail } from "@/lib/data/courses";
 import { getSessionCookieOptions } from "@/lib/security/cookies";
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-
-const PUBLISHABLE_API_KEY =
-  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
-
 export interface CartItem {
   id: string;
   courseSlug: string;
@@ -30,50 +24,22 @@ export interface CartState {
   total: number;
 }
 
-function getMedusaHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (PUBLISHABLE_API_KEY) {
-    headers["x-publishable-api-key"] = PUBLISHABLE_API_KEY;
-  }
-  return headers;
-}
-
 /**
- * Creates or retrieves a Medusa Cart
+ * Creates or retrieves the active session Cart ID
  */
 export async function getOrCreateCart(): Promise<string> {
   const cookieStore = await cookies();
-  const existingCartId = cookieStore.get("medusa_cart_id")?.value;
+  const existingCartId =
+    cookieStore.get("sakil_cart_id")?.value ||
+    cookieStore.get("medusa_cart_id")?.value;
 
   if (existingCartId) {
     return existingCartId;
   }
 
-  try {
-    const res = await fetch(`${BACKEND_URL}/store/carts`, {
-      method: "POST",
-      headers: getMedusaHeaders(),
-      body: JSON.stringify({}),
-      cache: "no-store",
-    });
-
-    if (res.ok) {
-      const data = await res.json().catch(() => ({}));
-      const cartId = data.cart?.id;
-      if (cartId) {
-        cookieStore.set("medusa_cart_id", cartId, getSessionCookieOptions());
-        return cartId;
-      }
-    }
-  } catch {
-    // Continue to fallback
-  }
-
-  const fallbackId = `cart_${Date.now()}`;
-  cookieStore.set("medusa_cart_id", fallbackId, getSessionCookieOptions());
-  return fallbackId;
+  const newCartId = `cart_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  cookieStore.set("sakil_cart_id", newCartId, getSessionCookieOptions());
+  return newCartId;
 }
 
 /**
@@ -117,7 +83,7 @@ export async function addToCartAction(
     if (existingIndex > -1) {
       items[existingIndex].quantity = quantity;
     } else {
-      items = [newItem]; // In a course platform, usually 1 course at checkout or replace
+      items = [newItem]; // In a course platform, 1 course at checkout or replace
     }
 
     cookieStore.set("sakil_cart_items", JSON.stringify(items), getSessionCookieOptions());
@@ -136,7 +102,7 @@ export async function addToCartAction(
         total,
       },
     };
-  } catch (err: any) {
+  } catch {
     return {
       success: false,
       error: "Failed to add course to cart. Please try again.",
@@ -149,7 +115,10 @@ export async function addToCartAction(
  */
 export async function getCartAction(): Promise<CartState> {
   const cookieStore = await cookies();
-  const cartId = cookieStore.get("medusa_cart_id")?.value || `cart_${Date.now()}`;
+  const cartId =
+    cookieStore.get("sakil_cart_id")?.value ||
+    cookieStore.get("medusa_cart_id")?.value ||
+    `cart_${Date.now()}`;
   const existingItemsRaw = cookieStore.get("sakil_cart_items")?.value;
 
   let items: CartItem[] = [];
@@ -190,6 +159,7 @@ export async function getCartAction(): Promise<CartState> {
  */
 export async function clearCartAction(): Promise<{ success: boolean }> {
   const cookieStore = await cookies();
+  cookieStore.delete("sakil_cart_id");
   cookieStore.delete("medusa_cart_id");
   cookieStore.delete("sakil_cart_items");
   return { success: true };

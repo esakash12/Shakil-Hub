@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import PopularCoursesList from "./PopularCoursesList";
 import { CourseProps } from "@/components/ui/CourseCard";
-import { getLiveStorefrontCourses } from "@/lib/data/courses";
+import { getLiveStorefrontCourses } from "@/lib/data/courses-db";
 import { Sparkles, ArrowRight, Video } from "lucide-react";
 
 export default async function PopularCourses() {

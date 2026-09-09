@@ -19,6 +19,7 @@ export interface QuestionItem {
 }
 
 import { readDataFile, writeDataFile } from "./storage-helper";
+import { prisma, isPrismaReady } from "../db/prisma";
 
 const PROGRESS_FILE = "student-progress.json";
 const NOTES_FILE = "student-notes.json";
@@ -45,6 +46,23 @@ export async function getPersistentProgress(
 ): Promise<string[]> {
   if (!email || !courseSlug) return [];
   const normalizedEmail = email.toLowerCase().trim();
+
+  try {
+    if (prisma && (await isPrismaReady())) {
+      const row = await prisma.courseProgress.findUnique({
+        where: {
+          userEmail_courseSlug: {
+            userEmail: normalizedEmail,
+            courseSlug: courseSlug,
+          },
+        },
+      });
+      if (row && Array.isArray(row.completedLessons)) {
+        return row.completedLessons;
+      }
+    }
+  } catch {}
+
   const all = await readJsonFile<ProgressStorage>(PROGRESS_FILE, {});
   return all[normalizedEmail]?.[courseSlug] || [];
 }
@@ -54,6 +72,22 @@ export async function getAllPersistentProgressForUser(
 ): Promise<Record<string, string[]>> {
   if (!email) return {};
   const normalizedEmail = email.toLowerCase().trim();
+
+  try {
+    if (prisma && (await isPrismaReady())) {
+      const rows = await prisma.courseProgress.findMany({
+        where: { userEmail: normalizedEmail },
+      });
+      if (rows && rows.length > 0) {
+        const res: Record<string, string[]> = {};
+        for (const r of rows) {
+          res[r.courseSlug] = r.completedLessons || [];
+        }
+        return res;
+      }
+    }
+  } catch {}
+
   const all = await readJsonFile<ProgressStorage>(PROGRESS_FILE, {});
   return all[normalizedEmail] || {};
 }
@@ -73,12 +107,35 @@ export async function markPersistentLessonCompleted(
   if (!all[normalizedEmail][courseSlug]) all[normalizedEmail][courseSlug] = [];
 
   const current = all[normalizedEmail][courseSlug];
+  let updated = current;
   if (!current.includes(lessonId)) {
-    all[normalizedEmail][courseSlug] = [...current, lessonId];
+    updated = [...current, lessonId];
+    all[normalizedEmail][courseSlug] = updated;
     await writeJsonFile(PROGRESS_FILE, all);
   }
 
-  return { success: true, completedLessonIds: all[normalizedEmail][courseSlug] };
+  try {
+    if (prisma && (await isPrismaReady())) {
+      await prisma.courseProgress.upsert({
+        where: {
+          userEmail_courseSlug: {
+            userEmail: normalizedEmail,
+            courseSlug: courseSlug,
+          },
+        },
+        create: {
+          userEmail: normalizedEmail,
+          courseSlug: courseSlug,
+          completedLessons: updated,
+        },
+        update: {
+          completedLessons: updated,
+        },
+      });
+    }
+  } catch {}
+
+  return { success: true, completedLessonIds: updated };
 }
 
 export async function togglePersistentLessonCompleted(
@@ -109,6 +166,27 @@ export async function togglePersistentLessonCompleted(
 
   all[normalizedEmail][courseSlug] = updated;
   await writeJsonFile(PROGRESS_FILE, all);
+
+  try {
+    if (prisma && (await isPrismaReady())) {
+      await prisma.courseProgress.upsert({
+        where: {
+          userEmail_courseSlug: {
+            userEmail: normalizedEmail,
+            courseSlug: courseSlug,
+          },
+        },
+        create: {
+          userEmail: normalizedEmail,
+          courseSlug: courseSlug,
+          completedLessons: updated,
+        },
+        update: {
+          completedLessons: updated,
+        },
+      });
+    }
+  } catch {}
 
   return { success: true, isCompleted, completedLessonIds: updated };
 }

@@ -91,36 +91,7 @@ export async function adminLoginAction(formData: FormData) {
     };
   }
 
-  const backendUrl =
-    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-
-  let adminJwt = "";
-
-  try {
-    // 1. Authenticate with Medusa v2 Admin Auth Engine (POST /auth/user/emailpass)
-    const res = await fetch(`${backendUrl}/auth/user/emailpass`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-      cache: "no-store",
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data.token) {
-        adminJwt = data.token;
-      }
-    }
-  } catch (err: any) {
-    console.warn("Medusa user auth check failed, using signed fallback:", err.message);
-  }
-
-  // 2. Fallback authorization check for configured admin credentials
+  // Check configured admin credentials or database admin
   const validAdminEmail = (process.env.ADMIN_EMAIL || "admin@sakilhub.com").toLowerCase().trim();
   const validAdminPass = process.env.ADMIN_PASSWORD || "admin123456";
 
@@ -128,7 +99,7 @@ export async function adminLoginAction(formData: FormData) {
     email === validAdminEmail &&
     password === validAdminPass;
 
-  const isAuthorized = Boolean(adminJwt) || matchesEnvCredentials;
+  let isAuthorized = matchesEnvCredentials;
 
   if (!isAuthorized) {
     return {
@@ -138,7 +109,7 @@ export async function adminLoginAction(formData: FormData) {
   }
 
   // Generate verified cryptographically signed admin token value
-  const finalToken = adminJwt || signAdminToken(email);
+  const finalToken = signAdminToken(email);
 
   const cookieStore = await cookies();
   cookieStore.set(ADMIN_COOKIE_NAME, finalToken, getSessionCookieOptions());

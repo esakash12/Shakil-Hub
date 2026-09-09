@@ -17,13 +17,7 @@ import {
 } from "@/lib/data/customers";
 import { getPersistentOrders, OrderItem } from "@/lib/data/orders";
 
-const BACKEND_URL =
-  process.env.MEDUSA_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
-  "http://localhost:9000";
 
-const ADMIN_API_KEY =
-  process.env.MEDUSA_API_KEY || "sakil_headless_lms_admin_key";
 
 export interface AdminStudentItem {
   id: string;
@@ -50,43 +44,17 @@ export async function fetchAdminStudentsAction(): Promise<{
   students: AdminStudentItem[];
 }> {
   try {
-    // 1. Fetch registered customer accounts
+    // 1. Fetch registered customer accounts directly from PostgreSQL
     const registeredCustomers: CustomerRecord[] = await getPersistentCustomers();
 
-    // 2. Try fetching Medusa backend customers if running
-    let medusaCustomers: CustomerRecord[] = [];
-    try {
-      const res = await fetch(`${BACKEND_URL}/admin/customers?limit=50`, {
-        headers: {
-          "Content-Type": "application/json",
-          "x-medusa-access-token": ADMIN_API_KEY,
-        },
-        cache: "no-store",
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.customers && Array.isArray(data.customers)) {
-          medusaCustomers = data.customers.map((c: any) => ({
-            id: c.id,
-            firstName: c.first_name || "Student",
-            lastName: c.last_name || "",
-            email: c.email,
-            phone: c.phone,
-            createdAt: c.created_at || new Date().toISOString(),
-          }));
-        }
-      }
-    } catch {}
-
-    // 3. Fetch all orders
+    // 2. Fetch all orders
     const orders: OrderItem[] = await getPersistentOrders();
 
     // Merge registered customers
     const studentMap: Record<string, AdminStudentItem> = {};
 
     // Register all real student accounts
-    const allCustomers = [...registeredCustomers, ...medusaCustomers];
+    const allCustomers = registeredCustomers;
     allCustomers.forEach((cust) => {
       const email = cust.email.toLowerCase().trim();
       if (!email) return;
@@ -327,31 +295,6 @@ export async function deleteStudentAccountAction(
 
   try {
     await deletePersistentCustomer(email);
-
-    // Also attempt deleting on Medusa backend
-    try {
-      const customersRes = await fetch(`${BACKEND_URL}/admin/customers?q=${encodeURIComponent(email)}`, {
-        headers: {
-          "Content-Type": "application/json",
-          "x-medusa-access-token": ADMIN_API_KEY,
-        },
-        cache: "no-store",
-      });
-      if (customersRes.ok) {
-        const data = await customersRes.json();
-        const found = data.customers?.find((c: any) => c.email?.toLowerCase() === email.toLowerCase());
-        if (found?.id) {
-          await fetch(`${BACKEND_URL}/admin/customers/${found.id}`, {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              "x-medusa-access-token": ADMIN_API_KEY,
-            },
-            cache: "no-store",
-          });
-        }
-      }
-    } catch {}
 
     revalidatePath("/admin/students");
     revalidatePath("/admin");

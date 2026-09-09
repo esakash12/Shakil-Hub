@@ -1,7 +1,7 @@
 import React from "react";
 import type { Metadata } from "next";
 import CoursesCatalogClient from "@/components/course/CoursesCatalogClient";
-import { getLiveStorefrontCourses } from "@/lib/data/courses";
+import { getLiveStorefrontCourses } from "@/lib/data/courses-db";
 import { CourseProps } from "@/components/ui/CourseCard";
 
 export const metadata: Metadata = {

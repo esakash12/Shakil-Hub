@@ -1,4 +1,4 @@
-import medusa from "./medusa";
+import { isPrismaReady } from "./db/prisma";
 
 export interface ConnectionStatus {
   status: boolean;
@@ -6,26 +6,18 @@ export interface ConnectionStatus {
 }
 
 /**
- * Utility to test whether the Medusa headless commerce backend is reachable.
+ * Utility to test whether the PostgreSQL database is reachable and ready.
  */
 export async function checkBackendConnection(): Promise<ConnectionStatus> {
-  try {
-    const response = await medusa.regions.list();
-    if (response && response.regions) {
-      return {
-        status: true,
-        message: "Successfully connected to Medusa backend.",
-      };
-    }
+  const ready = await isPrismaReady();
+  if (ready) {
     return {
-      status: false,
-      message: "Received empty response from Medusa backend.",
-    };
-  } catch (error: any) {
-    return {
-      status: false,
-      message:
-        error?.message || "Could not reach Medusa backend at the configured URL.",
+      status: true,
+      message: "Successfully connected to PostgreSQL Enterprise Database.",
     };
   }
+  return {
+    status: false,
+    message: "PostgreSQL Database connection unavailable.",
+  };
 }

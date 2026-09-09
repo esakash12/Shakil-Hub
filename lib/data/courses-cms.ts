@@ -1,4 +1,3 @@
-import "server-only";
 import fs from "fs/promises";
 import path from "path";
 import { readDataFile, writeDataFile } from "./storage-helper";
@@ -9,6 +8,7 @@ export interface CourseFaqItem {
 }
 
 export interface CourseCmsOverride {
+  title?: string;
   subtitle?: string;
   badge?: string;
   category?: string;

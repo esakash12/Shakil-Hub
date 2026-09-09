@@ -1,8 +1,8 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { saveCourseCmsOverride } from "@/lib/data/courses-cms";
+import { prisma, isPrismaReady } from "@/lib/db/prisma";
 
 export interface LessonItemState {
   id: string;
@@ -26,7 +26,7 @@ export interface ModuleItemState {
 }
 
 /**
- * Updates the course curriculum structure inside Medusa metadata & persistent CMS overrides
+ * Updates the course curriculum structure directly in PostgreSQL & persistent CMS overrides
  * Preserves Cloudflare R2 object keys, downloadable attachment URLs, and preview flags
  */
 export async function updateCourseCurriculumAction(
@@ -38,30 +38,6 @@ export async function updateCourseCurriculumAction(
       success: false,
       error: "Course ID is required.",
     };
-  }
-
-  const backendUrl =
-    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-  const publishableKey =
-    process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
-  const apiKey =
-    process.env.MEDUSA_API_KEY || "sakil_headless_lms_admin_key";
-
-  const cookieStore = await cookies();
-  const adminToken =
-    cookieStore.get("sakil_admin_token")?.value ||
-    cookieStore.get("medusa_admin_token")?.value ||
-    "";
-
-  const requestHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
-    "x-publishable-api-key": publishableKey,
-    "x-medusa-access-token": apiKey,
-  };
-
-  if (adminToken) {
-    requestHeaders["Authorization"] = `Bearer ${adminToken}`;
-    requestHeaders["Cookie"] = `sakil_admin_token=${adminToken}`;
   }
 
   // Ensure r2_object_key and preview flags are normalized
@@ -85,67 +61,41 @@ export async function updateCourseCurriculumAction(
     }),
   }));
 
-  // 1. Always persist to disk-backed CMS override
+  // 1. Direct update in PostgreSQL via Prisma
+  if (prisma && (await isPrismaReady())) {
+    try {
+      await prisma.course.updateMany({
+        where: {
+          OR: [{ id: courseId }, { slug: courseId }],
+        },
+        data: {
+          curriculum: sanitizedCurriculum as any,
+        },
+      });
+    } catch (err: any) {
+      console.warn("Prisma update curriculum warning:", err.message || err);
+    }
+  }
+
+  // 2. Persist to disk-backed CMS override as backup
   await saveCourseCmsOverride(courseId, {
     curriculum: sanitizedCurriculum,
   });
 
-  try {
-    const response = await fetch(`${backendUrl}/lms/courses/${courseId}`, {
-      method: "POST",
-      headers: requestHeaders,
-      body: JSON.stringify({
-        curriculum: sanitizedCurriculum,
-      }),
-      cache: "no-store",
-    });
+  // Cache Invalidation across all dynamic page and layout routes
+  revalidatePath("/courses/[slug]", "page");
+  revalidatePath("/courses/[slug]/curriculum", "page");
+  revalidatePath("/admin/courses/[id]", "page");
+  revalidatePath("/dashboard/courses/[slug]/learn", "page");
+  revalidatePath("/courses", "page");
+  revalidatePath("/admin/courses", "page");
+  revalidatePath("/admin", "page");
+  revalidatePath(`/courses/${courseId}`, "page");
+  revalidatePath(`/courses/${courseId}/curriculum`, "page");
+  revalidatePath(`/admin/courses/${courseId}`, "page");
 
-    const data = await response.json().catch(() => null);
-
-    const productHandle = data?.product?.handle;
-    if (productHandle && productHandle !== courseId) {
-      await saveCourseCmsOverride(productHandle, {
-        curriculum: sanitizedCurriculum,
-      });
-      revalidatePath(`/courses/${productHandle}`, "page");
-      revalidatePath(`/courses/${productHandle}/curriculum`, "page");
-      revalidatePath(`/dashboard/courses/${productHandle}/learn`, "page");
-    }
-
-    // Cache Invalidation across all dynamic page and layout routes
-    revalidatePath("/courses/[slug]", "page");
-    revalidatePath("/courses/[slug]/curriculum", "page");
-    revalidatePath("/admin/courses/[id]", "page");
-    revalidatePath("/dashboard/courses/[slug]/learn", "page");
-    revalidatePath("/courses", "page");
-    revalidatePath("/admin/courses", "page");
-    revalidatePath("/admin", "page");
-    revalidatePath(`/courses/${courseId}`, "page");
-    revalidatePath(`/courses/${courseId}/curriculum`, "page");
-    revalidatePath(`/admin/courses/${courseId}`, "page");
-
-    return {
-      success: true,
-      product: data?.product,
-      curriculum: sanitizedCurriculum,
-    };
-  } catch (err: any) {
-    console.warn("MEDUSA CURRICULUM OFFLINE (persisted to CMS override):", err.message || err);
-
-    revalidatePath("/courses/[slug]", "page");
-    revalidatePath("/courses/[slug]/curriculum", "page");
-    revalidatePath("/admin/courses/[id]", "page");
-    revalidatePath("/dashboard/courses/[slug]/learn", "page");
-    revalidatePath("/courses", "page");
-    revalidatePath("/admin/courses", "page");
-    revalidatePath("/admin", "page");
-    revalidatePath(`/courses/${courseId}`, "page");
-    revalidatePath(`/courses/${courseId}/curriculum`, "page");
-    revalidatePath(`/admin/courses/${courseId}`, "page");
-
-    return {
-      success: true,
-      curriculum: sanitizedCurriculum,
-    };
-  }
+  return {
+    success: true,
+    curriculum: sanitizedCurriculum,
+  };
 }

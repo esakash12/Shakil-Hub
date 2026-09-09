@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { getCustomerProfile } from "@/lib/actions/auth";
-import { getLiveCourseBySlug, getCourseBySlug, CourseDetail } from "@/lib/data/courses";
+import { getCourseBySlug, CourseDetail } from "@/lib/data/courses";
+import { getLiveCourseBySlug } from "@/lib/data/courses-db";
 import {
   getPersistentWishlist,
   togglePersistentWishlist,

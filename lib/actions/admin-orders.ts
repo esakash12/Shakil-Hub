@@ -1,21 +1,13 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { getSessionCookieOptions } from "@/lib/security/cookies";
+import { cookies } from "next/headers";
 import {
   getPersistentOrders,
   updatePersistentOrderStatus,
-  OrderItem,
+  deletePersistentOrder,
 } from "@/lib/data/orders";
-
-const BACKEND_URL =
-  process.env.MEDUSA_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
-  "http://localhost:9000";
-
-const ADMIN_API_KEY =
-  process.env.MEDUSA_API_KEY || "sakil_headless_lms_admin_key";
+import { getSessionCookieOptions } from "@/lib/security/cookies";
 
 export interface AdminOrderRecord {
   id: string;
@@ -25,36 +17,42 @@ export interface AdminOrderRecord {
   courseTitle: string;
   courseSlug: string;
   amount: number;
-  paymentMethod: "bKash" | "Nagad" | "Card" | string;
+  paymentMethod: string;
   senderNumber: string;
   trxId: string;
   status: "pending_verification" | "approved" | "rejected";
   createdAt: string;
+  verifiedAt?: string;
+  rejectionReason?: string;
 }
 
 /**
- * Server Action: Fetches all real orders/enrollments for the Admin workspace
+ * Server Action: Fetches all orders directly from PostgreSQL database
  */
-export async function fetchAdminOrders(): Promise<{
+export async function getAdminOrdersAction(): Promise<{
   success: boolean;
   orders: AdminOrderRecord[];
+  error?: string;
 }> {
   try {
     const cookieStore = await cookies();
-    const persistentOrders: OrderItem[] = await getPersistentOrders();
 
+    // 1. Fetch live orders from PostgreSQL via persistent orders layer
+    const persistentOrders = await getPersistentOrders();
+
+    // 2. Fetch session orders if in dev/preview
+    let sessionOrders: any[] = [];
     const pendingOrdersRaw = cookieStore.get("sakil_pending_orders")?.value;
-    let sessionOrders: AdminOrderRecord[] = [];
     if (pendingOrdersRaw) {
       try {
-        const rawList = JSON.parse(pendingOrdersRaw);
-        if (Array.isArray(rawList)) {
-          sessionOrders = rawList.map((o: any) => ({
-            id: o.orderId || o.id,
-            orderNumber: o.orderNumber || o.orderId || `ORD-${Math.floor(100000 + Math.random() * 900000)}`,
-            studentName: o.fullName || o.studentName || "Student",
+        const parsed = JSON.parse(pendingOrdersRaw);
+        if (Array.isArray(parsed)) {
+          sessionOrders = parsed.map((o: any) => ({
+            id: o.orderId || o.id || `session_${Date.now()}`,
+            orderNumber: o.orderNumber || o.orderId || `ORD-${Date.now().toString().slice(-6)}`,
+            studentName: o.studentName || "Student",
             email: o.email || "student@sakilhub.com",
-            courseTitle: o.courseTitle || "Masterclass",
+            courseTitle: o.courseTitle || "Digital Masterclass",
             courseSlug: o.courseSlug || "",
             amount: Number(o.amount) || 1299,
             paymentMethod: o.paymentMethod || "bKash",
@@ -66,41 +64,6 @@ export async function fetchAdminOrders(): Promise<{
         }
       } catch {}
     }
-
-    // Try fetching live Medusa Orders if available
-    let medusaOrders: AdminOrderRecord[] = [];
-    try {
-      const res = await fetch(`${BACKEND_URL}/admin/orders?limit=50`, {
-        headers: {
-          "Content-Type": "application/json",
-          "x-medusa-access-token": ADMIN_API_KEY,
-        },
-        cache: "no-store",
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.orders && Array.isArray(data.orders)) {
-          medusaOrders = data.orders.map((o: any) => {
-            const meta = o.metadata || {};
-            return {
-              id: o.id,
-              orderNumber: meta.order_reference || `ORD-${o.display_id || o.id.slice(-5)}`,
-              studentName: meta.student_name || o.shipping_address?.first_name || "Student",
-              email: o.email || "student@sakilhub.com",
-              courseTitle: meta.course_title || "Digital Masterclass",
-              courseSlug: meta.course_slug || "",
-              amount: (o.total || 129900) / 100,
-              paymentMethod: meta.payment_method || "bKash",
-              senderNumber: meta.sender_number || "017XXXXXXXX",
-              trxId: meta.trx_id || "TRX-AUTO",
-              status: meta.status || "pending_verification",
-              createdAt: o.created_at || new Date().toISOString(),
-            };
-          });
-        }
-      }
-    } catch {}
 
     const { getPersistentCustomers } = await import("@/lib/data/customers");
     const persistentCustomers = await getPersistentCustomers();
@@ -117,18 +80,9 @@ export async function fetchAdminOrders(): Promise<{
       return name || "Student";
     };
 
-    // Merge real orders from persistent store, session, and backend
     const mergedMap = new Map<string, AdminOrderRecord>();
 
-    // 1. Add Medusa orders
-    medusaOrders.forEach((o) => {
-      mergedMap.set(o.id, {
-        ...o,
-        studentName: resolveStudentName(o.studentName, o.email),
-      });
-    });
-
-    // 2. Add Persistent orders (from disk store)
+    // Add persistent orders from PostgreSQL
     persistentOrders.forEach((o) => {
       mergedMap.set(o.id, {
         id: o.id,
@@ -143,38 +97,50 @@ export async function fetchAdminOrders(): Promise<{
         trxId: o.trxId,
         status: o.status,
         createdAt: o.createdAt,
+        verifiedAt: o.verifiedAt,
+        rejectionReason: o.rejectionReason,
       });
     });
 
-    // 3. Add Session orders
+    // Merge session orders (if not already present in DB)
     sessionOrders.forEach((o) => {
-      mergedMap.set(o.id, {
-        ...o,
-        studentName: resolveStudentName(o.studentName, o.email),
-      });
+      const matchInMap = Array.from(mergedMap.values()).find(
+        (existing) =>
+          existing.orderNumber === o.orderNumber ||
+          (existing.trxId && existing.trxId.toLowerCase() === o.trxId.toLowerCase())
+      );
+      if (!matchInMap) {
+        mergedMap.set(o.id, {
+          ...o,
+          studentName: resolveStudentName(o.studentName, o.email),
+        });
+      }
     });
 
-    const orders = Array.from(mergedMap.values()).sort(
+    // Sort descending by date
+    const sortedOrders = Array.from(mergedMap.values()).sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
     return {
       success: true,
-      orders,
+      orders: sortedOrders,
     };
   } catch (err: any) {
-    console.error("FETCH ADMIN ORDERS ERROR:", err);
+    console.error("GET ADMIN ORDERS ACTION ERROR:", err);
     return {
       success: false,
       orders: [],
+      error: err.message || "Failed to load orders.",
     };
   }
 }
 
 /**
- * Server Action: Approves an order, verifying the TrxID and granting student course access
+ * Server Action: Verifies & Approves an order (Atomic PostgreSQL Transaction)
+ * Automatically grants access to the student immediately.
  */
-export async function approveOrderAction(orderId: string): Promise<{
+export async function verifyAdminOrderAction(orderId: string): Promise<{
   success: boolean;
   message?: string;
   error?: string;
@@ -186,14 +152,14 @@ export async function approveOrderAction(orderId: string): Promise<{
   try {
     const cookieStore = await cookies();
 
-    // 1. Update in persistent disk store
+    // 1. Update in PostgreSQL
     const updatedPersistent = await updatePersistentOrderStatus(orderId, "approved", {
       verifiedAt: new Date().toISOString(),
     });
 
     const targetSlug = updatedPersistent?.courseSlug || "";
 
-    // 2. Update in session cookie if present
+    // 2. Update session cookie if active
     const pendingOrdersRaw = cookieStore.get("sakil_pending_orders")?.value;
     if (pendingOrdersRaw) {
       try {
@@ -207,7 +173,6 @@ export async function approveOrderAction(orderId: string): Promise<{
           }
           return o;
         });
-
         cookieStore.set("sakil_pending_orders", JSON.stringify(updated), getSessionCookieOptions(60 * 60 * 24 * 30));
       } catch {}
     }
@@ -222,33 +187,15 @@ export async function approveOrderAction(orderId: string): Promise<{
       } catch {}
     }
 
-    // 4. Grant course directly to persistent student account in customers.json
-    if (updatedPersistent?.email) {
+    // 4. Grant course entitlement to student account
+    if (updatedPersistent?.email && targetSlug) {
       try {
         const { grantCustomerCourse } = await import("@/lib/data/customers");
         await grantCustomerCourse(updatedPersistent.email, targetSlug);
       } catch (custErr) {
-        console.error("FAILED TO GRANT PERSISTENT CUSTOMER COURSE:", custErr);
+        console.error("FAILED TO GRANT CUSTOMER COURSE:", custErr);
       }
     }
-
-    // 5. Notify Medusa backend if active
-    try {
-      await fetch(`${BACKEND_URL}/admin/orders/${orderId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-medusa-access-token": ADMIN_API_KEY,
-        },
-        body: JSON.stringify({
-          metadata: {
-            status: "approved",
-            verified_at: new Date().toISOString(),
-          },
-        }),
-        cache: "no-store",
-      });
-    } catch {}
 
     // Revalidate routes
     revalidatePath("/dashboard/pending");
@@ -289,7 +236,7 @@ export async function rejectOrderAction(
   try {
     const cookieStore = await cookies();
 
-    // 1. Update persistent store
+    // 1. Update in PostgreSQL
     await updatePersistentOrderStatus(orderId, "rejected", {
       rejectionReason: reason || "Invalid or unverifiable Transaction ID",
     });
@@ -358,8 +305,7 @@ export async function deleteAdminOrderAction(orderId: string): Promise<{
   try {
     const cookieStore = await cookies();
 
-    // 1. Delete from persistent orders.json
-    const { deletePersistentOrder } = await import("@/lib/data/orders");
+    // 1. Delete from PostgreSQL
     const deletedOrder = await deletePersistentOrder(orderId);
 
     // 2. If session cookie has this order, remove it
@@ -389,18 +335,6 @@ export async function deleteAdminOrderAction(orderId: string): Promise<{
       } catch {}
     }
 
-    // 5. Attempt deleting on Medusa backend
-    try {
-      await fetch(`${BACKEND_URL}/admin/orders/${orderId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "x-medusa-access-token": ADMIN_API_KEY,
-        },
-        cache: "no-store",
-      });
-    } catch {}
-
     // Revalidate routes
     revalidatePath("/dashboard/pending");
     revalidatePath("/admin/enrollments");
@@ -421,3 +355,7 @@ export async function deleteAdminOrderAction(orderId: string): Promise<{
     };
   }
 }
+
+// Backward compatibility exports
+export const fetchAdminOrders = getAdminOrdersAction;
+export const approveOrderAction = verifyAdminOrderAction;

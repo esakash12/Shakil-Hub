@@ -3,7 +3,8 @@
 import { cookies } from "next/headers";
 import { clearCartAction } from "@/lib/actions/cart";
 import { getSessionCookieOptions } from "@/lib/security/cookies";
-import { getCourseBySlug, getLiveCourseBySlug, CourseDetail } from "@/lib/data/courses";
+import { getCourseBySlug, CourseDetail } from "@/lib/data/courses";
+import { getLiveCourseBySlug } from "@/lib/data/courses-db";
 import { getShopProductBySlug } from "@/lib/data/shop";
 import { savePersistentOrder, getPersistentOrders } from "@/lib/data/orders";
 import { getClientIp, checkRateLimit } from "@/lib/security/rate-limit";
@@ -13,14 +14,6 @@ import {
   emailSchema,
   bangladeshiPhoneSchema,
 } from "@/lib/security/schemas";
-
-const BACKEND_URL =
-  process.env.MEDUSA_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
-  "http://localhost:9000";
-
-const PUBLISHABLE_API_KEY =
-  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
 
 export interface ManualCheckoutInput {
   courseSlug: string;
@@ -58,19 +51,9 @@ export interface CheckoutResult {
   error?: string;
 }
 
-function getMedusaHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (PUBLISHABLE_API_KEY) {
-    headers["x-publishable-api-key"] = PUBLISHABLE_API_KEY;
-  }
-  return headers;
-}
-
 /**
  * Server Action: Processes manual mobile money transfer (bKash/Nagad/Rocket) course & product checkout.
- * Creates Medusa Cart & Order, saves verification metadata, and tracks student enrollment.
+ * Saves order to PostgreSQL, saves verification metadata, and tracks student enrollment.
  */
 export async function processManualCheckout(
   input: ManualCheckoutInput
@@ -226,69 +209,7 @@ export async function processManualCheckout(
       status: "pending_verification",
     };
 
-    // 2. Medusa Cart & Checkout Workflow (if backend is active)
-    let medusaOrderId = orderId;
-    try {
-      // Create Cart in Medusa
-      const cartRes = await fetch(`${BACKEND_URL}/store/carts`, {
-        method: "POST",
-        headers: getMedusaHeaders(),
-        body: JSON.stringify({
-          email: orderRecord.email,
-          metadata: {
-            is_digital_course: true,
-            course_slug: courseSlug,
-            course_title: itemTitle,
-            payment_method: paymentMethod,
-            sender_number: orderRecord.senderNumber,
-            trx_id: orderRecord.trxId,
-            student_name: orderRecord.fullName,
-            order_reference: orderNumber,
-            status: "pending_verification",
-          },
-        }),
-        cache: "no-store",
-      });
-
-      if (cartRes.ok) {
-        const cartData = await cartRes.json().catch(() => null);
-        const cartId = cartData?.cart?.id;
-
-        if (cartId) {
-          // Initialize payment collection / session
-          try {
-            await fetch(`${BACKEND_URL}/store/payment-collections`, {
-              method: "POST",
-              headers: getMedusaHeaders(),
-              body: JSON.stringify({
-                cart_id: cartId,
-              }),
-              cache: "no-store",
-            });
-          } catch {}
-
-          // Complete cart into order
-          const completeRes = await fetch(`${BACKEND_URL}/store/carts/${cartId}/complete`, {
-            method: "POST",
-            headers: getMedusaHeaders(),
-            body: JSON.stringify({}),
-            cache: "no-store",
-          });
-
-          if (completeRes.ok) {
-            const completeData = await completeRes.json().catch(() => null);
-            if (completeData?.order?.id) {
-              medusaOrderId = completeData.order.id;
-              orderRecord.orderId = completeData.order.id;
-            }
-          }
-        }
-      }
-    } catch (medusaErr) {
-      console.warn("Medusa direct cart creation bypassed (offline/fallback mode):", medusaErr);
-    }
-
-    // 3. Persist Order to disk store for Admin telemetry
+    // 2. Persist Order directly to PostgreSQL (via Prisma with ACID transaction)
     await savePersistentOrder({
       id: orderRecord.orderId,
       orderNumber: orderRecord.orderNumber,

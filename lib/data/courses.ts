@@ -409,136 +409,68 @@ export function mapMedusaProductToCourse(product: any): CourseDetail {
 }
 
 /**
- * Fetches published masterclasses live from the Medusa Store and LMS APIs without cache.
+ * Maps a Prisma Course record to the CourseDetail interface.
  */
-export async function getLiveStorefrontCourses(): Promise<CourseDetail[]> {
-  const backendUrl =
-    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-  const publishableKey =
-    process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
+export function mapDbCourseToCourseDetail(c: any): CourseDetail {
+  const highlights = typeof c.highlights === "string" ? JSON.parse(c.highlights) : (c.highlights || {});
+  const faqs = typeof c.faqs === "string" ? JSON.parse(c.faqs) : (c.faqs || []);
+  const curriculum = typeof c.curriculum === "string" ? JSON.parse(c.curriculum) : (c.curriculum || []);
+  const whatYouWillLearn = typeof c.whatYouWillLearn === "string" ? JSON.parse(c.whatYouWillLearn) : (c.whatYouWillLearn || []);
+  const includes = typeof c.includes === "string" ? JSON.parse(c.includes) : (c.includes || []);
+  const requirements = typeof c.requirements === "string" ? JSON.parse(c.requirements) : (c.requirements || []);
 
-  let list: CourseDetail[] = [];
+  const numPrice = c.numericPrice || 1299;
+  const origPrice = c.numericOriginalPrice || 2858;
 
-  try {
-    // 1. Query Direct LMS Catalog API (has full metadata without field restrictions)
-    const lmsRes = await fetch(`${backendUrl}/lms/courses`, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      cache: "no-store",
-    });
+  const resolvedThumb = resolveMediaUrl(c.thumbnail || c.image || "");
+  const resolvedTrailer = resolveMediaUrl(c.trailerVideo || "");
 
-    if (lmsRes.ok) {
-      const lmsData = await lmsRes.json().catch(() => null);
-      if (lmsData?.courses && Array.isArray(lmsData.courses) && lmsData.courses.length > 0) {
-        list = lmsData.courses.map(mapMedusaProductToCourse);
-      }
-    }
-
-    // 2. Query Medusa Store API if empty
-    if (list.length === 0) {
-      const res = await fetch(`${backendUrl}/store/products?limit=50&fields=*metadata`, {
-        headers: {
-          "Content-Type": "application/json",
-          "x-publishable-api-key": publishableKey,
-        },
-        cache: "no-store",
-      });
-
-      if (res.ok) {
-        const data = await res.json().catch(() => null);
-        if (data?.products && Array.isArray(data.products) && data.products.length > 0) {
-          list = data.products.map(mapMedusaProductToCourse);
-        }
-      }
-    }
-  } catch {
-    // Backend offline or empty
-  }
-
-  return list;
-}
-
-/**
- * Fetches a single masterclass by handle or ID directly from Medusa with strict cache bypass.
- */
-export async function getLiveCourseBySlug(slug: string): Promise<CourseDetail | null> {
-  const backendUrl =
-    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-  const publishableKey =
-    process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
-
-  try {
-    // 1. Query LMS Direct Route
-    try {
-      const lmsRes = await fetch(`${backendUrl}/lms/courses/${slug}`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store",
-      });
-
-      if (lmsRes.ok) {
-        const lmsData = await lmsRes.json().catch(() => null);
-        if (lmsData?.product) {
-          return mapMedusaProductToCourse(lmsData.product);
-        }
-      }
-    } catch {
-      // Continue to next strategy
-    }
-
-    // 2. Query Storefront API with wildcard fields
-    try {
-      const res = await fetch(`${backendUrl}/store/products?handle=${slug}&fields=*metadata`, {
-        headers: {
-          "Content-Type": "application/json",
-          "x-publishable-api-key": publishableKey,
-        },
-        cache: "no-store",
-      });
-
-      if (res.ok) {
-        const data = await res.json().catch(() => null);
-        if (data?.products?.[0]) {
-          return mapMedusaProductToCourse(data.products[0]);
-        }
-      }
-    } catch {
-      // Continue to next strategy
-    }
-
-    // 3. Fallback scan all courses in LMS
-    try {
-      const allCoursesRes = await fetch(`${backendUrl}/lms/courses`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store",
-      });
-
-      if (allCoursesRes.ok) {
-        const allData = await allCoursesRes.json().catch(() => null);
-        if (allData?.courses && Array.isArray(allData.courses)) {
-          const found = allData.courses.find(
-            (c: any) =>
-              c.handle === slug ||
-              c.id === slug ||
-              c.title?.toLowerCase().replace(/[^\w\s-]/g, "").trim().replace(/[\s_-]+/g, "-") === slug
-          );
-          if (found) {
-            return mapMedusaProductToCourse(found);
-          }
-        }
-      }
-    } catch {
-      // Backend unreachable
-    }
-  } catch (err) {
-    console.error("getLiveCourseBySlug error:", err);
-  }
-
-  return null;
+  return {
+    slug: c.slug,
+    title: c.title,
+    subtitle: c.subtitle || "",
+    badge: c.badge || "Bestseller",
+    category: c.category || "Video Editing",
+    rating: Number(c.rating) || 5.0,
+    reviewsCount: c.reviewsCount || "0",
+    studentsCount: c.studentsCount || "0 Enrolled",
+    updatedDate: c.updatedDate || "March 2026",
+    level: c.level || "Beginner to Advanced",
+    price: c.price ? (c.price.startsWith("৳") ? c.price : `৳${c.price}`) : `৳${numPrice.toLocaleString()}`,
+    originalPrice: c.originalPrice ? (c.originalPrice.startsWith("৳") ? c.originalPrice : `৳${c.originalPrice}`) : `৳${origPrice.toLocaleString()}`,
+    discountPct: c.discountPct || "45% OFF",
+    numericPrice: numPrice,
+    numericOriginalPrice: origPrice,
+    image: resolvedThumb,
+    thumbnail: resolvedThumb,
+    trailerImage: resolveMediaUrl(c.trailerImage || resolvedThumb),
+    trailerVideo: resolvedTrailer,
+    instructorId: c.instructorId || "",
+    instructor: {
+      name: c.instructorName || "Sakil Ahmed",
+      role: "Lead Filmmaker & Video Editor",
+      avatar: "",
+      bio: "Commercial filmmaker and video editor with extensive industry experience.",
+      experience: "8+ Years",
+      projects: "400+",
+      students: "10K+",
+      socials: {},
+    },
+    highlights: {
+      hours: highlights.hours || "20+ Hours",
+      lessons: highlights.lessons || `${curriculum.reduce((acc: number, m: any) => acc + (m.lessons?.length || 0), 0)} Lessons`,
+      access: highlights.access || "Lifetime Access",
+      certificate: highlights.certificate || "Certificate Included",
+    },
+    description: c.subtitle || c.title,
+    mainSlogan: highlights.mainSlogan || "The complete roadmap to becoming a professional video editor.",
+    heroSlogan: highlights.heroSlogan || "Master Commercial Editing & Filmmaking",
+    whatYouWillLearn: Array.isArray(whatYouWillLearn) ? whatYouWillLearn : [],
+    includes: Array.isArray(includes) ? includes : [],
+    requirements: Array.isArray(requirements) ? requirements : [],
+    curriculum: Array.isArray(curriculum) ? curriculum : [],
+    faqs: Array.isArray(faqs) ? faqs : [],
+  };
 }
 
 export const coursesData: Record<string, CourseDetail> = {};

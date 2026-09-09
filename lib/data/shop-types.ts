@@ -33,7 +33,7 @@ export interface DigitalProduct {
   features: string[];
   deliveryMethod: DeliveryMethod;
   faqs?: ShopProductFaq[];
-  stock?: number | "unlimited";
+  stock?: number | "unlimited" | string;
   rating?: number;
   reviewsCount?: number;
   salesCount?: number;
@@ -57,6 +57,6 @@ export interface ShopProductPayload {
   features: string[];
   deliveryMethod: DeliveryMethod;
   faqs?: ShopProductFaq[];
-  stock?: number | "unlimited";
+  stock?: number | "unlimited" | string;
   status?: "active" | "draft";
 }

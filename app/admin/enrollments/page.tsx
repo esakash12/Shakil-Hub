@@ -22,7 +22,7 @@ export default async function AdminEnrollmentsPage() {
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
             <Sparkles className="w-3 h-3" />
-            <span>Medusa v2 Order Management</span>
+            <span>Enterprise Order Management</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             Order & TrxID Verification

@@ -209,7 +209,7 @@ export default function AdminCoursesClient({
             </div>
 
             <p className="text-xs text-gray-300 leading-relaxed">
-              This action will completely erase <strong className="text-white">&ldquo;{deleteModalCourse.title}&rdquo;</strong> from the Medusa database, storefront catalog, and revoke it from all student dashboards.
+              This action will completely erase <strong className="text-white">&ldquo;{deleteModalCourse.title}&rdquo;</strong> from the database, storefront catalog, and revoke it from all student dashboards.
             </p>
 
             {errorMsg && (

@@ -1,14 +1,13 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { savePersistentCustomer, findCustomerByEmail } from "@/lib/data/customers";
+import {
+  savePersistentCustomer,
+  findCustomerByEmail,
+  hashPassword,
+  getPersistentCustomers,
+} from "@/lib/data/customers";
 import { getSessionCookieOptions } from "@/lib/security/cookies";
-
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-
-const PUBLISHABLE_API_KEY =
-  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
 
 export interface AuthResponse {
   success: boolean;
@@ -33,6 +32,7 @@ const SESSION_COOKIE_KEYS = [
   "sakil_community_qa",
   "sakil_pending_orders",
   "sakil_wishlist",
+  "sakil_cart_id",
   "medusa_cart_id",
   "medusa_jwt",
   "connect.sid",
@@ -52,23 +52,7 @@ export async function purgeAllSessionCookies(): Promise<void> {
 }
 
 /**
- * Standard Medusa Request Headers Helper
- */
-function getMedusaHeaders(token?: string): Record<string, string> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (PUBLISHABLE_API_KEY) {
-    headers["x-publishable-api-key"] = PUBLISHABLE_API_KEY;
-  }
-  if (token) {
-    headers["Authorization"] = `Bearer ${token.trim()}`;
-  }
-  return headers;
-}
-
-/**
- * Log in a student customer with Medusa.js backend (Medusa v2)
+ * Log in a student customer directly with PostgreSQL database
  */
 export async function loginAction(formData: FormData): Promise<AuthResponse> {
   const email = (formData.get("email") as string)?.trim().toLowerCase();
@@ -78,219 +62,74 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
     return { success: false, error: "Email and password are required." };
   }
 
-  // 0. Enforce Administrative Ban Status Gatekeeper
-  const existingStatus = await findCustomerByEmail(email);
-  if (existingStatus) {
-    if (existingStatus.status === "banned") {
+  // 1. Enforce Administrative Ban Status Gatekeeper
+  const existing = await findCustomerByEmail(email);
+  if (existing) {
+    if (existing.status === "banned") {
       return {
         success: false,
-        error: `⛔ Account Suspended: Your student account has been permanently suspended by administration. Reason: ${existingStatus.banReason || "Terms of Service violation"}.`,
+        error: `⛔ Account Suspended: Your student account has been permanently suspended by administration. Reason: ${existing.banReason || "Terms of Service violation"}.`,
       };
     }
-    if (existingStatus.status === "temp_banned") {
-      const banExpiry = existingStatus.tempBanUntil
-        ? new Date(existingStatus.tempBanUntil).toLocaleDateString()
+    if (existing.status === "temp_banned") {
+      const banExpiry = existing.tempBanUntil
+        ? new Date(existing.tempBanUntil).toLocaleDateString()
         : "further notice";
       return {
         success: false,
-        error: `⏳ Temporary Restriction: Your access is suspended until ${banExpiry}. Reason: ${existingStatus.banReason || "Administrative hold"}.`,
+        error: `⏳ Temporary Restriction: Your access is suspended until ${banExpiry}. Reason: ${existing.banReason || "Administrative hold"}.`,
       };
     }
   }
 
   try {
-    let token = "";
-    let customerObj: any = null;
+    const hashed = hashPassword(password);
 
-    // 1. Medusa v2 Auth Endpoint: POST /auth/customer/emailpass
-    const authRes = await fetch(`${BACKEND_URL}/auth/customer/emailpass`, {
-      method: "POST",
-      headers: getMedusaHeaders(),
-      body: JSON.stringify({ email, password }),
-      cache: "no-store",
-    });
-
-    const authData = await authRes.json().catch(() => ({}));
-
-    if (authRes.ok && authData.token) {
-      token = authData.token;
-
-      // 2. Fetch customer profile with Bearer Token: GET /store/customers/me
-      try {
-        const profileRes = await fetch(`${BACKEND_URL}/store/customers/me`, {
-          method: "GET",
-          headers: getMedusaHeaders(token),
-          cache: "no-store",
-        });
-
-        if (profileRes.ok) {
-          const profileData = await profileRes.json().catch(() => ({}));
-          customerObj = profileData.customer || profileData;
-        } else if (profileRes.status === 404) {
-          // If customer record doesn't exist yet, auto-create it
-          const createCustRes = await fetch(`${BACKEND_URL}/store/customers`, {
-            method: "POST",
-            headers: getMedusaHeaders(token),
-            body: JSON.stringify({
-              email,
-              first_name: "Student",
-              last_name: "",
-            }),
-            cache: "no-store",
-          });
-          if (createCustRes.ok) {
-            const createData = await createCustRes.json().catch(() => ({}));
-            customerObj = createData.customer || createData;
-          }
-        }
-      } catch {
-        // Continue
-      }
-    } else {
-      // 2b. Check persistent customer database (customers.json) fallback
-      const existing = await findCustomerByEmail(email);
-      if (existing) {
-        const { hashPassword } = await import("@/lib/data/customers");
-        const hashed = hashPassword(password);
-        if (!existing.passwordHash) {
-          existing.passwordHash = hashed;
-          await savePersistentCustomer(existing);
-        }
-        if (existing.passwordHash === hashed) {
-          const finalProfile = {
-            id: existing.id,
-            first_name: existing.firstName || "Student",
-            last_name: existing.lastName || "",
-            email: existing.email,
-            phone: existing.phone || "",
-          };
-
-          await purgeAllSessionCookies();
-
-          const cookieStore = await cookies();
-          const fallbackToken = `std_tok_${Buffer.from(email).toString("base64")}_${Date.now()}`;
-          cookieStore.set("sakil_customer_token", fallbackToken, getSessionCookieOptions());
-          cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
-
-          return {
-            success: true,
-            customer: finalProfile,
-          };
-        }
+    if (existing) {
+      // If user has no passwordHash yet (seeded account), initialize it
+      if (!existing.passwordHash) {
+        existing.passwordHash = hashed;
+        await savePersistentCustomer(existing);
       }
 
-      // 3. Medusa v1 Fallback: POST /store/auth
-      const v1Res = await fetch(`${BACKEND_URL}/store/auth`, {
-        method: "POST",
-        headers: getMedusaHeaders(),
-        body: JSON.stringify({ email, password }),
-        cache: "no-store",
-      });
+      if (existing.passwordHash === hashed) {
+        const finalProfile: CustomerProfile = {
+          id: existing.id,
+          first_name: existing.firstName || "Student",
+          last_name: existing.lastName || "",
+          email: existing.email,
+          phone: existing.phone || "",
+        };
 
-      if (v1Res.ok) {
-        const v1Data = await v1Res.json().catch(() => ({}));
-        customerObj = v1Data.customer;
-        token = email;
-      } else {
-        const errorMsg =
-          authData.message ||
-          "Invalid email or password. Please check your credentials.";
+        await purgeAllSessionCookies();
+
+        const cookieStore = await cookies();
+        const token = `std_tok_${Buffer.from(email).toString("base64")}_${Date.now()}`;
+        cookieStore.set("sakil_customer_token", token, getSessionCookieOptions());
+        cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
+
         return {
-          success: false,
-          error: errorMsg,
+          success: true,
+          customer: finalProfile,
         };
       }
     }
 
-    const existing = await findCustomerByEmail(email);
-    const { hashPassword } = await import("@/lib/data/customers");
-
-    const finalFirstName = existing?.firstName || customerObj?.first_name || "Student";
-    const finalLastName = existing?.lastName !== undefined ? existing.lastName : (customerObj?.last_name || "");
-    const finalPhone = existing?.phone || customerObj?.phone || "";
-
-    await savePersistentCustomer({
-      id: customerObj?.id || existing?.id || `std-${Date.now().toString().slice(-6)}`,
-      firstName: finalFirstName,
-      lastName: finalLastName,
-      email: customerObj?.email || email,
-      phone: finalPhone,
-      passwordHash: hashPassword(password),
-    });
-
-    // Purge any stale cookies from prior sessions
-    await purgeAllSessionCookies();
-
-    // Set Session Token Cookie & Customer Profile Info
-    const cookieStore = await cookies();
-    cookieStore.set("sakil_customer_token", token, getSessionCookieOptions());
-
-    const finalProfile = {
-      id: customerObj?.id || existing?.id,
-      first_name: finalFirstName,
-      last_name: finalLastName,
-      email: customerObj?.email || email,
-      phone: finalPhone,
-    };
-
-    cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
-
-    return {
-      success: true,
-      customer: finalProfile,
-    };
-  } catch (err: any) {
-    // Resilient Fallback: Verify against persistent customer database (customers.json)
-    try {
-      const existing = await findCustomerByEmail(email);
-      if (existing) {
-        const { hashPassword } = await import("@/lib/data/customers");
-        const hashed = hashPassword(password);
-        if (!existing.passwordHash) {
-          existing.passwordHash = hashed;
-          await savePersistentCustomer(existing);
-        }
-        const isMatch = existing.passwordHash === hashed;
-
-        if (isMatch) {
-          const finalProfile = {
-            id: existing.id,
-            first_name: existing.firstName || "Student",
-            last_name: existing.lastName || "",
-            email: existing.email,
-            phone: existing.phone || "",
-          };
-
-          await purgeAllSessionCookies();
-
-          const cookieStore = await cookies();
-          const fallbackToken = `std_tok_${Buffer.from(email).toString("base64")}_${Date.now()}`;
-          cookieStore.set("sakil_customer_token", fallbackToken, getSessionCookieOptions());
-          cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
-
-          return {
-            success: true,
-            customer: finalProfile,
-          };
-        } else {
-          return {
-            success: false,
-            error: "Invalid email or password. Please check your credentials.",
-          };
-        }
-      }
-    } catch {}
-
     return {
       success: false,
-      error:
-        "Unable to connect to authentication server. Please create an account or verify your email and password.",
+      error: "Invalid email or password. Please check your credentials.",
+    };
+  } catch (err: any) {
+    console.error("LOGIN ACTION ERROR:", err);
+    return {
+      success: false,
+      error: "An error occurred during sign in. Please try again.",
     };
   }
 }
 
 /**
- * Register a new student customer with Medusa.js backend (Medusa v2)
+ * Register a new student customer directly in PostgreSQL database
  */
 export async function registerAction(formData: FormData): Promise<AuthResponse> {
   const firstName = (formData.get("first_name") as string)?.trim();
@@ -303,94 +142,39 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
   }
 
   try {
-    let token = "";
-    let customerObj: any = null;
-
-    // Step 1 (Medusa v2): Register auth credentials with Auth Module
-    const authRes = await fetch(
-      `${BACKEND_URL}/auth/customer/emailpass/register`,
-      {
-        method: "POST",
-        headers: getMedusaHeaders(),
-        body: JSON.stringify({ email, password }),
-        cache: "no-store",
-      }
-    );
-
-    const authData = await authRes.json().catch(() => ({}));
-
-    if (authRes.ok && authData.token) {
-      token = authData.token;
-
-      // Step 2 (Medusa v2): Create customer profile with Bearer Authorization
-      const customerRes = await fetch(`${BACKEND_URL}/store/customers`, {
-        method: "POST",
-        headers: getMedusaHeaders(token),
-        body: JSON.stringify({
-          first_name: firstName,
-          last_name: lastName,
-          email,
-        }),
-        cache: "no-store",
-      });
-
-      const custData = await customerRes.json().catch(() => ({}));
-      customerObj = custData.customer || custData;
-    } else {
-      // Step 3 (Medusa v1 Fallback): POST /store/customers
-      const v1Res = await fetch(`${BACKEND_URL}/store/customers`, {
-        method: "POST",
-        headers: getMedusaHeaders(),
-        body: JSON.stringify({
-          first_name: firstName,
-          last_name: lastName,
-          email,
-          password,
-        }),
-        cache: "no-store",
-      });
-
-      const v1Data = await v1Res.json().catch(() => ({}));
-
-      if (v1Res.ok) {
-        customerObj = v1Data.customer || v1Data;
-        token = email;
-      } else {
-        const errorMsg =
-          authData.message ||
-          v1Data.message ||
-          "Registration failed. Email may already be registered.";
-        return {
-          success: false,
-          error: errorMsg,
-        };
-      }
+    const existing = await findCustomerByEmail(email);
+    if (existing) {
+      return {
+        success: false,
+        error: "An account with this email address already exists. Please log in.",
+      };
     }
 
-    // Save registered customer to persistent directory
-    const { hashPassword } = await import("@/lib/data/customers");
-    const customerId = customerObj?.id || `std-${Date.now().toString().slice(-6)}`;
+    const customerId = `std-${Date.now().toString().slice(-6)}`;
+    const hashedPassword = hashPassword(password);
+
     await savePersistentCustomer({
       id: customerId,
       firstName: firstName,
       lastName: lastName,
       email: email,
-      passwordHash: hashPassword(password),
+      passwordHash: hashedPassword,
+      status: "active",
       createdAt: new Date().toISOString(),
     });
 
     // Purge any stale cookies before establishing brand new student session
     await purgeAllSessionCookies();
 
-    // Save session in Cookie & Customer Info
+    const token = `std_tok_${Buffer.from(email).toString("base64")}_${Date.now()}`;
     const cookieStore = await cookies();
     cookieStore.set("sakil_customer_token", token, getSessionCookieOptions());
 
-    const finalProfile = {
+    const finalProfile: CustomerProfile = {
       id: customerId,
-      first_name: customerObj?.first_name || firstName,
-      last_name: customerObj?.last_name || lastName,
-      email: customerObj?.email || email,
+      first_name: firstName,
+      last_name: lastName,
+      email: email,
     };
 
     cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
@@ -400,52 +184,11 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
       customer: finalProfile,
     };
   } catch (err: any) {
-    // Resilient Fallback: Register directly into persistent customer directory
-    try {
-      const existing = await findCustomerByEmail(email);
-      if (existing) {
-        return {
-          success: false,
-          error: "An account with this email address already exists. Please log in.",
-        };
-      }
-
-      const { hashPassword } = await import("@/lib/data/customers");
-      const customerId = `std-${Date.now().toString().slice(-6)}`;
-      await savePersistentCustomer({
-        id: customerId,
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        passwordHash: hashPassword(password),
-        status: "active",
-      });
-
-      await purgeAllSessionCookies();
-
-      const fallbackToken = `std_tok_${Buffer.from(email).toString("base64")}_${Date.now()}`;
-      const cookieStore = await cookies();
-      cookieStore.set("sakil_customer_token", fallbackToken, getSessionCookieOptions());
-
-      const finalProfile = {
-        id: customerId,
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-      };
-
-      cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
-
-      return {
-        success: true,
-        customer: finalProfile,
-      };
-    } catch {
-      return {
-        success: false,
-        error: "Registration failed. Please try again.",
-      };
-    }
+    console.error("REGISTER ACTION ERROR:", err);
+    return {
+      success: false,
+      error: "Registration failed. Please try again.",
+    };
   }
 }
 
@@ -477,7 +220,7 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
 
     let candidateProfile: CustomerProfile | null = null;
 
-    // 1. Read stored customer profile cookie (fastest & reliable)
+    // 1. Read stored customer profile cookie
     if (infoCookie) {
       try {
         const parsed = JSON.parse(infoCookie);
@@ -493,64 +236,34 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
       } catch {}
     }
 
-    // 2. If JWT token is present and backend is reachable, query Medusa v2 /store/customers/me
-    if (!candidateProfile && token && token.includes(".")) {
-      try {
-        const res = await fetch(`${BACKEND_URL}/store/customers/me`, {
-          method: "GET",
-          headers: getMedusaHeaders(token),
-          cache: "no-store",
-        });
-
-        if (res.ok) {
-          const data = await res.json().catch(() => ({}));
-          const customer = data.customer || data;
-          if (customer && (customer.email || customer.first_name)) {
-            candidateProfile = {
-              id: customer.id,
-              email: customer.email,
-              first_name: customer.first_name || "Student",
-              last_name: customer.last_name || "",
-              phone: customer.phone,
-            };
+    // 2. Decode email from token if needed
+    if (!candidateProfile && token) {
+      if (token.startsWith("std_tok_")) {
+        try {
+          const parts = token.split("_");
+          if (parts[2]) {
+            const decodedEmail = Buffer.from(parts[2], "base64").toString("utf8");
+            if (decodedEmail && decodedEmail.includes("@")) {
+              candidateProfile = {
+                email: decodedEmail,
+                first_name: "Student",
+                last_name: "",
+              };
+            }
           }
-        }
-      } catch {}
+        } catch {}
+      } else if (token.includes("@")) {
+        candidateProfile = {
+          email: token,
+          first_name: "Student",
+          last_name: "",
+        };
+      }
     }
 
-    // 3. Fallback: decode email from JWT payload
-    if (!candidateProfile && token && token.includes(".")) {
-      try {
-        const payloadBase64 = token.split(".")[1];
-        if (payloadBase64) {
-          const decoded = JSON.parse(
-            Buffer.from(payloadBase64, "base64").toString("utf8")
-          );
-          const emailFromJwt = decoded.email || decoded.actor_id;
-          if (emailFromJwt && emailFromJwt.includes("@")) {
-            candidateProfile = {
-              email: emailFromJwt,
-              first_name: "Student",
-              last_name: "",
-            };
-          }
-        }
-      } catch {}
-    }
-
-    // 4. Fallback: if token is email string
-    if (!candidateProfile && token && token.includes("@")) {
-      candidateProfile = {
-        email: token,
-        first_name: "Student",
-        last_name: "",
-      };
-    }
-
-    // 5. Fallback: Lookup persistent directory by token or ID
+    // 3. Fallback: Lookup persistent directory by token or ID
     if (!candidateProfile && token) {
       try {
-        const { getPersistentCustomers } = await import("@/lib/data/customers");
         const allCusts = await getPersistentCustomers();
         const matched = allCusts.find(
           (c) =>
@@ -569,16 +282,6 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
       } catch {}
     }
 
-    // 6. Last resort fallback for active student token
-    if (!candidateProfile && token) {
-      candidateProfile = {
-        email: "student@sakilhub.com",
-        first_name: "Student",
-        last_name: "",
-      };
-    }
-
-    // If no profile could be resolved, return null
     if (!candidateProfile || !candidateProfile.email) {
       return null;
     }
@@ -604,7 +307,7 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
         }
       }
 
-      // 3. Authoritative Profile Attribute Reconciliation from customers.json
+      // 3. Authoritative Profile Attribute Reconciliation
       if (dbCust.firstName) {
         candidateProfile.first_name = dbCust.firstName;
       }
@@ -626,7 +329,7 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
 }
 
 /**
- * Update authenticated customer profile in Medusa backend & persistent store
+ * Update authenticated customer profile in persistent PostgreSQL store
  */
 export async function updateCustomerProfileAction(formData: FormData): Promise<{
   success: boolean;
@@ -643,7 +346,6 @@ export async function updateCustomerProfileAction(formData: FormData): Promise<{
 
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get("sakil_customer_token")?.value;
     const infoCookie = cookieStore.get("sakil_customer_info")?.value;
 
     let existingEmail = "";
@@ -657,7 +359,6 @@ export async function updateCustomerProfileAction(formData: FormData): Promise<{
       } catch {}
     }
 
-    // Fallback if existingEmail was not found in infoCookie
     if (!existingEmail) {
       const current = await getCustomerProfile();
       if (current?.email) {
@@ -666,47 +367,29 @@ export async function updateCustomerProfileAction(formData: FormData): Promise<{
       }
     }
 
-    // Send update to Medusa backend if token is available
-    if (token && token.includes(".")) {
-      try {
-        const res = await fetch(`${BACKEND_URL}/store/customers/me`, {
-          method: "POST",
-          headers: getMedusaHeaders(token),
-          body: JSON.stringify({
-            first_name: firstName,
-            last_name: lastName,
-            phone: phone || undefined,
-          }),
-          cache: "no-store",
-        });
-
-        if (res.ok) {
-          const data = await res.json().catch(() => ({}));
-          const cust = data.customer || data;
-          existingEmail = cust.email || existingEmail;
-          customerId = cust.id || customerId;
-        }
-      } catch {}
+    if (!existingEmail) {
+      return {
+        success: false,
+        error: "User session expired. Please log in again.",
+      };
     }
 
     const updatedProfile: CustomerProfile = {
-      id: customerId,
-      email: existingEmail || "student@example.com",
+      id: customerId || `std-${Date.now().toString().slice(-6)}`,
+      email: existingEmail,
       first_name: firstName,
       last_name: lastName,
       phone,
     };
 
-    if (existingEmail) {
-      await savePersistentCustomer({
-        id: customerId || `std-${Date.now().toString().slice(-6)}`,
-        firstName: firstName,
-        lastName: lastName,
-        email: existingEmail,
-        phone: phone,
-        forceUpdate: true,
-      });
-    }
+    await savePersistentCustomer({
+      id: updatedProfile.id,
+      firstName: firstName,
+      lastName: lastName,
+      email: existingEmail,
+      phone: phone,
+      forceUpdate: true,
+    });
 
     cookieStore.set("sakil_customer_info", JSON.stringify(updatedProfile), getSessionCookieOptions());
 

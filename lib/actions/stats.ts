@@ -18,35 +18,56 @@ export interface LivePlatformStats {
  */
 export async function getLivePlatformStatsAction(): Promise<LivePlatformStats> {
   let rawStudents = 0;
-
-  // 1. Read live customer count from customers.json
-  try {
-    const customersPath = path.join(process.cwd(), "lib", "data", "customers.json");
-    const data = await fs.readFile(customersPath, "utf8");
-    const customers = JSON.parse(data);
-    if (Array.isArray(customers)) {
-      rawStudents = customers.length;
-    }
-  } catch {}
-
-  // 2. Read live orders count from orders.json
-  try {
-    const ordersPath = path.join(process.cwd(), "lib", "data", "orders.json");
-    const data = await fs.readFile(ordersPath, "utf8");
-    const orders = JSON.parse(data);
-    if (Array.isArray(orders)) {
-      rawStudents += orders.filter((o: any) => o.status === "completed" || o.status === "paid").length;
-    }
-  } catch {}
-
-  // 3. Read live courses count
   let rawCourses = 3;
+
+  // 1. Try real-time counts from PostgreSQL via Prisma
   try {
-    const res = await getLiveStorefrontCoursesAction();
-    if (res.success && res.courses && res.courses.length > 0) {
-      rawCourses = res.courses.length;
+    const { prisma, isPrismaReady } = await import("@/lib/db/prisma");
+    if (prisma && (await isPrismaReady())) {
+      const [studentCount, approvedOrders, courseCount] = await Promise.all([
+        prisma.user.count({ where: { role: "student" } }),
+        prisma.order.count({
+          where: { status: { in: ["approved", "completed", "paid", "verified"] } },
+        }),
+        prisma.course.count(),
+      ]);
+      rawStudents = studentCount + approvedOrders;
+      if (courseCount > 0) {
+        rawCourses = courseCount;
+      }
     }
   } catch {}
+
+  // 2. Fallback: Read live customer count from customers.json if Prisma was empty
+  if (rawStudents === 0) {
+    try {
+      const customersPath = path.join(process.cwd(), "lib", "data", "customers.json");
+      const data = await fs.readFile(customersPath, "utf8");
+      const customers = JSON.parse(data);
+      if (Array.isArray(customers)) {
+        rawStudents = customers.length;
+      }
+    } catch {}
+
+    try {
+      const ordersPath = path.join(process.cwd(), "lib", "data", "orders.json");
+      const data = await fs.readFile(ordersPath, "utf8");
+      const orders = JSON.parse(data);
+      if (Array.isArray(orders)) {
+        rawStudents += orders.filter((o: any) => o.status === "completed" || o.status === "paid" || o.status === "approved").length;
+      }
+    } catch {}
+  }
+
+  // 3. Read live courses count fallback if not found
+  if (rawCourses <= 3) {
+    try {
+      const res = await getLiveStorefrontCoursesAction();
+      if (res.success && res.courses && res.courses.length > 0) {
+        rawCourses = res.courses.length;
+      }
+    } catch {}
+  }
 
   // Format with high-trust presentation (minimum trusted baseline for marketing presentation)
   const displayStudents =

@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -65,26 +65,7 @@ export async function updatePlatformBrandingAction(
       );
     } catch {}
 
-    // Optionally sync with backend Medusa if available
-    try {
-      const backendUrl =
-        process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-      const cookieStore = await cookies();
-      const adminToken =
-        cookieStore.get("sakil_admin_token")?.value ||
-        cookieStore.get("medusa_admin_token")?.value ||
-        "";
 
-      await fetch(`${backendUrl}/admin/lms-settings`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: adminToken ? `Bearer ${adminToken}` : "",
-        },
-        body: JSON.stringify(updated),
-        cache: "no-store",
-      }).catch(() => {});
-    } catch {}
 
     // Revalidate all public and private pages so changes reflect live across the entire site
     revalidatePath("/", "layout");

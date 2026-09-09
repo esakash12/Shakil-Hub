@@ -255,7 +255,7 @@ export default function CurriculumBuilder({
         })),
       }));
 
-      console.log("Saving Curriculum Payload to Medusa:", sanitizedModules);
+      console.log("Saving Curriculum Payload to Database:", sanitizedModules);
 
       const res = await updateCourseCurriculumAction(courseId, sanitizedModules);
       if (res.success) {

@@ -11,7 +11,7 @@ export default function AdminHeader() {
           <span>Headless LMS Mode</span>
         </span>
         <span className="hidden sm:inline-block text-xs text-gray-500">
-          • Medusa v2 Backend Engine Active
+          • Enterprise PostgreSQL Active
         </span>
       </div>
 

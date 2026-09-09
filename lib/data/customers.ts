@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { readDataFile, writeDataFile } from "./storage-helper";
+import { prisma, isPrismaReady } from "../db/prisma";
 
 export interface CustomerNotice {
   id: string;
@@ -32,64 +33,130 @@ export function hashPassword(password: string): string {
 }
 
 /**
- * Ensures customers.json exists and returns all registered student customer accounts
+ * Retrieves all registered student customer accounts directly from PostgreSQL
  */
 export async function getPersistentCustomers(): Promise<CustomerRecord[]> {
+  try {
+    if (prisma && (await isPrismaReady())) {
+      const dbUsers = await prisma.user.findMany({
+        where: { role: "student" },
+        orderBy: { createdAt: "desc" },
+      });
+      if (dbUsers && dbUsers.length > 0) {
+        return dbUsers.map((u) => ({
+          id: u.id,
+          firstName: u.firstName || "Student",
+          lastName: u.lastName || "",
+          email: u.email,
+          phone: u.phone || undefined,
+          passwordHash: u.passwordHash || undefined,
+          status: (u.status as any) || "active",
+          banReason: u.banReason || undefined,
+          tempBanUntil: u.tempBanUntil || undefined,
+          customEnrolledSlugs: u.customEnrolledSlugs || [],
+          revokedSlugs: u.revokedSlugs || [],
+          notices: (u.notices as any) || [],
+          createdAt: u.createdAt.toISOString(),
+          updatedAt: u.updatedAt.toISOString(),
+        }));
+      }
+    }
+  } catch (err: any) {
+    console.warn("Prisma getPersistentCustomers error:", err.message || err);
+  }
+
   try {
     const list = await readDataFile<CustomerRecord[]>("customers.json", []);
     if (Array.isArray(list)) {
       return list;
     }
   } catch (err: any) {
-    console.error("Error reading persistent customers:", err);
+    console.error("Error reading persistent customers fallback:", err);
   }
   return [];
 }
 
 /**
- * Saves or updates a registered customer
+ * Saves or updates a registered customer in PostgreSQL
  */
 export async function savePersistentCustomer(
   customer: Partial<CustomerRecord> & { email: string; forceUpdate?: boolean }
 ): Promise<CustomerRecord[]> {
+  const normalizedEmail = customer.email.toLowerCase().trim();
+
   try {
-    const existing = await getPersistentCustomers();
-    const normalizedEmail = customer.email.toLowerCase().trim();
-    const index = existing.findIndex(
-      (c) => c.email.toLowerCase().trim() === normalizedEmail
-    );
+    if (prisma && (await isPrismaReady())) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: normalizedEmail },
+      });
+
+      const newFirstName = customer.forceUpdate
+        ? (customer.firstName ? customer.firstName.trim() : (existingUser?.firstName || "Student"))
+        : (customer.firstName && customer.firstName.trim() && customer.firstName.trim() !== "Student"
+            ? customer.firstName.trim()
+            : (existingUser?.firstName && existingUser.firstName !== "Student" ? existingUser.firstName : (customer.firstName || "Student")));
+
+      const newLastName = customer.forceUpdate
+        ? (customer.lastName !== undefined ? customer.lastName.trim() : (existingUser?.lastName || ""))
+        : (customer.lastName !== undefined && customer.lastName.trim() !== ""
+            ? customer.lastName.trim()
+            : (existingUser?.lastName || ""));
+
+      const newPhone = customer.forceUpdate
+        ? (customer.phone !== undefined ? customer.phone.trim() : (existingUser?.phone || ""))
+        : (customer.phone !== undefined && customer.phone.trim() !== ""
+            ? customer.phone.trim()
+            : (existingUser?.phone || ""));
+
+      await prisma.user.upsert({
+        where: { email: normalizedEmail },
+        update: {
+          firstName: newFirstName,
+          lastName: newLastName,
+          phone: newPhone,
+          passwordHash: customer.passwordHash || existingUser?.passwordHash || null,
+          status: customer.status || existingUser?.status || "active",
+          banReason: customer.banReason !== undefined ? customer.banReason : existingUser?.banReason,
+          tempBanUntil: customer.tempBanUntil !== undefined ? customer.tempBanUntil : existingUser?.tempBanUntil,
+          customEnrolledSlugs: customer.customEnrolledSlugs || existingUser?.customEnrolledSlugs || [],
+          revokedSlugs: customer.revokedSlugs || existingUser?.revokedSlugs || [],
+          notices: (customer.notices as any) || (existingUser?.notices as any) || [],
+        },
+        create: {
+          email: normalizedEmail,
+          firstName: newFirstName,
+          lastName: newLastName,
+          phone: newPhone,
+          passwordHash: customer.passwordHash || null,
+          role: "student",
+          status: customer.status || "active",
+          banReason: customer.banReason || null,
+          tempBanUntil: customer.tempBanUntil || null,
+          customEnrolledSlugs: customer.customEnrolledSlugs || [],
+          revokedSlugs: customer.revokedSlugs || [],
+          notices: (customer.notices as any) || [],
+        },
+      });
+    }
+  } catch (err: any) {
+    console.warn("Prisma savePersistentCustomer error:", err.message || err);
+  }
+
+  // Backup to customers.json
+  try {
+    const existing = await readDataFile<CustomerRecord[]>("customers.json", []);
+    const index = existing.findIndex((c) => c.email.toLowerCase().trim() === normalizedEmail);
 
     let updated: CustomerRecord[];
     if (index >= 0) {
       const prev = existing[index];
-
-      // If forceUpdate is true (e.g. explicit profile edit), accept the new values directly.
-      // Otherwise (e.g. login sync, background auth), NEVER clobber an existing user's real name with "Student" or blank, and never clobber existing phone.
-      const newFirstName = customer.forceUpdate
-        ? (customer.firstName ? customer.firstName.trim() : (prev.firstName || "Student"))
-        : (customer.firstName && customer.firstName.trim() && customer.firstName.trim() !== "Student"
-            ? customer.firstName.trim()
-            : (prev.firstName && prev.firstName !== "Student" ? prev.firstName : (customer.firstName || "Student")));
-
-      const newLastName = customer.forceUpdate
-        ? (customer.lastName !== undefined ? customer.lastName.trim() : (prev.lastName || ""))
-        : (customer.lastName !== undefined && customer.lastName.trim() !== ""
-            ? customer.lastName.trim()
-            : (prev.lastName || ""));
-
-      const newPhone = customer.forceUpdate
-        ? (customer.phone !== undefined ? customer.phone.trim() : (prev.phone || ""))
-        : (customer.phone !== undefined && customer.phone.trim() !== ""
-            ? customer.phone.trim()
-            : (prev.phone || ""));
-
       const merged: CustomerRecord = {
         ...prev,
         ...customer,
         id: customer.id || prev.id,
-        firstName: newFirstName,
-        lastName: newLastName,
-        phone: newPhone,
+        firstName: customer.firstName || prev.firstName || "Student",
+        lastName: customer.lastName !== undefined ? customer.lastName : (prev.lastName || ""),
+        phone: customer.phone !== undefined ? customer.phone : (prev.phone || ""),
         passwordHash: customer.passwordHash || prev.passwordHash,
         status: customer.status || prev.status || "active",
         customEnrolledSlugs: customer.customEnrolledSlugs || prev.customEnrolledSlugs || [],
@@ -100,249 +167,347 @@ export async function savePersistentCustomer(
       updated = [...existing];
       updated[index] = merged;
     } else {
-      const newRecord: CustomerRecord = {
-        id: customer.id || `std-${Date.now().toString().slice(-6)}`,
+      const now = new Date().toISOString();
+      const newCustomer: CustomerRecord = {
+        id: customer.id || `cust_${Date.now()}`,
         firstName: customer.firstName || "Student",
         lastName: customer.lastName || "",
         email: normalizedEmail,
         phone: customer.phone || "",
-        passwordHash: customer.passwordHash,
+        passwordHash: customer.passwordHash || "",
         status: customer.status || "active",
+        banReason: customer.banReason,
+        tempBanUntil: customer.tempBanUntil,
         customEnrolledSlugs: customer.customEnrolledSlugs || [],
         revokedSlugs: customer.revokedSlugs || [],
         notices: customer.notices || [],
-        createdAt: customer.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: now,
+        updatedAt: now,
       };
-      updated = [newRecord, ...existing];
+      updated = [newCustomer, ...existing];
     }
-
     await writeDataFile("customers.json", updated);
     return updated;
   } catch (err) {
-    console.error("FAILED TO SAVE PERSISTENT CUSTOMER:", err);
+    console.error("FAILED TO SAVE PERSISTENT CUSTOMER FALLBACK:", err);
     return [];
   }
 }
 
 /**
- * Finds customer record by email
+ * Finds a customer by email in PostgreSQL
  */
-export async function findCustomerByEmail(
-  email: string
-): Promise<CustomerRecord | null> {
+export async function findCustomerByEmail(email: string): Promise<CustomerRecord | null> {
   if (!email) return null;
   const normalized = email.toLowerCase().trim();
-  const existing = await getPersistentCustomers();
-  const found = existing.find((c) => c.email.toLowerCase().trim() === normalized);
-  if (!found) return null;
 
-  // Auto check temp ban expiry
-  if (found.status === "temp_banned" && found.tempBanUntil) {
-    const expiry = new Date(found.tempBanUntil).getTime();
-    if (Date.now() > expiry) {
-      found.status = "active";
-      found.banReason = undefined;
-      found.tempBanUntil = undefined;
-      await savePersistentCustomer(found);
+  try {
+    if (prisma && (await isPrismaReady())) {
+      const u = await prisma.user.findUnique({
+        where: { email: normalized },
+      });
+      if (u) {
+        return {
+          id: u.id,
+          firstName: u.firstName || "Student",
+          lastName: u.lastName || "",
+          email: u.email,
+          phone: u.phone || undefined,
+          passwordHash: u.passwordHash || undefined,
+          status: (u.status as any) || "active",
+          banReason: u.banReason || undefined,
+          tempBanUntil: u.tempBanUntil || undefined,
+          customEnrolledSlugs: u.customEnrolledSlugs || [],
+          revokedSlugs: u.revokedSlugs || [],
+          notices: (u.notices as any) || [],
+          createdAt: u.createdAt.toISOString(),
+          updatedAt: u.updatedAt.toISOString(),
+        };
+      }
     }
+  } catch (err: any) {
+    console.warn("Prisma findCustomerByEmail error:", err.message || err);
   }
 
-  return found;
+  const all = await getPersistentCustomers();
+  return all.find((c) => c.email.toLowerCase().trim() === normalized) || null;
 }
 
 /**
- * Updates a customer's status
- */
-export async function updateCustomerStatus(
-  email: string,
-  status: "active" | "banned" | "temp_banned",
-  banReason?: string,
-  tempBanUntil?: string
-): Promise<CustomerRecord | null> {
-  const customer = await findCustomerByEmail(email);
-  if (!customer) {
-    // If not found in customers.json, create record
-    const newCust: CustomerRecord = {
-      id: `std-${Date.now().toString().slice(-6)}`,
-      firstName: "Student",
-      lastName: "",
-      email: email.toLowerCase().trim(),
-      status,
-      banReason,
-      tempBanUntil,
-      customEnrolledSlugs: [],
-      revokedSlugs: [],
-      notices: [],
-      createdAt: new Date().toISOString(),
-    };
-    await savePersistentCustomer(newCust);
-    return newCust;
-  }
-
-  customer.status = status;
-  customer.banReason = banReason;
-  customer.tempBanUntil = tempBanUntil;
-  await savePersistentCustomer(customer);
-  return customer;
-}
-
-/**
- * Adds an admin notice to a customer
- */
-export async function addCustomerNotice(
-  email: string,
-  notice: Omit<CustomerNotice, "id" | "createdAt">
-): Promise<CustomerNotice | null> {
-  const customer = await findCustomerByEmail(email);
-  const newNotice: CustomerNotice = {
-    id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-    title: notice.title,
-    message: notice.message,
-    type: notice.type || "info",
-    createdAt: new Date().toISOString(),
-    read: false,
-  };
-
-  if (!customer) {
-    const newCust: CustomerRecord = {
-      id: `std-${Date.now().toString().slice(-6)}`,
-      firstName: "Student",
-      lastName: "",
-      email: email.toLowerCase().trim(),
-      status: "active",
-      customEnrolledSlugs: [],
-      revokedSlugs: [],
-      notices: [newNotice],
-      createdAt: new Date().toISOString(),
-    };
-    await savePersistentCustomer(newCust);
-    return newNotice;
-  }
-
-  customer.notices = [newNotice, ...(customer.notices || [])];
-  await savePersistentCustomer(customer);
-  return newNotice;
-}
-
-/**
- * Deletes or marks a notice as read
- */
-export async function deleteCustomerNotice(
-  email: string,
-  noticeId: string
-): Promise<boolean> {
-  const customer = await findCustomerByEmail(email);
-  if (!customer || !customer.notices) return false;
-  customer.notices = customer.notices.filter((n) => n.id !== noticeId);
-  await savePersistentCustomer(customer);
-  return true;
-}
-
-/**
- * Grants access to a specific course
+ * Grants course access to a customer account directly in PostgreSQL
  */
 export async function grantCustomerCourse(
   email: string,
   courseSlug: string
 ): Promise<CustomerRecord | null> {
-  const customer = await findCustomerByEmail(email);
-  const normalizedSlug = courseSlug.trim().toLowerCase();
+  if (!email || !courseSlug) return null;
+  const normalizedEmail = email.toLowerCase().trim();
+  const normalizedSlug = courseSlug.toLowerCase().trim();
 
-  if (!customer) {
-    const newCust: CustomerRecord = {
-      id: `std-${Date.now().toString().slice(-6)}`,
+  try {
+    if (prisma && (await isPrismaReady())) {
+      const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+      if (user) {
+        const currentEnrolled = user.customEnrolledSlugs || [];
+        if (!currentEnrolled.includes(normalizedSlug)) {
+          const updated = await prisma.user.update({
+            where: { email: normalizedEmail },
+            data: {
+              customEnrolledSlugs: [...currentEnrolled, normalizedSlug],
+              revokedSlugs: user.revokedSlugs.filter((s) => s !== normalizedSlug),
+            },
+          });
+          return {
+            id: updated.id,
+            firstName: updated.firstName || "Student",
+            lastName: updated.lastName || "",
+            email: updated.email,
+            customEnrolledSlugs: updated.customEnrolledSlugs,
+            revokedSlugs: updated.revokedSlugs,
+            createdAt: updated.createdAt.toISOString(),
+          };
+        }
+      }
+    }
+  } catch (err: any) {
+    console.warn("Prisma grantCustomerCourse error:", err.message || err);
+  }
+
+  // Fallback to customers.json
+  const all = await getPersistentCustomers();
+  const target = all.find((c) => c.email.toLowerCase().trim() === normalizedEmail);
+  if (!target) {
+    await savePersistentCustomer({
+      email: normalizedEmail,
       firstName: "Student",
-      lastName: "",
-      email: email.toLowerCase().trim(),
-      status: "active",
       customEnrolledSlugs: [normalizedSlug],
       revokedSlugs: [],
-      notices: [],
-      createdAt: new Date().toISOString(),
-    };
-    await savePersistentCustomer(newCust);
-    return newCust;
+    });
+    return findCustomerByEmail(normalizedEmail);
   }
 
-  const customEnrolled = customer.customEnrolledSlugs || [];
-  if (!customEnrolled.includes(normalizedSlug)) {
-    customer.customEnrolledSlugs = [...customEnrolled, normalizedSlug];
+  const enrolled = target.customEnrolledSlugs || [];
+  if (!enrolled.includes(normalizedSlug)) {
+    target.customEnrolledSlugs = [...enrolled, normalizedSlug];
   }
-  // Remove from revoked if it was revoked previously
-  customer.revokedSlugs = (customer.revokedSlugs || []).filter(
-    (s) => s.toLowerCase() !== normalizedSlug
-  );
-
-  await savePersistentCustomer(customer);
-  return customer;
+  target.revokedSlugs = (target.revokedSlugs || []).filter((s) => s !== normalizedSlug);
+  await savePersistentCustomer(target);
+  return target;
 }
 
 /**
- * Revokes access to a specific course
+ * Revokes course access from a customer account directly in PostgreSQL
  */
 export async function revokeCustomerCourse(
   email: string,
   courseSlug: string
 ): Promise<CustomerRecord | null> {
-  const customer = await findCustomerByEmail(email);
-  const normalizedSlug = courseSlug.trim().toLowerCase();
+  if (!email || !courseSlug) return null;
+  const normalizedEmail = email.toLowerCase().trim();
+  const normalizedSlug = courseSlug.toLowerCase().trim();
 
-  if (!customer) {
-    const newCust: CustomerRecord = {
-      id: `std-${Date.now().toString().slice(-6)}`,
-      firstName: "Student",
-      lastName: "",
-      email: email.toLowerCase().trim(),
-      status: "active",
-      customEnrolledSlugs: [],
-      revokedSlugs: [normalizedSlug],
-      notices: [],
-      createdAt: new Date().toISOString(),
-    };
-    await savePersistentCustomer(newCust);
-    return newCust;
+  try {
+    if (prisma && (await isPrismaReady())) {
+      const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+      if (user) {
+        const updated = await prisma.user.update({
+          where: { email: normalizedEmail },
+          data: {
+            customEnrolledSlugs: user.customEnrolledSlugs.filter((s) => s !== normalizedSlug),
+            revokedSlugs: user.revokedSlugs.includes(normalizedSlug)
+              ? user.revokedSlugs
+              : [...user.revokedSlugs, normalizedSlug],
+          },
+        });
+        return {
+          id: updated.id,
+          firstName: updated.firstName || "Student",
+          lastName: updated.lastName || "",
+          email: updated.email,
+          customEnrolledSlugs: updated.customEnrolledSlugs,
+          revokedSlugs: updated.revokedSlugs,
+          createdAt: updated.createdAt.toISOString(),
+        };
+      }
+    }
+  } catch (err: any) {
+    console.warn("Prisma revokeCustomerCourse error:", err.message || err);
   }
 
-  // Remove from customEnrolled
-  customer.customEnrolledSlugs = (customer.customEnrolledSlugs || []).filter(
-    (s) => s.toLowerCase() !== normalizedSlug
-  );
+  const all = await getPersistentCustomers();
+  const target = all.find((c) => c.email.toLowerCase().trim() === normalizedEmail);
+  if (!target) return null;
 
-  const revoked = customer.revokedSlugs || [];
+  target.customEnrolledSlugs = (target.customEnrolledSlugs || []).filter((s) => s !== normalizedSlug);
+  const revoked = target.revokedSlugs || [];
   if (!revoked.includes(normalizedSlug)) {
-    customer.revokedSlugs = [...revoked, normalizedSlug];
+    target.revokedSlugs = [...revoked, normalizedSlug];
   }
 
-  await savePersistentCustomer(customer);
-  return customer;
+  await savePersistentCustomer(target);
+  return target;
 }
 
 /**
- * Permanently deletes a customer
+ * Updates customer status (active, banned, temp_banned) in PostgreSQL
  */
-export async function deletePersistentCustomer(email: string): Promise<boolean> {
+export async function updateCustomerStatus(
+  email: string,
+  status: "active" | "banned" | "temp_banned",
+  banReasonOrExtra?: string | { banReason?: string; tempBanUntil?: string },
+  tempBanUntilArg?: string
+): Promise<CustomerRecord | null> {
+  if (!email) return null;
+  const normalized = email.toLowerCase().trim();
+
+  const banReason =
+    typeof banReasonOrExtra === "object"
+      ? banReasonOrExtra?.banReason
+      : banReasonOrExtra;
+  const tempBanUntil =
+    typeof banReasonOrExtra === "object"
+      ? banReasonOrExtra?.tempBanUntil
+      : tempBanUntilArg;
+
   try {
-    const existing = await getPersistentCustomers();
-    const normalized = email.toLowerCase().trim();
+    if (prisma && (await isPrismaReady())) {
+      const updated = await prisma.user.update({
+        where: { email: normalized },
+        data: {
+          status,
+          banReason: banReason || null,
+          tempBanUntil: tempBanUntil || null,
+        },
+      });
+      return {
+        id: updated.id,
+        firstName: updated.firstName || "Student",
+        lastName: updated.lastName || "",
+        email: updated.email,
+        status: updated.status as any,
+        banReason: updated.banReason || undefined,
+        tempBanUntil: updated.tempBanUntil || undefined,
+        createdAt: updated.createdAt.toISOString(),
+      };
+    }
+  } catch (err: any) {
+    console.warn("Prisma updateCustomerStatus error:", err.message || err);
+  }
+
+  const all = await getPersistentCustomers();
+  const target = all.find((c) => c.email.toLowerCase().trim() === normalized);
+  if (!target) return null;
+
+  target.status = status;
+  target.banReason = banReason;
+  target.tempBanUntil = tempBanUntil;
+
+  await savePersistentCustomer(target);
+  return target;
+}
+
+/**
+ * Adds an administrative notice to a student in PostgreSQL
+ */
+export async function addCustomerNotice(
+  email: string,
+  notice: Omit<CustomerNotice, "id" | "createdAt">
+): Promise<CustomerNotice | null> {
+  if (!email) return null;
+  const normalized = email.toLowerCase().trim();
+  const newNotice: CustomerNotice = {
+    ...notice,
+    id: `notif_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    createdAt: new Date().toISOString(),
+    read: false,
+  };
+
+  try {
+    if (prisma && (await isPrismaReady())) {
+      const user = await prisma.user.findUnique({ where: { email: normalized } });
+      if (user) {
+        const notices = Array.isArray(user.notices) ? (user.notices as any) : [];
+        await prisma.user.update({
+          where: { email: normalized },
+          data: { notices: [newNotice, ...notices] },
+        });
+      }
+    }
+  } catch (err: any) {
+    console.warn("Prisma addCustomerNotice error:", err.message || err);
+  }
+
+  const all = await getPersistentCustomers();
+  const target = all.find((c) => c.email.toLowerCase().trim() === normalized);
+  if (target) {
+    target.notices = [newNotice, ...(target.notices || [])];
+    await savePersistentCustomer(target);
+  }
+
+  return newNotice;
+}
+
+/**
+ * Deletes an administrative notice for a student in PostgreSQL
+ */
+export async function deleteCustomerNotice(
+  email: string,
+  noticeId: string
+): Promise<boolean> {
+  if (!email || !noticeId) return false;
+  const normalized = email.toLowerCase().trim();
+
+  try {
+    if (prisma && (await isPrismaReady())) {
+      const user = await prisma.user.findUnique({ where: { email: normalized } });
+      if (user && Array.isArray(user.notices)) {
+        const filtered = (user.notices as any).filter((n: any) => n.id !== noticeId);
+        await prisma.user.update({
+          where: { email: normalized },
+          data: { notices: filtered },
+        });
+        return true;
+      }
+    }
+  } catch (err: any) {
+    console.warn("Prisma deleteCustomerNotice error:", err.message || err);
+  }
+
+  const all = await getPersistentCustomers();
+  const target = all.find((c) => c.email.toLowerCase().trim() === normalized);
+  if (!target) return false;
+
+  target.notices = (target.notices || []).filter((n) => n.id !== noticeId);
+  await savePersistentCustomer(target);
+  return true;
+}
+
+/**
+ * Permanently deletes a customer account from PostgreSQL
+ */
+export async function deletePersistentCustomer(idOrEmail: string): Promise<boolean> {
+  if (!idOrEmail) return false;
+  const target = idOrEmail.toLowerCase().trim();
+
+  try {
+    if (prisma && (await isPrismaReady())) {
+      await prisma.user.deleteMany({
+        where: {
+          OR: [{ id: idOrEmail }, { email: target }],
+        },
+      });
+    }
+  } catch (err: any) {
+    console.warn("Prisma deletePersistentCustomer error:", err.message || err);
+  }
+
+  try {
+    const existing = await readDataFile<CustomerRecord[]>("customers.json", []);
     const filtered = existing.filter(
-      (c) => c.email.toLowerCase().trim() !== normalized
+      (c) => c.id !== idOrEmail && c.email.toLowerCase().trim() !== target
     );
     await writeDataFile("customers.json", filtered);
-    return true;
-  } catch (err) {
-    console.error("FAILED TO DELETE PERSISTENT CUSTOMER:", err);
-    return false;
-  }
-}
+  } catch {}
 
-/**
- * Clears all persistent customer accounts for a completely fresh reset
- */
-export async function clearAllPersistentCustomers(): Promise<void> {
-  try {
-    await writeDataFile("customers.json", []);
-  } catch (err) {
-    console.error("FAILED TO CLEAR PERSISTENT CUSTOMERS:", err);
-  }
+  return true;
 }

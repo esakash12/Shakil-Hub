@@ -4,13 +4,30 @@ import {
   DEFAULT_BRANDING,
 } from "./branding-types";
 import { readDataFile, writeDataFile } from "./storage-helper";
+import { prisma, isPrismaReady } from "../db/prisma";
 
 export * from "./branding-types";
 
 /**
- * Reads persistent platform branding from disk with fallback to defaults
+ * Reads persistent platform branding directly from PostgreSQL with fallback to defaults
  */
 export async function getPersistentBranding(): Promise<PlatformBrandingSettings> {
+  try {
+    if (prisma && (await isPrismaReady())) {
+      const record = await prisma.platformSetting.findUnique({
+        where: { key: "branding" },
+      });
+      if (record && record.value) {
+        return {
+          ...DEFAULT_BRANDING,
+          ...(record.value as any),
+        };
+      }
+    }
+  } catch (err: any) {
+    console.warn("Prisma getPersistentBranding error:", err.message || err);
+  }
+
   try {
     const parsed = await readDataFile<PlatformBrandingSettings>("branding.json", DEFAULT_BRANDING);
     if (parsed && typeof parsed === "object") {
@@ -20,14 +37,14 @@ export async function getPersistentBranding(): Promise<PlatformBrandingSettings>
       };
     }
   } catch (err: any) {
-    console.error("Error reading persistent branding:", err);
+    console.error("Error reading persistent branding fallback:", err);
   }
 
   return DEFAULT_BRANDING;
 }
 
 /**
- * Updates persistent platform branding on disk
+ * Updates persistent platform branding directly in PostgreSQL
  */
 export async function updatePersistentBranding(
   updates: Partial<PlatformBrandingSettings>
@@ -40,9 +57,21 @@ export async function updatePersistentBranding(
   };
 
   try {
+    if (prisma && (await isPrismaReady())) {
+      await prisma.platformSetting.upsert({
+        where: { key: "branding" },
+        update: { value: merged as any },
+        create: { key: "branding", value: merged as any },
+      });
+    }
+  } catch (err: any) {
+    console.warn("Prisma updatePersistentBranding error:", err.message || err);
+  }
+
+  try {
     await writeDataFile("branding.json", merged);
   } catch (err) {
-    console.error("Failed to write branding.json:", err);
+    console.error("Failed to write branding.json fallback:", err);
   }
 
   return merged;

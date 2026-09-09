@@ -99,7 +99,7 @@ export default async function CheckoutSuccessPage({
                     <span>1. Order Placed</span>
                   </div>
                   <p className="text-[11px] text-gray-400">
-                    TrxID submitted into Medusa backend.
+                    TrxID submitted into secure database.
                   </p>
                 </div>
 

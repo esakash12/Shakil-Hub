@@ -107,7 +107,7 @@ export default function AdminEditCoursePage() {
           setThumbnail(p.thumbnail || "");
           setSlug(p.handle || "");
 
-          const meta = p.metadata || {};
+          const meta: any = p.metadata || {};
           if (meta.subtitle) setSubtitle(meta.subtitle);
           if (meta.badge) setBadge(meta.badge);
           if (meta.category) setCategory(meta.category);
@@ -150,11 +150,11 @@ export default function AdminEditCoursePage() {
                 : String(meta.requirements)
             );
           }
-          if (meta.includes) {
+          if ((meta as any).includes) {
             setIncludes(
-              Array.isArray(meta.includes)
-                ? meta.includes.join("\n")
-                : String(meta.includes)
+              Array.isArray((meta as any).includes)
+                ? (meta as any).includes.join("\n")
+                : String((meta as any).includes)
             );
           }
           const price =
@@ -859,7 +859,7 @@ export default function AdminEditCoursePage() {
             </div>
 
             <p className="text-xs text-gray-300 leading-relaxed">
-              This action will completely and permanently erase <strong className="text-white">&ldquo;{title}&rdquo;</strong> from the Medusa database, unpublish it from the storefront catalog, and revoke access from all student dashboards.
+              This action will completely and permanently erase <strong className="text-white">&ldquo;{title}&rdquo;</strong> from the database, unpublish it from the storefront catalog, and revoke access from all student dashboards.
             </p>
 
             <div className="space-y-1.5">

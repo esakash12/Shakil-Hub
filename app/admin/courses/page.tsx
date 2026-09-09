@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Plus, ExternalLink, Sparkles } from "lucide-react";
-import { getLiveStorefrontCourses } from "@/lib/data/courses";
+import { getLiveStorefrontCourses } from "@/lib/data/courses-db";
 import AdminCoursesClient from "@/components/admin/AdminCoursesClient";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export default async function AdminCoursesPage() {
             Masterclasses & Courses ({liveCourses.length})
           </h1>
           <p className="text-xs sm:text-sm text-gray-400 font-normal">
-            Live catalog synchronized directly with Medusa PostgreSQL database with 1-click hard deletion.
+            Live catalog synchronized directly with Enterprise PostgreSQL database with 1-click hard deletion.
           </p>
         </div>
 
