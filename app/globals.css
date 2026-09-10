@@ -50,3 +50,38 @@ body {
   background: rgba(6, 182, 212, 0.5);
   box-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
 }
+
+/* ========================================================================= */
+/* === Premium Typography & High-Legibility Bengali Script Styling       === */
+/* ========================================================================= */
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure Bengali text has optimal line-height, letter-spacing, and ligature rendering */
+.font-bengali,
+[lang="bn"],
+html[lang="bn"] {
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+/* 
+ * In Bengali typography, tight letter-spacing compresses complex 
+ * conjuncts (যুক্তাক্ষর). We safely normalize letter-spacing so that
+ * Bengali text reads smoothly, clearly, and comfortably on dark backgrounds.
+ */
+.font-bengali,
+[lang="bn"] p,
+[lang="bn"] span,
+[lang="bn"] li,
+[lang="bn"] h1,
+[lang="bn"] h2,
+[lang="bn"] h3,
+[lang="bn"] h4 {
+  letter-spacing: normal;
+}
+

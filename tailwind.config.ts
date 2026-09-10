@@ -32,7 +32,14 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["var(--font-outfit)", "var(--font-inter)", "sans-serif"],
+        sans: [
+          "var(--font-outfit)",
+          "var(--font-inter)",
+          "var(--font-bengali)",
+          "system-ui",
+          "sans-serif",
+        ],
+        bengali: ["var(--font-bengali)", "system-ui", "sans-serif"],
       },
     },
   },

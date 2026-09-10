@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Inter } from "next/font/google";
+import { Outfit, Inter, Hind_Siliguri } from "next/font/google";
 import "./globals.css";
 import StorefrontShell from "@/components/layout/StorefrontShell";
 import { getPersistentBranding } from "@/lib/data/branding";
@@ -14,6 +14,13 @@ const outfit = Outfit({
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const hindSiliguri = Hind_Siliguri({
+  subsets: ["bengali", "latin"],
+  variable: "--font-bengali",
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -96,7 +103,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`dark scroll-smooth ${outfit.variable} ${inter.variable}`}>
+    <html
+      lang="bn"
+      className={`dark scroll-smooth ${outfit.variable} ${inter.variable} ${hindSiliguri.variable}`}
+    >
       <body className="font-sans bg-black text-white antialiased selection:bg-blue-600 selection:text-white flex flex-col min-h-screen">
         <StorefrontShell>{children}</StorefrontShell>
       </body>
