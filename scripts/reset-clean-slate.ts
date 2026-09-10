@@ -36,10 +36,16 @@ async function main() {
   console.log("\n🗑️ [2/7] Wiping Student Progress, Certificates & Notes...");
   const deletedProgress = await prisma.courseProgress.deleteMany({});
   const deletedCerts = await prisma.certificate.deleteMany({});
-  const deletedInteractions = await prisma.classroomInteraction.deleteMany({});
+  let interactionCount = 0;
+  try {
+    if ((prisma as any).classroomInteraction) {
+      const res = await (prisma as any).classroomInteraction.deleteMany({});
+      interactionCount = res.count;
+    }
+  } catch {}
   console.log(`   -> Deleted ${deletedProgress.count} progress records.`);
   console.log(`   -> Deleted ${deletedCerts.count} certificates.`);
-  console.log(`   -> Deleted ${deletedInteractions.count} classroom notes/QA.`);
+  console.log(`   -> Deleted ${interactionCount} classroom notes/QA.`);
 
   // 3. Wipe Courses
   console.log("\n🗑️ [3/7] Wiping Masterclasses & Courses...");
