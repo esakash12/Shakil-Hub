@@ -415,15 +415,22 @@ export function mapDbCourseToCourseDetail(c: any): CourseDetail {
   const highlights = typeof c.highlights === "string" ? JSON.parse(c.highlights) : (c.highlights || {});
   const faqs = typeof c.faqs === "string" ? JSON.parse(c.faqs) : (c.faqs || []);
   const curriculum = typeof c.curriculum === "string" ? JSON.parse(c.curriculum) : (c.curriculum || []);
-  const whatYouWillLearn = typeof c.whatYouWillLearn === "string" ? JSON.parse(c.whatYouWillLearn) : (c.whatYouWillLearn || []);
-  const includes = typeof c.includes === "string" ? JSON.parse(c.includes) : (c.includes || []);
-  const requirements = typeof c.requirements === "string" ? JSON.parse(c.requirements) : (c.requirements || []);
+  const whatYouWillLearn =
+    highlights.whatYouWillLearn ||
+    (typeof c.whatYouWillLearn === "string" ? JSON.parse(c.whatYouWillLearn) : (c.whatYouWillLearn || []));
+  const includes =
+    highlights.includes ||
+    (typeof c.includes === "string" ? JSON.parse(c.includes) : (c.includes || []));
+  const requirements =
+    highlights.requirements ||
+    (typeof c.requirements === "string" ? JSON.parse(c.requirements) : (c.requirements || []));
 
-  const numPrice = c.numericPrice || 1299;
-  const origPrice = c.numericOriginalPrice || 2858;
+  const numPrice = c.numericPrice || (c.price ? parseInt(c.price.replace(/[^\d]/g, ""), 10) : 1299) || 1299;
+  const origPrice = c.numericOriginalPrice || (c.originalPrice ? parseInt(c.originalPrice.replace(/[^\d]/g, ""), 10) : 2858) || 2858;
 
   const resolvedThumb = resolveMediaUrl(c.thumbnail || c.image || "");
   const resolvedTrailer = resolveMediaUrl(c.trailerVideo || "");
+  const fullDescription = highlights.description || c.subtitle || c.title;
 
   return {
     slug: c.slug,
@@ -436,8 +443,8 @@ export function mapDbCourseToCourseDetail(c: any): CourseDetail {
     studentsCount: c.studentsCount || "0 Enrolled",
     updatedDate: c.updatedDate || "March 2026",
     level: c.level || "Beginner to Advanced",
-    price: c.price ? (c.price.startsWith("৳") ? c.price : `৳${c.price}`) : `৳${numPrice.toLocaleString()}`,
-    originalPrice: c.originalPrice ? (c.originalPrice.startsWith("৳") ? c.originalPrice : `৳${c.originalPrice}`) : `৳${origPrice.toLocaleString()}`,
+    price: `৳${numPrice.toLocaleString()}`,
+    originalPrice: `৳${origPrice.toLocaleString()}`,
     discountPct: c.discountPct || "45% OFF",
     numericPrice: numPrice,
     numericOriginalPrice: origPrice,
@@ -462,9 +469,9 @@ export function mapDbCourseToCourseDetail(c: any): CourseDetail {
       access: highlights.access || "Lifetime Access",
       certificate: highlights.certificate || "Certificate Included",
     },
-    description: c.subtitle || c.title,
-    mainSlogan: highlights.mainSlogan || "The complete roadmap to becoming a professional video editor.",
-    heroSlogan: highlights.heroSlogan || "Master Commercial Editing & Filmmaking",
+    description: fullDescription,
+    mainSlogan: highlights.mainSlogan || "",
+    heroSlogan: highlights.heroSlogan || "",
     whatYouWillLearn: Array.isArray(whatYouWillLearn) ? whatYouWillLearn : [],
     includes: Array.isArray(includes) ? includes : [],
     requirements: Array.isArray(requirements) ? requirements : [],

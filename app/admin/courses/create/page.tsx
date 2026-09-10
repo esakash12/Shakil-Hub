@@ -33,8 +33,6 @@ export default function AdminCreateCoursePage() {
   const [category, setCategory] = useState("Video Editing");
   const [level, setLevel] = useState("Beginner to Advanced");
   const [description, setDescription] = useState("");
-  const [mainSlogan, setMainSlogan] = useState("");
-  const [heroSlogan, setHeroSlogan] = useState("");
 
   // Pricing
   const [priceBdt, setPriceBdt] = useState("1299");
@@ -126,8 +124,6 @@ export default function AdminCreateCoursePage() {
         category: category.trim(),
         level: level.trim(),
         description: description.trim(),
-        mainSlogan: mainSlogan.trim(),
-        heroSlogan: heroSlogan.trim(),
         priceBdt: Number(priceBdt) || 1299,
         originalPriceBdt: Number(originalPriceBdt) || 3500,
         discountPct: discountPct.trim(),
@@ -296,48 +292,20 @@ export default function AdminCreateCoursePage() {
             </div>
           </div>
 
-          {/* Slogans */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-gray-300">
-                Main Headline Slogan
-              </label>
-              <input
-                type="text"
-                value={mainSlogan}
-                onChange={(e) => setMainSlogan(e.target.value)}
-                placeholder="e.g. MASTER THE ART OF CINEMATIC EDITING"
-                className="w-full px-3.5 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500 font-mono uppercase"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-gray-300">
-                Hero Badge Slogan
-              </label>
-              <input
-                type="text"
-                value={heroSlogan}
-                onChange={(e) => setHeroSlogan(e.target.value)}
-                placeholder="e.g. HOLLYWOOD PRODUCTION WORKFLOWS"
-                className="w-full px-3.5 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500 font-mono uppercase"
-              />
-            </div>
-          </div>
-
           {/* Description */}
           <div className="space-y-1.5">
             <label
               htmlFor="course-desc"
               className="block text-xs font-semibold text-gray-300"
             >
-              Course Description & Overview
+              Full Course Overview (Displayed in &quot;About This Masterclass&quot; section)
             </label>
             <textarea
               id="course-desc"
-              rows={3}
+              rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter curriculum highlights, tools taught, and software version..."
+              placeholder="Write a comprehensive overview of the masterclass, what students will learn, and why this course is unique..."
               disabled={isLoading || isSuccess}
               className="w-full p-4 rounded-xl bg-black/60 border border-white/10 text-xs sm:text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none font-normal"
             />

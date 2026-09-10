@@ -284,26 +284,37 @@ export default function CourseStickySidebar({
           </h4>
 
           <ul className="space-y-2 text-xs text-gray-300 font-medium">
-            <li className="flex items-start gap-2">
-              <span className="text-cyan-400 font-bold drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]">»</span>
-              <span>{course.highlights.hours} of on-demand practical HD video</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-cyan-400 font-bold drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]">»</span>
-              <span>{course.highlights.lessons} detailed lessons & downloadable project files</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-cyan-400 font-bold drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]">»</span>
-              <span>Full lifetime access & free future updates</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-cyan-400 font-bold drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]">»</span>
-              <span>Official verified certificate of completion</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-cyan-400 font-bold drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]">»</span>
-              <span>Direct instructor Q&A desk support</span>
-            </li>
+            {course.includes && course.includes.length > 0 ? (
+              course.includes.map((inc, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="text-cyan-400 font-bold drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]">»</span>
+                  <span>{inc}</span>
+                </li>
+              ))
+            ) : (
+              <>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-400 font-bold drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]">»</span>
+                  <span>{course.highlights.hours} of on-demand practical HD video</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-400 font-bold drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]">»</span>
+                  <span>{course.highlights.lessons} detailed lessons & downloadable project files</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-400 font-bold drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]">»</span>
+                  <span>Full lifetime access & free future updates</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-400 font-bold drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]">»</span>
+                  <span>Official verified certificate of completion</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-cyan-400 font-bold drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]">»</span>
+                  <span>Direct instructor Q&A desk support</span>
+                </li>
+              </>
+            )}
           </ul>
         </div>
 

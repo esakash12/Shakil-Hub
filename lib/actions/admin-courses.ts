@@ -100,6 +100,23 @@ export async function createAdminCourseAction(payload: CoursePayload) {
     const numPrice = Number(priceBdt) || 1299;
     const origPrice = payload.originalPriceBdt ? Number(payload.originalPriceBdt) : 2858;
 
+    const parseList = (val: any): string[] => {
+      if (!val) return [];
+      if (Array.isArray(val)) return val.map((s) => String(s).trim()).filter(Boolean);
+      if (typeof val === "string") return val.split("\n").map((s) => s.trim()).filter(Boolean);
+      return [];
+    };
+
+    const structuredHighlights = {
+      hours: payload.highlights?.hours || "20+ Hours",
+      access: payload.highlights?.access || "Lifetime Access",
+      certificate: payload.highlights?.certificate || "Certificate Included",
+      description: payload.description ? payload.description.trim() : (payload.subtitle?.trim() || ""),
+      whatYouWillLearn: parseList(payload.whatYouWillLearn),
+      requirements: parseList(payload.requirements),
+      includes: parseList(payload.includes),
+    };
+
     // 1. Persist directly in PostgreSQL via Prisma
     if (prisma && (await isPrismaReady())) {
       try {
@@ -111,6 +128,8 @@ export async function createAdminCourseAction(payload: CoursePayload) {
             badge: payload.badge || "Bestseller",
             category: payload.category || "Video Editing",
             level: payload.level || "Beginner to Advanced",
+            price: `৳${numPrice.toLocaleString()}`,
+            originalPrice: `৳${origPrice.toLocaleString()}`,
             numericPrice: numPrice,
             numericOriginalPrice: origPrice,
             discountPct: payload.discountPct || "45% OFF",
@@ -120,7 +139,7 @@ export async function createAdminCourseAction(payload: CoursePayload) {
             trailerVideo: trailerUrl.trim(),
             instructorId: payload.instructorId || "sakil-ahmed",
             instructorName: instructor.trim(),
-            highlights: (payload.highlights as any) || {},
+            highlights: structuredHighlights,
             faqs: (payload.faqs as any) || [],
             status: "published",
           },
@@ -131,6 +150,8 @@ export async function createAdminCourseAction(payload: CoursePayload) {
             badge: payload.badge || "Bestseller",
             category: payload.category || "Video Editing",
             level: payload.level || "Beginner to Advanced",
+            price: `৳${numPrice.toLocaleString()}`,
+            originalPrice: `৳${origPrice.toLocaleString()}`,
             numericPrice: numPrice,
             numericOriginalPrice: origPrice,
             discountPct: payload.discountPct || "45% OFF",
@@ -140,7 +161,7 @@ export async function createAdminCourseAction(payload: CoursePayload) {
             trailerVideo: trailerUrl.trim(),
             instructorId: payload.instructorId || "sakil-ahmed",
             instructorName: instructor.trim(),
-            highlights: (payload.highlights as any) || {},
+            highlights: structuredHighlights,
             faqs: (payload.faqs as any) || [],
             curriculum: [],
             status: "published",
@@ -222,13 +243,19 @@ export async function getAdminCourseByIdAction(id: string) {
 
       if (c) {
         const cmsOverride = await getCourseCmsOverride(c.slug);
+        const h: any = (typeof c.highlights === "string" ? JSON.parse(c.highlights) : c.highlights) || {};
+        const fullDesc = h.description || c.subtitle || "";
+        const wLearn = (h.whatYouWillLearn && h.whatYouWillLearn.length > 0) ? h.whatYouWillLearn : ((cmsOverride as any)?.whatYouWillLearn || []);
+        const reqs = (h.requirements && h.requirements.length > 0) ? h.requirements : ((cmsOverride as any)?.requirements || []);
+        const incs = (h.includes && h.includes.length > 0) ? h.includes : ((cmsOverride as any)?.includes || []);
+
         return {
           success: true,
           product: {
             id: c.id,
             handle: c.slug,
             title: c.title,
-            description: c.subtitle || "",
+            description: fullDesc,
             thumbnail: c.thumbnail || c.image,
             variants: [
               {
@@ -247,7 +274,11 @@ export async function getAdminCourseByIdAction(id: string) {
               instructor: c.instructorName || "Sakil Ahmed",
               instructorId: c.instructorId,
               trailerUrl: c.trailerVideo,
-              highlights: (c.highlights as any) || {},
+              highlights: h,
+              description: fullDesc,
+              whatYouWillLearn: wLearn,
+              requirements: reqs,
+              includes: incs,
               faqs: (c.faqs as any) || [],
               curriculum: (c.curriculum as any) || [],
             },
@@ -305,22 +336,59 @@ export async function updateAdminCourseAction(
     const formattedThumbnail = await persistBase64Image(payload.thumbnail?.trim() || "");
     const formattedTrailer = payload.trailerUrl?.trim() || "";
     const formattedInstructor = payload.instructor?.trim() || "";
-    const numPrice = payload.priceBdt ? Number(payload.priceBdt) : undefined;
-    const origPrice = payload.originalPriceBdt ? Number(payload.originalPriceBdt) : undefined;
+    const numPrice = payload.priceBdt !== undefined ? Number(payload.priceBdt) : undefined;
+    const origPrice = payload.originalPriceBdt !== undefined ? Number(payload.originalPriceBdt) : undefined;
+
+    const parseList = (val: any): string[] | undefined => {
+      if (val === undefined) return undefined;
+      if (!val) return [];
+      if (Array.isArray(val)) return val.map((s) => String(s).trim()).filter(Boolean);
+      if (typeof val === "string") return val.split("\n").map((s) => s.trim()).filter(Boolean);
+      return [];
+    };
 
     // 1. Direct update in PostgreSQL via Prisma
     if (prisma && (await isPrismaReady())) {
       try {
+        const existing = await prisma.course.findFirst({
+          where: {
+            OR: [{ id }, { slug: id }],
+          },
+        });
+        const currentH: any =
+          (typeof existing?.highlights === "string"
+            ? JSON.parse(existing.highlights)
+            : existing?.highlights) || {};
+
+        const mergedHighlights: any = {
+          ...currentH,
+          ...(payload.highlights || {}),
+        };
+        if (payload.description !== undefined) {
+          mergedHighlights.description = payload.description.trim();
+        }
+        if (payload.whatYouWillLearn !== undefined) {
+          mergedHighlights.whatYouWillLearn = parseList(payload.whatYouWillLearn);
+        }
+        if (payload.requirements !== undefined) {
+          mergedHighlights.requirements = parseList(payload.requirements);
+        }
+        if (payload.includes !== undefined) {
+          mergedHighlights.includes = parseList(payload.includes);
+        }
+
         await prisma.course.updateMany({
           where: {
             OR: [{ id }, { slug: id }],
           },
           data: {
             title: payload.title?.trim(),
-            subtitle: payload.subtitle,
+            subtitle: payload.subtitle !== undefined ? payload.subtitle.trim() : undefined,
             badge: payload.badge,
             category: payload.category,
             level: payload.level,
+            price: numPrice !== undefined ? `৳${numPrice.toLocaleString()}` : undefined,
+            originalPrice: origPrice !== undefined ? `৳${origPrice.toLocaleString()}` : undefined,
             numericPrice: numPrice,
             numericOriginalPrice: origPrice,
             discountPct: payload.discountPct,
@@ -329,7 +397,7 @@ export async function updateAdminCourseAction(
             trailerVideo: formattedTrailer || undefined,
             instructorId: payload.instructorId,
             instructorName: formattedInstructor || undefined,
-            highlights: (payload.highlights as any) || undefined,
+            highlights: mergedHighlights,
             faqs: (payload.faqs as any) || undefined,
           },
         });

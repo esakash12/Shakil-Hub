@@ -43,8 +43,6 @@ export default function AdminEditCoursePage() {
   const [badge, setBadge] = useState("Bestseller");
   const [category, setCategory] = useState("Video Editing");
   const [level, setLevel] = useState("Beginner to Advanced");
-  const [mainSlogan, setMainSlogan] = useState("");
-  const [heroSlogan, setHeroSlogan] = useState("");
 
   // Pricing
   const [priceBdt, setPriceBdt] = useState("1299");
@@ -103,17 +101,15 @@ export default function AdminEditCoursePage() {
         if (res.success && res.product) {
           const p = res.product;
           setTitle(p.title || "");
-          setDescription(p.description || "");
           setThumbnail(p.thumbnail || "");
           setSlug(p.handle || "");
 
           const meta: any = p.metadata || {};
           if (meta.subtitle) setSubtitle(meta.subtitle);
+          setDescription(meta.description || p.description || "");
           if (meta.badge) setBadge(meta.badge);
           if (meta.category) setCategory(meta.category);
           if (meta.level) setLevel(meta.level);
-          if (meta.mainSlogan) setMainSlogan(meta.mainSlogan);
-          if (meta.heroSlogan) setHeroSlogan(meta.heroSlogan);
 
           if (meta.instructor) setInstructor(meta.instructor);
           if (meta.instructorId) setInstructorId(meta.instructorId);
@@ -136,25 +132,25 @@ export default function AdminEditCoursePage() {
           if (meta.curriculum && Array.isArray(meta.curriculum)) {
             setCurriculum(meta.curriculum);
           }
-          if (meta.whatYouWillLearn) {
+          if (meta.whatYouWillLearn && (Array.isArray(meta.whatYouWillLearn) ? meta.whatYouWillLearn.length > 0 : Boolean(meta.whatYouWillLearn))) {
             setWhatYouWillLearn(
               Array.isArray(meta.whatYouWillLearn)
                 ? meta.whatYouWillLearn.join("\n")
                 : String(meta.whatYouWillLearn)
             );
           }
-          if (meta.requirements) {
+          if (meta.requirements && (Array.isArray(meta.requirements) ? meta.requirements.length > 0 : Boolean(meta.requirements))) {
             setRequirements(
               Array.isArray(meta.requirements)
                 ? meta.requirements.join("\n")
                 : String(meta.requirements)
             );
           }
-          if ((meta as any).includes) {
+          if (meta.includes && (Array.isArray(meta.includes) ? meta.includes.length > 0 : Boolean(meta.includes))) {
             setIncludes(
-              Array.isArray((meta as any).includes)
-                ? (meta as any).includes.join("\n")
-                : String((meta as any).includes)
+              Array.isArray(meta.includes)
+                ? meta.includes.join("\n")
+                : String(meta.includes)
             );
           }
           const price =
@@ -213,8 +209,6 @@ export default function AdminEditCoursePage() {
         badge: badge.trim(),
         category: category.trim(),
         level: level.trim(),
-        mainSlogan: mainSlogan.trim(),
-        heroSlogan: heroSlogan.trim(),
         priceBdt: Number(priceBdt) || 1299,
         originalPriceBdt: Number(originalPriceBdt) || 3500,
         discountPct: discountPct.trim(),
@@ -455,46 +449,16 @@ export default function AdminEditCoursePage() {
             </div>
           </div>
 
-          {/* Marketing Slogans */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-gray-300">
-                Main Slogan
-              </label>
-              <input
-                type="text"
-                value={mainSlogan}
-                onChange={(e) => setMainSlogan(e.target.value)}
-                placeholder="The complete roadmap to becoming a professional video editor."
-                disabled={isLoading || isDeleting}
-                className="w-full px-3.5 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-gray-300">
-                Hero Banner Slogan
-              </label>
-              <input
-                type="text"
-                value={heroSlogan}
-                onChange={(e) => setHeroSlogan(e.target.value)}
-                placeholder="Master Commercial Editing & Filmmaking"
-                disabled={isLoading || isDeleting}
-                className="w-full px-3.5 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-          </div>
-
           {/* Description */}
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-gray-300">
-              Full Course Overview
+              Full Course Overview (Displayed in &quot;About This Masterclass&quot; section)
             </label>
             <textarea
-              rows={3}
+              rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              placeholder="Write a comprehensive overview of the masterclass, what students will learn, and why this course is unique..."
               disabled={isLoading || isDeleting}
               className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs sm:text-sm text-white focus:outline-none focus:border-cyan-500 transition-all resize-none font-normal"
             />
