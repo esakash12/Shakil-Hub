@@ -13,9 +13,7 @@ export async function getLiveStorefrontCourses(): Promise<CourseDetail[]> {
         where: { status: 'published' },
         orderBy: { createdAt: 'desc' },
       });
-      if (dbCourses && dbCourses.length > 0) {
-        return dbCourses.map(mapDbCourseToCourseDetail);
-      }
+      return (dbCourses || []).map(mapDbCourseToCourseDetail);
     }
   } catch (err: any) {
     console.warn('Prisma query getLiveStorefrontCourses error:', err.message || err);
@@ -101,6 +99,7 @@ export async function getLiveCourseBySlug(slug: string): Promise<CourseDetail | 
       if (c) {
         return mapDbCourseToCourseDetail(c);
       }
+      return null;
     }
   } catch (err: any) {
     console.warn('Prisma query getLiveCourseBySlug error:', err.message || err);

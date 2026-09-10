@@ -42,24 +42,22 @@ export async function getPersistentCustomers(): Promise<CustomerRecord[]> {
         where: { role: "student" },
         orderBy: { createdAt: "desc" },
       });
-      if (dbUsers && dbUsers.length > 0) {
-        return dbUsers.map((u) => ({
-          id: u.id,
-          firstName: u.firstName || "Student",
-          lastName: u.lastName || "",
-          email: u.email,
-          phone: u.phone || undefined,
-          passwordHash: u.passwordHash || undefined,
-          status: (u.status as any) || "active",
-          banReason: u.banReason || undefined,
-          tempBanUntil: u.tempBanUntil || undefined,
-          customEnrolledSlugs: u.customEnrolledSlugs || [],
-          revokedSlugs: u.revokedSlugs || [],
-          notices: (u.notices as any) || [],
-          createdAt: u.createdAt.toISOString(),
-          updatedAt: u.updatedAt.toISOString(),
-        }));
-      }
+      return (dbUsers || []).map((u) => ({
+        id: u.id,
+        firstName: u.firstName || "Student",
+        lastName: u.lastName || "",
+        email: u.email,
+        phone: u.phone || undefined,
+        passwordHash: u.passwordHash || undefined,
+        status: (u.status as any) || "active",
+        banReason: u.banReason || undefined,
+        tempBanUntil: u.tempBanUntil || undefined,
+        customEnrolledSlugs: u.customEnrolledSlugs || [],
+        revokedSlugs: u.revokedSlugs || [],
+        notices: (u.notices as any) || [],
+        createdAt: u.createdAt.toISOString(),
+        updatedAt: u.updatedAt.toISOString(),
+      }));
     }
   } catch (err: any) {
     console.warn("Prisma getPersistentCustomers error:", err.message || err);

@@ -14,23 +14,21 @@ export async function getPersistentInstructors(): Promise<InstructorItem[]> {
       const dbInstructors = await prisma.instructor.findMany({
         orderBy: { createdAt: "desc" },
       });
-      if (dbInstructors && dbInstructors.length > 0) {
-        return dbInstructors.map((i) => ({
-          id: i.id,
-          name: i.name,
-          role: i.role || "Instructor",
-          avatar: i.avatar || "",
-          experience: i.experience || "8+ Years",
-          projects: i.projects || "400+",
-          students: i.students || "10K+",
-          bio: i.bio || "",
-          socials: (i.socials as any) || {},
-          courseSlugs: i.courseSlugs || [],
-          courses: (i.courses as any) || [],
-          createdAt: i.createdAt.toISOString(),
-          updatedAt: i.updatedAt.toISOString(),
-        }));
-      }
+      return (dbInstructors || []).map((i) => ({
+        id: i.id,
+        name: i.name,
+        role: i.role || "Instructor",
+        avatar: i.avatar || "",
+        experience: i.experience || "8+ Years",
+        projects: i.projects || "400+",
+        students: i.students || "10K+",
+        bio: i.bio || "",
+        socials: (i.socials as any) || {},
+        courseSlugs: i.courseSlugs || [],
+        courses: (i.courses as any) || [],
+        createdAt: i.createdAt.toISOString(),
+        updatedAt: i.updatedAt.toISOString(),
+      }));
     }
   } catch (err: any) {
     console.warn("Prisma getPersistentInstructors error:", err.message || err);

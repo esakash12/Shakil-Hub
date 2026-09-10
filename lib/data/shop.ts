@@ -14,36 +14,34 @@ export async function getPersistentShopProducts(): Promise<DigitalProduct[]> {
       const dbProducts = await prisma.shopProduct.findMany({
         orderBy: { createdAt: "desc" },
       });
-      if (dbProducts && dbProducts.length > 0) {
-        return dbProducts.map((p) => ({
-          id: p.id,
-          title: p.title,
-          slug: p.slug,
-          category: p.category,
-          shortDescription: p.shortDescription || "",
-          fullDescription: p.fullDescription || "",
-          price: p.price,
-          originalPrice: p.originalPrice || undefined,
-          discountBadge: p.discountBadge || undefined,
-          thumbnail: p.thumbnail || "",
-          images: p.images || [],
-          badge: p.badge || undefined,
-          features: p.features || [],
-          deliveryMethod: (p.deliveryMethod as any) || {
-            type: "download_link",
-            label: "Instant Delivery",
-            instructions: "Access instructions will be delivered immediately after purchase.",
-          },
-          faqs: (p.faqs as any) || [],
-          stock: p.stock || "unlimited",
-          rating: p.rating,
-          reviewsCount: p.reviewsCount,
-          salesCount: p.salesCount,
-          status: p.status as any,
-          createdAt: p.createdAt.toISOString(),
-          updatedAt: p.updatedAt.toISOString(),
-        }));
-      }
+      return (dbProducts || []).map((p) => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        category: p.category,
+        shortDescription: p.shortDescription || "",
+        fullDescription: p.fullDescription || "",
+        price: p.price,
+        originalPrice: p.originalPrice || undefined,
+        discountBadge: p.discountBadge || undefined,
+        thumbnail: p.thumbnail || "",
+        images: p.images || [],
+        badge: p.badge || undefined,
+        features: p.features || [],
+        deliveryMethod: (p.deliveryMethod as any) || {
+          type: "download_link",
+          label: "Instant Delivery",
+          instructions: "Access instructions will be delivered immediately after purchase.",
+        },
+        faqs: (p.faqs as any) || [],
+        stock: p.stock || "unlimited",
+        rating: p.rating,
+        reviewsCount: p.reviewsCount,
+        salesCount: p.salesCount,
+        status: p.status as any,
+        createdAt: p.createdAt.toISOString(),
+        updatedAt: p.updatedAt.toISOString(),
+      }));
     }
   } catch (err: any) {
     console.warn("Prisma getPersistentShopProducts error:", err.message || err);
@@ -111,6 +109,7 @@ export async function getShopProductBySlug(slug: string): Promise<DigitalProduct
           updatedAt: p.updatedAt.toISOString(),
         };
       }
+      return null;
     }
   } catch (err: any) {
     console.warn("Prisma getShopProductBySlug error:", err.message || err);

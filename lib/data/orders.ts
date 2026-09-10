@@ -27,24 +27,22 @@ export async function getPersistentOrders(): Promise<OrderItem[]> {
       const dbOrders = await prisma.order.findMany({
         orderBy: { createdAt: "desc" },
       });
-      if (dbOrders && dbOrders.length > 0) {
-        return dbOrders.map((o) => ({
-          id: o.id,
-          orderNumber: o.orderNumber,
-          studentName: o.studentName,
-          email: o.email,
-          courseTitle: o.courseTitle,
-          courseSlug: o.courseSlug,
-          amount: o.amount,
-          paymentMethod: o.paymentMethod,
-          senderNumber: o.senderNumber,
-          trxId: o.trxId,
-          status: o.status as any,
-          createdAt: o.createdAt.toISOString(),
-          verifiedAt: o.verifiedAt?.toISOString(),
-          rejectionReason: o.rejectionReason || undefined,
-        }));
-      }
+      return (dbOrders || []).map((o) => ({
+        id: o.id,
+        orderNumber: o.orderNumber,
+        studentName: o.studentName,
+        email: o.email,
+        courseTitle: o.courseTitle,
+        courseSlug: o.courseSlug,
+        amount: o.amount,
+        paymentMethod: o.paymentMethod,
+        senderNumber: o.senderNumber,
+        trxId: o.trxId,
+        status: o.status as any,
+        createdAt: o.createdAt.toISOString(),
+        verifiedAt: o.verifiedAt?.toISOString(),
+        rejectionReason: o.rejectionReason || undefined,
+      }));
     }
   } catch (err: any) {
     console.warn("Prisma getPersistentOrders error:", err.message || err);
