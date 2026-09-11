@@ -14,6 +14,7 @@ import {
   deletePersistentCustomer,
   CustomerRecord,
   CustomerNotice,
+  deduplicateNotices,
 } from "@/lib/data/customers";
 import { getPersistentOrders, OrderItem } from "@/lib/data/orders";
 
@@ -69,7 +70,7 @@ export async function fetchAdminStudentsAction(): Promise<{
         courses: [],
         customEnrolledSlugs: cust.customEnrolledSlugs || [],
         revokedSlugs: cust.revokedSlugs || [],
-        notices: cust.notices || [],
+        notices: deduplicateNotices(cust.notices || []),
         totalSpent: 0,
         joined: new Date(cust.createdAt || Date.now()).toLocaleDateString("en-US", {
           month: "short",

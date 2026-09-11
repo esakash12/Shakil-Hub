@@ -20,13 +20,22 @@ interface StudentNoticeBannerProps {
 export default function StudentNoticeBanner({
   initialNotices = [],
 }: StudentNoticeBannerProps) {
-  const [notices, setNotices] = useState<CustomerNotice[]>(initialNotices);
+  const cleanNotices = React.useMemo(() => {
+    if (!Array.isArray(initialNotices)) return [];
+    const seen = new Set<string>();
+    return initialNotices.filter((n) => {
+      if (!n || !n.id) return false;
+      if (seen.has(n.id)) return false;
+      seen.add(n.id);
+      return true;
+    });
+  }, [initialNotices]);
+
+  const [notices, setNotices] = useState<CustomerNotice[]>(cleanNotices);
 
   React.useEffect(() => {
-    if (initialNotices) {
-      setNotices(initialNotices);
-    }
-  }, [initialNotices?.length]);
+    setNotices(cleanNotices);
+  }, [cleanNotices]);
 
   if (!notices || notices.length === 0) {
     return null;

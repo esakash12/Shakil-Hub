@@ -155,19 +155,29 @@ export default function StudentDirectoryClient({
       });
 
       if (res.success && res.notice) {
+        const newN = res.notice;
         setStudents((prev) =>
           prev.map((s) => {
             if (s.email === activeStudent.email) {
+              const filtered = (s.notices || []).filter((n) => n.id !== newN.id);
               return {
                 ...s,
-                notices: [res.notice!, ...(s.notices || [])],
+                notices: [newN, ...filtered],
               };
             }
             return s;
           })
         );
         setActiveStudent((prev) =>
-          prev ? { ...prev, notices: [res.notice!, ...(prev.notices || [])] } : null
+          prev
+            ? {
+                ...prev,
+                notices: [
+                  newN,
+                  ...(prev.notices || []).filter((n) => n.id !== newN.id),
+                ],
+              }
+            : null
         );
         setNoticeTitle("");
         setNoticeMessage("");
@@ -747,37 +757,46 @@ export default function StudentDirectoryClient({
             {/* Active Notices List */}
             {activeStudent.notices && activeStudent.notices.length > 0 && (
               <div className="pt-4 border-t border-white/10 space-y-2">
-                <h4 className="text-xs font-bold text-gray-300">
-                  Active Notices ({activeStudent.notices.length})
-                </h4>
-                <div className="max-h-40 overflow-y-auto space-y-2 pr-1">
-                  {activeStudent.notices.map((n) => (
-                    <div
-                      key={n.id}
-                      className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-start justify-between gap-3 text-xs"
-                    >
-                      <div>
-                        <div className="font-semibold text-white flex items-center gap-2">
-                          <span className="uppercase text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">
-                            {n.type}
-                          </span>
-                          <span>{n.title}</span>
-                        </div>
-                        <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">
-                          {n.message}
-                        </p>
+                {(() => {
+                  const uniqueNotices = activeStudent.notices.filter(
+                    (n, idx, arr) => arr.findIndex((x) => x.id === n.id) === idx
+                  );
+                  return (
+                    <>
+                      <h4 className="text-xs font-bold text-gray-300">
+                        Active Notices ({uniqueNotices.length})
+                      </h4>
+                      <div className="max-h-40 overflow-y-auto space-y-2 pr-1">
+                        {uniqueNotices.map((n) => (
+                          <div
+                            key={n.id}
+                            className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-start justify-between gap-3 text-xs"
+                          >
+                            <div>
+                              <div className="font-semibold text-white flex items-center gap-2">
+                                <span className="uppercase text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">
+                                  {n.type}
+                                </span>
+                                <span>{n.title}</span>
+                              </div>
+                              <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">
+                                {n.message}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteNotice(n.id)}
+                              className="p-1 rounded hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition-colors cursor-pointer shrink-0"
+                              title="Delete notice"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteNotice(n.id)}
-                        className="p-1 rounded hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition-colors cursor-pointer shrink-0"
-                        title="Delete notice"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                    </>
+                  );
+                })()}
               </div>
             )}
           </div>

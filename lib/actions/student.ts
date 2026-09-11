@@ -201,7 +201,14 @@ export async function getStudentNoticesAction(): Promise<CustomerNotice[]> {
     if (!customer?.email) return [];
 
     const dbCust = await findCustomerByEmail(customer.email);
-    return dbCust?.notices || [];
+    const rawNotices = dbCust?.notices || [];
+    const seen = new Set<string>();
+    return rawNotices.filter((n) => {
+      if (!n || !n.id) return false;
+      if (seen.has(n.id)) return false;
+      seen.add(n.id);
+      return true;
+    });
   } catch (err) {
     console.error("GET STUDENT NOTICES ERROR:", err);
     return [];

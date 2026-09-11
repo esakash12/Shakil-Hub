@@ -33,6 +33,48 @@ export function hashPassword(password: string): string {
 }
 
 /**
+ * Sanitizes and deduplicates notice records by ID and rapid double-submissions
+ */
+export function deduplicateNotices(notices: any[]): CustomerNotice[] {
+  if (!Array.isArray(notices)) return [];
+  const seenIds = new Set<string>();
+  const result: CustomerNotice[] = [];
+
+  for (const n of notices) {
+    if (!n) continue;
+    const id = n.id ? String(n.id).trim() : "";
+    if (id && seenIds.has(id)) {
+      continue;
+    }
+
+    const title = n.title ? String(n.title).trim() : "";
+    const message = n.message ? String(n.message).trim() : "";
+
+    const isDuplicateRecent = result.some(
+      (existing) =>
+        existing.title.trim() === title &&
+        existing.message.trim() === message &&
+        Math.abs(new Date(existing.createdAt).getTime() - new Date(n.createdAt || Date.now()).getTime()) < 5000
+    );
+    if (isDuplicateRecent) {
+      continue;
+    }
+
+    if (id) seenIds.add(id);
+    result.push({
+      id: id || `notif_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      title: title || "Notice",
+      message: message || "",
+      type: n.type || "info",
+      createdAt: n.createdAt || new Date().toISOString(),
+      read: Boolean(n.read),
+    });
+  }
+
+  return result;
+}
+
+/**
  * Retrieves all registered student customer accounts directly from PostgreSQL
  */
 export async function getPersistentCustomers(): Promise<CustomerRecord[]> {
@@ -54,7 +96,7 @@ export async function getPersistentCustomers(): Promise<CustomerRecord[]> {
         tempBanUntil: u.tempBanUntil || undefined,
         customEnrolledSlugs: u.customEnrolledSlugs || [],
         revokedSlugs: u.revokedSlugs || [],
-        notices: (u.notices as any) || [],
+        notices: deduplicateNotices((u.notices as any) || []),
         createdAt: u.createdAt.toISOString(),
         updatedAt: u.updatedAt.toISOString(),
       }));
@@ -118,7 +160,7 @@ export async function savePersistentCustomer(
           tempBanUntil: customer.tempBanUntil !== undefined ? customer.tempBanUntil : existingUser?.tempBanUntil,
           customEnrolledSlugs: customer.customEnrolledSlugs || existingUser?.customEnrolledSlugs || [],
           revokedSlugs: customer.revokedSlugs || existingUser?.revokedSlugs || [],
-          notices: (customer.notices as any) || (existingUser?.notices as any) || [],
+          notices: deduplicateNotices((customer.notices as any) || (existingUser?.notices as any) || []) as any,
         },
         create: {
           email: normalizedEmail,
@@ -132,7 +174,7 @@ export async function savePersistentCustomer(
           tempBanUntil: customer.tempBanUntil || null,
           customEnrolledSlugs: customer.customEnrolledSlugs || [],
           revokedSlugs: customer.revokedSlugs || [],
-          notices: (customer.notices as any) || [],
+          notices: deduplicateNotices((customer.notices as any) || []) as any,
         },
       });
     }
@@ -159,7 +201,7 @@ export async function savePersistentCustomer(
         status: customer.status || prev.status || "active",
         customEnrolledSlugs: customer.customEnrolledSlugs || prev.customEnrolledSlugs || [],
         revokedSlugs: customer.revokedSlugs || prev.revokedSlugs || [],
-        notices: customer.notices || prev.notices || [],
+        notices: deduplicateNotices(customer.notices || prev.notices || []),
         updatedAt: new Date().toISOString(),
       };
       updated = [...existing];
@@ -178,7 +220,7 @@ export async function savePersistentCustomer(
         tempBanUntil: customer.tempBanUntil,
         customEnrolledSlugs: customer.customEnrolledSlugs || [],
         revokedSlugs: customer.revokedSlugs || [],
-        notices: customer.notices || [],
+        notices: deduplicateNotices(customer.notices || []),
         createdAt: now,
         updatedAt: now,
       };
@@ -217,7 +259,7 @@ export async function findCustomerByEmail(email: string): Promise<CustomerRecord
           tempBanUntil: u.tempBanUntil || undefined,
           customEnrolledSlugs: u.customEnrolledSlugs || [],
           revokedSlugs: u.revokedSlugs || [],
-          notices: (u.notices as any) || [],
+          notices: deduplicateNotices((u.notices as any) || []),
           createdAt: u.createdAt.toISOString(),
           updatedAt: u.updatedAt.toISOString(),
         };
@@ -228,7 +270,14 @@ export async function findCustomerByEmail(email: string): Promise<CustomerRecord
   }
 
   const all = await getPersistentCustomers();
-  return all.find((c) => c.email.toLowerCase().trim() === normalized) || null;
+  const target = all.find((c) => c.email.toLowerCase().trim() === normalized);
+  if (target) {
+    return {
+      ...target,
+      notices: deduplicateNotices(target.notices || []),
+    };
+  }
+  return null;
 }
 
 /**
@@ -424,10 +473,12 @@ export async function addCustomerNotice(
     if (prisma && (await isPrismaReady())) {
       const user = await prisma.user.findUnique({ where: { email: normalized } });
       if (user) {
-        const notices = Array.isArray(user.notices) ? (user.notices as any) : [];
+        const rawNotices = Array.isArray(user.notices) ? (user.notices as any) : [];
+        const cleanNotices = deduplicateNotices(rawNotices);
+        const updatedNotices = [newNotice, ...cleanNotices.filter((n) => n.id !== newNotice.id)];
         await prisma.user.update({
           where: { email: normalized },
-          data: { notices: [newNotice, ...notices] },
+          data: { notices: updatedNotices as any },
         });
       }
     }
@@ -435,11 +486,17 @@ export async function addCustomerNotice(
     console.warn("Prisma addCustomerNotice error:", err.message || err);
   }
 
-  const all = await getPersistentCustomers();
-  const target = all.find((c) => c.email.toLowerCase().trim() === normalized);
-  if (target) {
-    target.notices = [newNotice, ...(target.notices || [])];
-    await savePersistentCustomer(target);
+  // Backup directly to customers.json fallback without re-saving to Prisma or duplicating
+  try {
+    const existing = await readDataFile<CustomerRecord[]>("customers.json", []);
+    const index = existing.findIndex((c) => c.email.toLowerCase().trim() === normalized);
+    if (index >= 0) {
+      const prevNotices = deduplicateNotices(existing[index].notices || []);
+      existing[index].notices = [newNotice, ...prevNotices.filter((n) => n.id !== newNotice.id)];
+      await writeDataFile("customers.json", existing);
+    }
+  } catch (err: any) {
+    console.warn("customers.json backup addCustomerNotice error:", err.message || err);
   }
 
   return newNotice;
@@ -455,29 +512,38 @@ export async function deleteCustomerNotice(
   if (!email || !noticeId) return false;
   const normalized = email.toLowerCase().trim();
 
+  let prismaSuccess = false;
   try {
     if (prisma && (await isPrismaReady())) {
       const user = await prisma.user.findUnique({ where: { email: normalized } });
       if (user && Array.isArray(user.notices)) {
-        const filtered = (user.notices as any).filter((n: any) => n.id !== noticeId);
+        const cleanNotices = deduplicateNotices(user.notices as any);
+        const filtered = cleanNotices.filter((n: any) => n.id !== noticeId);
         await prisma.user.update({
           where: { email: normalized },
-          data: { notices: filtered },
+          data: { notices: filtered as any },
         });
-        return true;
+        prismaSuccess = true;
       }
     }
   } catch (err: any) {
     console.warn("Prisma deleteCustomerNotice error:", err.message || err);
   }
 
-  const all = await getPersistentCustomers();
-  const target = all.find((c) => c.email.toLowerCase().trim() === normalized);
-  if (!target) return false;
+  // Also sync backup customers.json file
+  try {
+    const existing = await readDataFile<CustomerRecord[]>("customers.json", []);
+    const index = existing.findIndex((c) => c.email.toLowerCase().trim() === normalized);
+    if (index >= 0) {
+      const prevNotices = deduplicateNotices(existing[index].notices || []);
+      existing[index].notices = prevNotices.filter((n) => n.id !== noticeId);
+      await writeDataFile("customers.json", existing);
+    }
+  } catch (err: any) {
+    console.warn("customers.json backup deleteCustomerNotice error:", err.message || err);
+  }
 
-  target.notices = (target.notices || []).filter((n) => n.id !== noticeId);
-  await savePersistentCustomer(target);
-  return true;
+  return prismaSuccess || true;
 }
 
 /**
