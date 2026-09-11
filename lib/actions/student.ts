@@ -202,11 +202,19 @@ export async function getStudentNoticesAction(): Promise<CustomerNotice[]> {
 
     const dbCust = await findCustomerByEmail(customer.email);
     const rawNotices = dbCust?.notices || [];
-    const seen = new Set<string>();
+    const seenIds = new Set<string>();
+    const seenContent = new Set<string>();
+
     return rawNotices.filter((n) => {
-      if (!n || !n.id) return false;
-      if (seen.has(n.id)) return false;
-      seen.add(n.id);
+      if (!n) return false;
+      const id = n.id ? String(n.id).trim() : "";
+      const content = `${(n.title || "").trim().toLowerCase()}:::${(n.message || "").trim().toLowerCase()}`;
+
+      if (id && seenIds.has(id)) return false;
+      if (content !== ":::" && seenContent.has(content)) return false;
+
+      if (id) seenIds.add(id);
+      if (content !== ":::") seenContent.add(content);
       return true;
     });
   } catch (err) {

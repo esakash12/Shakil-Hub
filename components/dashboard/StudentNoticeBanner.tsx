@@ -22,11 +22,19 @@ export default function StudentNoticeBanner({
 }: StudentNoticeBannerProps) {
   const cleanNotices = React.useMemo(() => {
     if (!Array.isArray(initialNotices)) return [];
-    const seen = new Set<string>();
+    const seenIds = new Set<string>();
+    const seenContent = new Set<string>();
+
     return initialNotices.filter((n) => {
-      if (!n || !n.id) return false;
-      if (seen.has(n.id)) return false;
-      seen.add(n.id);
+      if (!n) return false;
+      const id = n.id ? String(n.id).trim() : "";
+      const content = `${(n.title || "").trim().toLowerCase()}:::${(n.message || "").trim().toLowerCase()}`;
+
+      if (id && seenIds.has(id)) return false;
+      if (content !== ":::" && seenContent.has(content)) return false;
+
+      if (id) seenIds.add(id);
+      if (content !== ":::") seenContent.add(content);
       return true;
     });
   }, [initialNotices]);
@@ -42,7 +50,24 @@ export default function StudentNoticeBanner({
   }
 
   const handleDismiss = async (id: string) => {
-    setNotices((prev) => prev.filter((n) => n.id !== id));
+    const dismissedNotice = notices.find((n) => n.id === id);
+    const dismissedContent = dismissedNotice
+      ? `${(dismissedNotice.title || "").trim().toLowerCase()}:::${(dismissedNotice.message || "").trim().toLowerCase()}`
+      : "";
+
+    setNotices((prev) =>
+      prev.filter((n) => {
+        if (n.id === id) return false;
+        if (
+          dismissedContent &&
+          `${(n.title || "").trim().toLowerCase()}:::${(n.message || "").trim().toLowerCase()}` ===
+            dismissedContent
+        ) {
+          return false;
+        }
+        return true;
+      })
+    );
     try {
       await dismissStudentNoticeAction(id);
     } catch {}

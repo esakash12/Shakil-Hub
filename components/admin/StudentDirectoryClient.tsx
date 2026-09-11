@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   Users,
   Search,
@@ -71,6 +71,7 @@ export default function StudentDirectoryClient({
   const [tempBanDays, setTempBanDays] = useState(7);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSendingNoticeRef = useRef(false);
   const [actionSuccessMsg, setActionSuccessMsg] = useState("");
 
   const totalLearners = students.length;
@@ -145,7 +146,9 @@ export default function StudentDirectoryClient({
   const handleSendNotice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeStudent || !noticeTitle.trim() || !noticeMessage.trim()) return;
+    if (isSendingNoticeRef.current || isSubmitting) return;
 
+    isSendingNoticeRef.current = true;
     setIsSubmitting(true);
     try {
       const res = await sendStudentNoticeAction(activeStudent.email, {
@@ -156,10 +159,20 @@ export default function StudentDirectoryClient({
 
       if (res.success && res.notice) {
         const newN = res.notice;
+        const targetTitle = (newN.title || "").trim().toLowerCase();
+        const targetMessage = (newN.message || "").trim().toLowerCase();
+
         setStudents((prev) =>
           prev.map((s) => {
             if (s.email === activeStudent.email) {
-              const filtered = (s.notices || []).filter((n) => n.id !== newN.id);
+              const filtered = (s.notices || []).filter(
+                (n) =>
+                  n.id !== newN.id &&
+                  !(
+                    (n.title || "").trim().toLowerCase() === targetTitle &&
+                    (n.message || "").trim().toLowerCase() === targetMessage
+                  )
+              );
               return {
                 ...s,
                 notices: [newN, ...filtered],
@@ -174,7 +187,14 @@ export default function StudentDirectoryClient({
                 ...prev,
                 notices: [
                   newN,
-                  ...(prev.notices || []).filter((n) => n.id !== newN.id),
+                  ...(prev.notices || []).filter(
+                    (n) =>
+                      n.id !== newN.id &&
+                      !(
+                        (n.title || "").trim().toLowerCase() === targetTitle &&
+                        (n.message || "").trim().toLowerCase() === targetMessage
+                      )
+                  ),
                 ],
               }
             : null
@@ -186,33 +206,58 @@ export default function StudentDirectoryClient({
       }
     } finally {
       setIsSubmitting(false);
+      isSendingNoticeRef.current = false;
     }
   };
 
   // Delete Notice
   const handleDeleteNotice = async (noticeId: string) => {
     if (!activeStudent) return;
+    const targetNotice = (activeStudent.notices || []).find((n) => n.id === noticeId);
+    const targetTitle = (targetNotice?.title || "").trim().toLowerCase();
+    const targetMessage = (targetNotice?.message || "").trim().toLowerCase();
+
+    // Optimistically update UI
+    setStudents((prev) =>
+      prev.map((s) => {
+        if (s.email === activeStudent.email) {
+          return {
+            ...s,
+            notices: (s.notices || []).filter(
+              (n) =>
+                n.id !== noticeId &&
+                !(
+                  targetTitle &&
+                  targetMessage &&
+                  (n.title || "").trim().toLowerCase() === targetTitle &&
+                  (n.message || "").trim().toLowerCase() === targetMessage
+                )
+            ),
+          };
+        }
+        return s;
+      })
+    );
+    setActiveStudent((prev) =>
+      prev
+        ? {
+            ...prev,
+            notices: (prev.notices || []).filter(
+              (n) =>
+                n.id !== noticeId &&
+                !(
+                  targetTitle &&
+                  targetMessage &&
+                  (n.title || "").trim().toLowerCase() === targetTitle &&
+                  (n.message || "").trim().toLowerCase() === targetMessage
+                )
+            ),
+          }
+        : null
+    );
+
     try {
       await deleteStudentNoticeAction(activeStudent.email, noticeId);
-      setStudents((prev) =>
-        prev.map((s) => {
-          if (s.email === activeStudent.email) {
-            return {
-              ...s,
-              notices: (s.notices || []).filter((n) => n.id !== noticeId),
-            };
-          }
-          return s;
-        })
-      );
-      setActiveStudent((prev) =>
-        prev
-          ? {
-              ...prev,
-              notices: (prev.notices || []).filter((n) => n.id !== noticeId),
-            }
-          : null
-      );
     } catch {}
   };
 

@@ -33,34 +33,31 @@ export function hashPassword(password: string): string {
 }
 
 /**
- * Sanitizes and deduplicates notice records by ID and rapid double-submissions
+ * Sanitizes and deduplicates notice records by ID and unique title+message content
  */
 export function deduplicateNotices(notices: any[]): CustomerNotice[] {
   if (!Array.isArray(notices)) return [];
   const seenIds = new Set<string>();
+  const seenContent = new Set<string>();
   const result: CustomerNotice[] = [];
 
   for (const n of notices) {
     if (!n) continue;
     const id = n.id ? String(n.id).trim() : "";
+    const title = n.title ? String(n.title).trim() : "";
+    const message = n.message ? String(n.message).trim() : "";
+    const contentKey = `${title.toLowerCase()}:::${message.toLowerCase()}`;
+
     if (id && seenIds.has(id)) {
       continue;
     }
-
-    const title = n.title ? String(n.title).trim() : "";
-    const message = n.message ? String(n.message).trim() : "";
-
-    const isDuplicateRecent = result.some(
-      (existing) =>
-        existing.title.trim() === title &&
-        existing.message.trim() === message &&
-        Math.abs(new Date(existing.createdAt).getTime() - new Date(n.createdAt || Date.now()).getTime()) < 5000
-    );
-    if (isDuplicateRecent) {
+    if (contentKey !== ":::" && seenContent.has(contentKey)) {
       continue;
     }
 
     if (id) seenIds.add(id);
+    if (contentKey !== ":::") seenContent.add(contentKey);
+
     result.push({
       id: id || `notif_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       title: title || "Notice",
@@ -469,13 +466,24 @@ export async function addCustomerNotice(
     read: false,
   };
 
+  const targetTitle = (notice.title || "").trim().toLowerCase();
+  const targetMessage = (notice.message || "").trim().toLowerCase();
+
   try {
     if (prisma && (await isPrismaReady())) {
       const user = await prisma.user.findUnique({ where: { email: normalized } });
       if (user) {
         const rawNotices = Array.isArray(user.notices) ? (user.notices as any) : [];
         const cleanNotices = deduplicateNotices(rawNotices);
-        const updatedNotices = [newNotice, ...cleanNotices.filter((n) => n.id !== newNotice.id)];
+        const filtered = cleanNotices.filter(
+          (n) =>
+            n.id !== newNotice.id &&
+            !(
+              (n.title || "").trim().toLowerCase() === targetTitle &&
+              (n.message || "").trim().toLowerCase() === targetMessage
+            )
+        );
+        const updatedNotices = [newNotice, ...filtered];
         await prisma.user.update({
           where: { email: normalized },
           data: { notices: updatedNotices as any },
@@ -492,7 +500,15 @@ export async function addCustomerNotice(
     const index = existing.findIndex((c) => c.email.toLowerCase().trim() === normalized);
     if (index >= 0) {
       const prevNotices = deduplicateNotices(existing[index].notices || []);
-      existing[index].notices = [newNotice, ...prevNotices.filter((n) => n.id !== newNotice.id)];
+      const filtered = prevNotices.filter(
+        (n) =>
+          n.id !== newNotice.id &&
+          !(
+            (n.title || "").trim().toLowerCase() === targetTitle &&
+            (n.message || "").trim().toLowerCase() === targetMessage
+          )
+      );
+      existing[index].notices = [newNotice, ...filtered];
       await writeDataFile("customers.json", existing);
     }
   } catch (err: any) {
@@ -517,8 +533,24 @@ export async function deleteCustomerNotice(
     if (prisma && (await isPrismaReady())) {
       const user = await prisma.user.findUnique({ where: { email: normalized } });
       if (user && Array.isArray(user.notices)) {
-        const cleanNotices = deduplicateNotices(user.notices as any);
-        const filtered = cleanNotices.filter((n: any) => n.id !== noticeId);
+        const rawNotices = user.notices as any[];
+        const target = rawNotices.find((n: any) => n.id === noticeId);
+        const targetTitle = (target?.title || "").trim().toLowerCase();
+        const targetMessage = (target?.message || "").trim().toLowerCase();
+
+        const filtered = deduplicateNotices(rawNotices).filter((n: any) => {
+          if (n.id === noticeId) return false;
+          if (
+            targetTitle &&
+            targetMessage &&
+            (n.title || "").trim().toLowerCase() === targetTitle &&
+            (n.message || "").trim().toLowerCase() === targetMessage
+          ) {
+            return false;
+          }
+          return true;
+        });
+
         await prisma.user.update({
           where: { email: normalized },
           data: { notices: filtered as any },
@@ -535,8 +567,25 @@ export async function deleteCustomerNotice(
     const existing = await readDataFile<CustomerRecord[]>("customers.json", []);
     const index = existing.findIndex((c) => c.email.toLowerCase().trim() === normalized);
     if (index >= 0) {
-      const prevNotices = deduplicateNotices(existing[index].notices || []);
-      existing[index].notices = prevNotices.filter((n) => n.id !== noticeId);
+      const rawNotices = existing[index].notices || [];
+      const target = rawNotices.find((n: any) => n.id === noticeId);
+      const targetTitle = (target?.title || "").trim().toLowerCase();
+      const targetMessage = (target?.message || "").trim().toLowerCase();
+
+      const filtered = deduplicateNotices(rawNotices).filter((n) => {
+        if (n.id === noticeId) return false;
+        if (
+          targetTitle &&
+          targetMessage &&
+          (n.title || "").trim().toLowerCase() === targetTitle &&
+          (n.message || "").trim().toLowerCase() === targetMessage
+        ) {
+          return false;
+        }
+        return true;
+      });
+
+      existing[index].notices = filtered;
       await writeDataFile("customers.json", existing);
     }
   } catch (err: any) {
