@@ -30,6 +30,7 @@ import { getAboutCmsAction, updateAboutCmsAction } from "@/lib/actions/about";
 import { AboutCmsData, DEFAULT_ABOUT_CMS } from "@/lib/data/about-cms-types";
 import { getHomeCmsAction, updateHomeCmsAction } from "@/lib/actions/home";
 import { HomeCmsData, DEFAULT_HOME_CMS } from "@/lib/data/home-cms-types";
+import ImageUploadField from "@/components/admin/ImageUploadField";
 
 export default function AdminSettingsPage() {
   const [formData, setFormData] = useState<PlatformBrandingSettings>(DEFAULT_BRANDING);
@@ -41,9 +42,6 @@ export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState<
     "branding" | "payments" | "contact" | "social" | "about" | "home"
   >("branding");
-
-  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -88,39 +86,6 @@ export default function AdminSettingsPage() {
       ...prev,
       [field]: value,
     }));
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploadingLogo(true);
-    setErrorMsg("");
-
-    try {
-      const uploadForm = new FormData();
-      uploadForm.append("file", file);
-
-      const res = await fetch("/api/upload/image", {
-        method: "POST",
-        body: uploadForm,
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to upload logo image.");
-      }
-
-      const data = await res.json();
-      if (data?.url) {
-        handleChange("logoUrl", data.url);
-      } else {
-        throw new Error("Invalid upload response from server.");
-      }
-    } catch (err: any) {
-      setErrorMsg(err.message || "Failed to upload image.");
-    } finally {
-      setIsUploadingLogo(false);
-    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -258,83 +223,31 @@ export default function AdminSettingsPage() {
               </div>
 
               {/* Logo Preview & Upload */}
-              <div className="pt-2 border-t border-white/5 space-y-3">
-                <label className="block text-xs font-medium text-gray-300">
-                  Custom Platform Logo
-                </label>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  {/* Live Preview Container */}
-                  <div className="w-40 h-16 rounded-xl bg-neutral-950 border border-white/10 flex items-center justify-center p-2 shrink-0 relative overflow-hidden">
-                    {formData.logoUrl ? (
-                      <div className="relative w-full h-full">
-                        <Image
-                          src={formData.logoUrl}
-                          alt="Platform Logo Preview"
-                          fill
-                          sizes="160px"
-                          className="object-contain"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center shadow-md shadow-blue-600/30">
-                          <Play className="w-3.5 h-3.5 text-white fill-white ml-0.5" />
-                        </div>
-                        <span className="text-sm font-bold text-white tracking-tight">
-                          {formData.siteName || "Sakil Hub"}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={formData.logoUrl}
-                        onChange={(e) => handleChange("logoUrl", e.target.value)}
-                        placeholder="https://... or upload image"
-                        className="flex-1 px-3.5 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-blue-500"
-                      />
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                      <button
-                        type="button"
-                        disabled={isUploadingLogo}
-                        onClick={() => fileInputRef.current?.click()}
-                        className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-semibold text-white flex items-center gap-1.5 transition-colors shrink-0 disabled:opacity-50 cursor-pointer"
-                      >
-                        {isUploadingLogo ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <UploadCloud className="w-3.5 h-3.5" />
-                        )}
-                        <span>Upload Logo</span>
-                      </button>
-                    </div>
-                    <p className="text-[11px] text-gray-500">
-                      Recommended: Transparent PNG or SVG logo (height: 40px–60px). If left blank, default typography badge is rendered.
-                    </p>
-                  </div>
-                </div>
+              <div className="pt-2 border-t border-white/5">
+                <ImageUploadField
+                  label="Custom Platform Logo"
+                  value={formData.logoUrl}
+                  onChange={(url) => handleChange("logoUrl", url)}
+                  variant="logo"
+                  placeholder="https://... or upload transparent logo..."
+                  description="Recommended: Transparent PNG or SVG logo (height: 40px–60px). If left blank, default typography badge is rendered."
+                  buttonLabel="Upload Logo"
+                  badgeText="Header & Footer"
+                />
               </div>
 
-              {/* Favicon URL */}
-              <div className="pt-2 border-t border-white/5 space-y-1.5">
-                <label className="block text-xs font-medium text-gray-300">
-                  Favicon URL
-                </label>
-                <input
-                  type="text"
+              {/* Favicon Upload & URL */}
+              <div className="pt-2 border-t border-white/5">
+                <ImageUploadField
+                  label="Platform Favicon"
                   value={formData.faviconUrl}
-                  onChange={(e) => handleChange("faviconUrl", e.target.value)}
-                  placeholder="https://.../favicon.ico"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-blue-500"
+                  onChange={(url) => handleChange("faviconUrl", url)}
+                  variant="favicon"
+                  accept="image/x-icon,image/vnd.microsoft.icon,image/png,image/svg+xml,image/webp,image/*"
+                  placeholder="https://.../favicon.ico or upload .ico/.png"
+                  description="Displays in the browser tab bar, bookmarks, and mobile shortcuts (.ico, .png, .svg)."
+                  buttonLabel="Upload Favicon"
+                  badgeText="Browser Tab Icon"
                 />
               </div>
             </div>
@@ -498,17 +411,17 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
 
-              {/* Background Image URL */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-gray-300">
-                  Hero Studio Background Image URL
-                </label>
-                <input
-                  type="url"
+              {/* Background Image Upload & URL */}
+              <div className="pt-2 border-t border-white/5">
+                <ImageUploadField
+                  label="Hero Studio Background Image"
                   value={homeData.heroBackgroundImage || ""}
-                  onChange={(e) => handleHomeChange("heroBackgroundImage", e.target.value)}
-                  placeholder="https://images.unsplash.com/photo-..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-cyan-500"
+                  onChange={(url) => handleHomeChange("heroBackgroundImage", url)}
+                  variant="banner"
+                  placeholder="https://images.unsplash.com/... or upload background"
+                  description="Dark ambient cinematic background banner displayed across the top of the Home landing page."
+                  buttonLabel="Upload Background"
+                  badgeText="Home Hero Background"
                 />
               </div>
             </div>
@@ -889,19 +802,17 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-gray-300">
-                    Hero Image URL
-                  </label>
-                  <input
-                    type="url"
-                    value={aboutData.heroImageUrl}
-                    onChange={(e) => handleAboutChange("heroImageUrl", e.target.value)}
-                    placeholder="https://images.unsplash.com/photo-..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
+              <div className="space-y-4 pt-2 border-t border-white/5">
+                <ImageUploadField
+                  label="About Page Hero Showcase Image"
+                  value={aboutData.heroImageUrl}
+                  onChange={(url) => handleAboutChange("heroImageUrl", url)}
+                  variant="banner"
+                  placeholder="https://images.unsplash.com/... or upload banner"
+                  description="Primary showcase image banner displayed at the top of the /about page."
+                  buttonLabel="Upload Hero Banner"
+                  badgeText="About Hero Banner"
+                />
 
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium text-gray-300">
@@ -1085,16 +996,16 @@ export default function AdminSettingsPage() {
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-gray-300">
-                  Avatar Photo URL
-                </label>
-                <input
-                  type="url"
+              <div className="pt-2 border-t border-white/5">
+                <ImageUploadField
+                  label="Founder & Lead Instructor Portrait Photo"
                   value={aboutData.leadInstructorAvatar}
-                  onChange={(e) => handleAboutChange("leadInstructorAvatar", e.target.value)}
-                  placeholder="https://images.unsplash.com/photo-..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-cyan-500"
+                  onChange={(url) => handleAboutChange("leadInstructorAvatar", url)}
+                  variant="avatar"
+                  placeholder="https://images.unsplash.com/... or upload portrait photo"
+                  description="Square or circular portrait photo shown next to the founder quote on /about."
+                  buttonLabel="Upload Avatar"
+                  badgeText="1:1 Portrait"
                 />
               </div>
             </div>

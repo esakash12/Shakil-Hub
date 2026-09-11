@@ -27,6 +27,7 @@ import {
 import { getLiveStorefrontCoursesAction } from "@/lib/actions/storefront-courses";
 import { InstructorItem } from "@/lib/data/instructor-types";
 import { CourseDetail } from "@/lib/data/courses";
+import ImageUploadField from "@/components/admin/ImageUploadField";
 
 export default function AdminInstructorsPage() {
   const [instructors, setInstructors] = useState<InstructorItem[]>([]);
@@ -59,7 +60,6 @@ export default function AdminInstructorsPage() {
   const [formFacebook, setFormFacebook] = useState("");
   const [formLinkedin, setFormLinkedin] = useState("");
   const [formCourseSlugs, setFormCourseSlugs] = useState<string[]>([]);
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // Load Data
   const loadData = async () => {
@@ -123,39 +123,6 @@ export default function AdminInstructorsPage() {
     setSaveError("");
     setSaveSuccess("");
     setIsModalOpen(true);
-  };
-
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploadingAvatar(true);
-    setSaveError("");
-
-    try {
-      const uploadForm = new FormData();
-      uploadForm.append("file", file);
-
-      const res = await fetch("/api/upload/image", {
-        method: "POST",
-        body: uploadForm,
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to upload avatar image.");
-      }
-
-      const data = await res.json();
-      if (data?.url) {
-        setFormAvatar(data.url);
-      } else {
-        throw new Error("Invalid response from server upload.");
-      }
-    } catch (err: any) {
-      setSaveError(err.message || "Failed to upload image.");
-    } finally {
-      setIsUploadingAvatar(false);
-    }
   };
 
   const toggleCourseSlug = (slug: string) => {
@@ -471,39 +438,16 @@ export default function AdminInstructorsPage() {
               </div>
 
               {/* Avatar Upload */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">
-                  Avatar Photo URL
-                </label>
-                <div className="flex items-center gap-3">
-                  <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-black border border-white/10 shrink-0">
-                    <Image
-                      src={formAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
-                      alt="Avatar Preview"
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <input
-                    type="text"
-                    value={formAvatar}
-                    onChange={(e) => setFormAvatar(e.target.value)}
-                    placeholder="Image URL or upload file..."
-                    className="flex-1 px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500/50"
-                  />
-                  <label className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-cyan-500/20 border border-white/10 hover:border-cyan-500/40 text-xs font-semibold text-gray-200 hover:text-cyan-300 flex items-center gap-1.5 cursor-pointer transition-colors shrink-0">
-                    <UploadCloud className="w-4 h-4" />
-                    <span>{isUploadingAvatar ? "Uploading..." : "Upload"}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarUpload}
-                      disabled={isUploadingAvatar}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              </div>
+              <ImageUploadField
+                label="Instructor Avatar Photo"
+                value={formAvatar}
+                onChange={setFormAvatar}
+                variant="avatar"
+                placeholder="https://... or upload photo..."
+                description="Square 1:1 portrait photo (400x400 PNG/JPG recommended)."
+                buttonLabel="Upload Photo"
+                badgeText="1:1 Photo"
+              />
 
               {/* Stats Pods */}
               <div className="grid grid-cols-3 gap-3">
