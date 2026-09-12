@@ -1,34 +1,22 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Users, Video, Layers, Star, Sparkles } from "lucide-react";
-import { getLivePlatformStatsAction, LivePlatformStats } from "@/lib/actions/stats";
+import { LivePlatformStats } from "@/lib/actions/stats";
 
-export default function PreFooterStatsBar() {
-  const [liveStats, setLiveStats] = useState<LivePlatformStats>({
-    studentsCount: "20K+",
-    coursesCount: "50+",
-    projectsCount: "10K+",
-    ratingValue: "4.9",
-    rawStudentsCount: 20000,
-    rawCoursesCount: 3,
-  });
+interface PreFooterStatsBarProps {
+  initialStats?: LivePlatformStats;
+}
 
-  useEffect(() => {
-    let isMounted = true;
-    async function loadStats() {
-      try {
-        const res = await getLivePlatformStatsAction();
-        if (isMounted && res) {
-          setLiveStats(res);
-        }
-      } catch {}
-    }
-    loadStats();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+const DEFAULT_STATS: LivePlatformStats = {
+  studentsCount: "20K+",
+  coursesCount: "50+",
+  projectsCount: "10K+",
+  ratingValue: "4.9",
+  rawStudentsCount: 20000,
+  rawCoursesCount: 3,
+};
+
+export default function PreFooterStatsBar({ initialStats }: PreFooterStatsBarProps = {}) {
+  const liveStats = initialStats || DEFAULT_STATS;
 
   const stats = [
     {

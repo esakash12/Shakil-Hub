@@ -1,7 +1,4 @@
-"use client";
-
 import React from "react";
-import { motion } from "framer-motion";
 import { Film, Sparkles, Sliders, Volume2 } from "lucide-react";
 import { HomePillarItem, DEFAULT_HOME_CMS } from "@/lib/data/home-cms-types";
 
@@ -19,30 +16,20 @@ export default function WhatYouWillLearn({
   const displayItems = items && items.length > 0 ? items : DEFAULT_HOME_CMS.whatYouWillLearnItems;
 
   return (
-    <section className="py-4 sm:py-8 lg:py-10">
+    <section className="py-4 sm:py-8 lg:py-10 animate-in fade-in duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header with Fade In */}
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="text-lg sm:text-xl md:text-2xl font-bold text-white tracking-tight mb-4 sm:mb-6 text-left"
-        >
+        {/* Section Header */}
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white tracking-tight mb-4 sm:mb-6 text-left">
           {title}
-        </motion.h2>
+        </h2>
 
         {/* 2x2 App-like Grid on Mobile / 4-column on Desktop */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
           {displayItems.map((feature, index) => {
             const Icon = defaultIcons[index % defaultIcons.length];
             return (
-              <motion.div
+              <div
                 key={index}
-                initial={{ opacity: 0, y: 25 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-30px" }}
-                transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
                 className="group rounded-2xl bg-[#0e1320]/80 hover:bg-[#121828] border border-white/10 hover:border-cyan-500/40 p-4 sm:p-5 md:p-6 text-center flex flex-col items-center justify-center transition-all duration-300 hover:-translate-y-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:shadow-[0_12px_30px_rgba(6,182,212,0.15)] backdrop-blur-xl cursor-pointer"
               >
                 {/* Center Cyan Glow Icon */}
@@ -57,7 +44,7 @@ export default function WhatYouWillLearn({
                 <p className="text-[11px] sm:text-xs text-gray-400 mt-1 font-normal line-clamp-2 leading-relaxed">
                   {feature.description}
                 </p>
-              </motion.div>
+              </div>
             );
           })}
         </div>

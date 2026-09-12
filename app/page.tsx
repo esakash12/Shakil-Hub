@@ -4,6 +4,7 @@ import PopularCourses from "@/components/home/PopularCourses";
 import WhatYouWillLearn from "@/components/home/WhatYouWillLearn";
 import PreFooterStatsBar from "@/components/layout/PreFooterStatsBar";
 import { getHomeCmsAction } from "@/lib/actions/home";
+import { getLivePlatformStatsAction } from "@/lib/actions/stats";
 
 function CoursesSkeleton() {
   return (
@@ -35,7 +36,10 @@ function CoursesSkeleton() {
 }
 
 export default async function HomePage() {
-  const homeCms = await getHomeCmsAction();
+  const [homeCms, liveStats] = await Promise.all([
+    getHomeCmsAction(),
+    getLivePlatformStatsAction(),
+  ]);
 
   return (
     <div className="relative animate-in fade-in duration-500">
@@ -54,7 +58,7 @@ export default async function HomePage() {
       />
 
       {/* Platform Trust & Statistics (Exclusive to Root Home Page) */}
-      <PreFooterStatsBar />
+      <PreFooterStatsBar initialStats={liveStats} />
     </div>
   );
 }

@@ -1,10 +1,7 @@
-"use client";
-
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Star, Play, GraduationCap } from "lucide-react";
+import { Star, Play } from "lucide-react";
 
 export interface CourseProps {
   id: string;
@@ -20,19 +17,12 @@ export interface CourseProps {
 
 export default function CourseCard({
   course,
-  index = 0,
 }: {
   course: CourseProps;
   index?: number;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
-      className="group rounded-2xl bg-[#0e1320]/90 hover:bg-[#121929] border border-white/10 hover:border-cyan-500/50 p-4 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)] flex flex-col justify-between backdrop-blur-xl cursor-pointer"
-    >
+    <div className="group rounded-2xl bg-[#0e1320]/90 hover:bg-[#121929] border border-white/10 hover:border-cyan-500/50 p-4 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)] flex flex-col justify-between backdrop-blur-xl cursor-pointer">
       <Link href={`/courses/${course.id}`} className="block">
         {/* Thumbnail */}
         <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden bg-neutral-900 border border-white/10 mb-3.5 flex items-center justify-center">
@@ -41,7 +31,8 @@ export default function CourseCard({
               src={course.image}
               alt={course.title}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 384px"
+              quality={80}
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
@@ -93,6 +84,6 @@ export default function CourseCard({
           </span>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
