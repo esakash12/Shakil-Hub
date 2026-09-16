@@ -27,19 +27,20 @@ export default function Footer() {
   }, []);
 
   const quickLinks = [
-    { name: "Home", href: "/" },
+    { name: "Agency Portfolio", href: "/#portfolio" },
+    { name: "Creative Services", href: "/#services" },
+    { name: "Founder & Story", href: "/#about-founder" },
+    { name: "Free Consultation", href: "/#contact" },
     { name: "All Courses", href: "/courses" },
     { name: "Digital Shop", href: "/shop" },
-    { name: "Instructors", href: "/instructors" },
-    { name: "About Us", href: "/about" },
-    { name: "Student Dashboard", href: "/dashboard" },
   ];
 
   const exploreCategories = [
-    { name: "Video Editing", href: "/courses" },
-    { name: "Filmmaking & VFX", href: "/courses" },
-    { name: "Color Grading", href: "/courses" },
-    { name: "Audio Mixing", href: "/courses" },
+    { name: "Ai Work", href: "/#portfolio" },
+    { name: "Promotional ADS", href: "/#portfolio" },
+    { name: "Real estate", href: "/#portfolio" },
+    { name: "Wedding Films", href: "/#portfolio" },
+    { name: "Vlogs & Storytelling", href: "/#portfolio" },
   ];
 
   const socialLinks = [
@@ -86,7 +87,7 @@ export default function Footer() {
             </Link>
             <p className="text-xs text-gray-400 leading-relaxed max-w-sm font-normal">
               {branding.footerBio ||
-                "The premier online academy for video editing, motion graphics, visual effects, and color grading. Empowering creators worldwide to turn passion into a career."}
+                "Elite Creative Agency & High-End Video Production studio founded by Mehedi Hasan Sakil. Specializing in AI visuals, commercial ads, real estate, cinematic wedding films, and brand growth."}
             </p>
             {/* Social Links */}
             <div className="flex items-center gap-2.5 pt-1">
@@ -143,24 +144,30 @@ export default function Footer() {
               Get in Touch
             </h4>
             <ul className="space-y-2 text-xs">
+              <li className="flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <a
+                  href="https://wa.me/8801326896947"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-cyan-300 transition-colors inline-flex items-center gap-1.5"
+                >
+                  <span>+880 1326-896947</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">WhatsApp</span>
+                </a>
+              </li>
               {branding.contactEmail && (
                 <li className="flex items-center gap-2">
                   <Mail className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span className="text-gray-300">{branding.contactEmail}</span>
+                  <a href={`mailto:${branding.contactEmail}`} className="text-gray-300 hover:text-cyan-300 transition-colors">
+                    {branding.contactEmail}
+                  </a>
                 </li>
               )}
-              {branding.contactPhone && (
-                <li className="flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span className="text-gray-300">{branding.contactPhone}</span>
-                </li>
-              )}
-              {branding.address && (
-                <li className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span className="text-gray-300">{branding.address}</span>
-                </li>
-              )}
+              <li className="flex items-center gap-2">
+                <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <span className="text-gray-300">{branding.address || "Banani, Dhaka, Bangladesh"}</span>
+              </li>
             </ul>
           </div>
         </div>

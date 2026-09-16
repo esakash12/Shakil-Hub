@@ -3,17 +3,17 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, PlaySquare, Users, ShoppingBag, Info } from "lucide-react";
+import { Home, Film, Sparkles, PlaySquare, ShoppingBag } from "lucide-react";
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
 
   const tabs = [
     { id: "home", name: "Home", href: "/", icon: Home, exact: true },
+    { id: "portfolio", name: "Portfolio", href: "/#portfolio", icon: Film, exact: false },
+    { id: "services", name: "Services", href: "/#services", icon: Sparkles, exact: false },
     { id: "courses", name: "Courses", href: "/courses", icon: PlaySquare, exact: false },
     { id: "shop", name: "Shop", href: "/shop", icon: ShoppingBag, exact: false },
-    { id: "instructors", name: "Instructors", href: "/instructors", icon: Users, exact: false },
-    { id: "about", name: "About", href: "/about", icon: Info, exact: false },
   ];
 
   const isTabActive = (href: string, exact: boolean) => {

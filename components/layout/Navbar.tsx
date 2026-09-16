@@ -36,10 +36,11 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "Home", href: "/", exact: true },
+    { name: "Portfolio", href: "/#portfolio", exact: false },
+    { name: "Services", href: "/#services", exact: false },
+    { name: "Founder", href: "/#about-founder", exact: false },
     { name: "Courses", href: "/courses", exact: false },
     { name: "Shop", href: "/shop", exact: false },
-    { name: "Instructors", href: "/instructors", exact: false },
-    { name: "About", href: "/about", exact: false },
   ];
 
   const isLinkActive = (href: string, exact: boolean) => {
@@ -84,7 +85,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
             {navLinks.map((link) => {
               const active = isLinkActive(link.href, link.exact);
 
@@ -92,7 +93,7 @@ export default function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-sm font-medium transition-all duration-200 ${
+                  className={`text-xs lg:text-sm font-medium transition-all duration-200 ${
                     active
                       ? "text-cyan-400 font-semibold drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]"
                       : "text-gray-400 hover:text-white hover:drop-shadow-sm"
@@ -104,12 +105,19 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Right Action - Dashboard / Login Button */}
-          <div className="flex items-center">
+          {/* Right Action - Book Meeting & Dashboard / Login Button */}
+          <div className="flex items-center gap-2.5">
+            <a
+              href="#contact"
+              className="hidden sm:inline-flex px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-white/[0.04] hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 text-xs font-bold transition-all items-center gap-1.5 cursor-pointer shadow-sm"
+            >
+              <span>Book Meeting</span>
+            </a>
+
             {isLoggedIn ? (
               <Link
                 href="/dashboard"
-                className="px-4 py-1.5 sm:px-5 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-1.5 transition-all active:scale-95 border border-cyan-300/40"
+                className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-1.5 transition-all active:scale-95 border border-cyan-300/40"
               >
                 <LayoutDashboard className="w-3.5 h-3.5" />
                 <span>Dashboard</span>
@@ -117,7 +125,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="px-4 py-1.5 sm:px-5 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-1.5 transition-all active:scale-95 border border-cyan-300/40"
+                className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-1.5 transition-all active:scale-95 border border-cyan-300/40"
               >
                 Log In
               </Link>
