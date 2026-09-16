@@ -83,6 +83,7 @@ export const manualCheckoutPayloadSchema = z.object({
   phone: z.string().trim().optional().or(z.literal("")),
   whatsappNumber: bangladeshiPhoneSchema.optional().or(z.literal("")),
   itemType: z.enum(["course", "product"]).default("course"),
+  couponCode: z.string().trim().optional().or(z.literal("")),
 });
 
 /**

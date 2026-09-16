@@ -190,7 +190,7 @@ export async function updateInstructor(
             courses: updates.courses ? (updates.courses as any) : existing.courses,
           },
         });
-        return {
+        const mappedUpdated: InstructorItem = {
           id: updated.id,
           name: updated.name,
           role: updated.role || "Instructor",
@@ -205,6 +205,21 @@ export async function updateInstructor(
           createdAt: updated.createdAt.toISOString(),
           updatedAt: updated.updatedAt.toISOString(),
         };
+
+        // Always sync instructors.json backup store
+        try {
+          const instructors = await readDataFile<InstructorItem[]>("instructors.json", []);
+          const target = (id || "").toLowerCase().trim();
+          const idx = instructors.findIndex((i) => (i.id || "").toLowerCase().trim() === target || (i.name || "").toLowerCase().trim() === target);
+          if (idx >= 0) {
+            instructors[idx] = { ...instructors[idx], ...mappedUpdated };
+          } else {
+            instructors.push(mappedUpdated);
+          }
+          await writeDataFile("instructors.json", instructors);
+        } catch {}
+
+        return mappedUpdated;
       }
     }
   } catch (err: any) {

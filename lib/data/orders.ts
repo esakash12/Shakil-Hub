@@ -178,7 +178,7 @@ export async function updatePersistentOrderStatus(
           }
         }
 
-        return {
+        const resultOrder: OrderItem = {
           id: order.id,
           orderNumber: order.orderNumber,
           studentName: order.studentName,
@@ -194,6 +194,27 @@ export async function updatePersistentOrderStatus(
           verifiedAt: extra?.verifiedAt || (status === "approved" ? new Date().toISOString() : undefined),
           rejectionReason: extra?.rejectionReason,
         };
+
+        // Also sync orders.json backup so dual sources never desync
+        try {
+          const existing = await readDataFile<OrderItem[]>("orders.json", []);
+          const targetTrx = order.trxId;
+          const hasValidTrx = targetTrx && targetTrx !== "N/A" && targetTrx !== "TRX-VERIFY";
+          existing.forEach((o) => {
+            if (
+              o.id === order.id ||
+              o.orderNumber === order.orderNumber ||
+              (hasValidTrx && o.trxId?.toUpperCase() === targetTrx.toUpperCase())
+            ) {
+              o.status = status;
+              if (extra?.verifiedAt) o.verifiedAt = extra.verifiedAt;
+              if (extra?.rejectionReason) o.rejectionReason = extra.rejectionReason;
+            }
+          });
+          await writeDataFile("orders.json", existing);
+        } catch {}
+
+        return resultOrder;
       }
     }
   } catch (err: any) {
@@ -230,9 +251,11 @@ export async function updatePersistentOrderStatus(
 }
 
 /**
- * Permanently deletes an order from PostgreSQL
+ * Permanently deletes an order from PostgreSQL and persistent storage
  */
 export async function deletePersistentOrder(orderId: string): Promise<OrderItem | null> {
+  let deletedOrder: OrderItem | null = null;
+
   try {
     if (prisma && (await isPrismaReady())) {
       const order = await prisma.order.findFirst({
@@ -249,7 +272,7 @@ export async function deletePersistentOrder(orderId: string): Promise<OrderItem 
             ],
           },
         });
-        return {
+        deletedOrder = {
           id: order.id,
           orderNumber: order.orderNumber,
           studentName: order.studentName,
@@ -269,25 +292,26 @@ export async function deletePersistentOrder(orderId: string): Promise<OrderItem 
     console.warn("Prisma deletePersistentOrder error:", err.message || err);
   }
 
+  // Always sync delete from orders.json so no phantom records remain
   try {
     const existing = await readDataFile<OrderItem[]>("orders.json", []);
     const target = existing.find((o) => o.id === orderId || o.orderNumber === orderId);
-    if (!target) return null;
 
-    const targetTrx = target.trxId;
+    const targetTrx = target?.trxId || deletedOrder?.trxId;
     const hasValidTrx = targetTrx && targetTrx !== "N/A" && targetTrx !== "TRX-VERIFY";
 
     const updated = existing.filter(
       (o) =>
         o.id !== orderId &&
         o.orderNumber !== orderId &&
-        !(hasValidTrx && o.trxId?.toUpperCase() === targetTrx.toUpperCase())
+        !(hasValidTrx && o.trxId?.toUpperCase() === targetTrx?.toUpperCase())
     );
     await writeDataFile("orders.json", updated);
-    return target;
+
+    return deletedOrder || target || null;
   } catch (err) {
     console.error("FAILED TO DELETE PERSISTENT ORDER FALLBACK:", err);
-    return null;
+    return deletedOrder || null;
   }
 }
 

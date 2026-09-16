@@ -323,7 +323,7 @@ export async function updateShopProduct(
           },
         });
 
-        return {
+        const mappedProduct: DigitalProduct = {
           id: updated.id,
           title: updated.title,
           slug: updated.slug,
@@ -347,6 +347,20 @@ export async function updateShopProduct(
           createdAt: updated.createdAt.toISOString(),
           updatedAt: updated.updatedAt.toISOString(),
         };
+
+        // Always sync shop.json backup store
+        try {
+          const products = await readDataFile<DigitalProduct[]>("shop.json", []);
+          const idx = products.findIndex((p) => p.id === id || p.slug === id);
+          if (idx >= 0) {
+            products[idx] = { ...products[idx], ...mappedProduct };
+          } else {
+            products.unshift(mappedProduct);
+          }
+          await writeDataFile("shop.json", products);
+        } catch {}
+
+        return mappedProduct;
       }
     }
   } catch (err: any) {

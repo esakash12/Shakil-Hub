@@ -18,6 +18,10 @@ export interface CourseCmsOverride {
   numericPrice?: number;
   numericOriginalPrice?: number;
   discountPct?: string;
+  image?: string;
+  thumbnail?: string;
+  trailerImage?: string;
+  trailerVideo?: string;
   instructorId?: string;
   instructorName?: string;
   instructorRole?: string;

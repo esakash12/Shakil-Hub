@@ -24,6 +24,7 @@ export interface ManualCheckoutInput {
   phone?: string;
   whatsappNumber?: string;
   itemType?: "course" | "product";
+  couponCode?: string;
 }
 
 export interface OrderDetails {
@@ -161,7 +162,15 @@ export async function processManualCheckout(
       itemAmount = course?.numericPrice || itemAmount;
     }
 
-    // 1b. Deduplication & Idempotency check:
+    // 1b. Apply validated coupon discount to ensure client and server amounts match
+    const cleanCoupon = (validData.couponCode || "").trim().toUpperCase();
+    if (cleanCoupon === "SAVE100") {
+      itemAmount = Math.max(0, itemAmount - 100);
+    } else if (cleanCoupon === "SAKIL50") {
+      itemAmount = Math.max(0, itemAmount - 50);
+    }
+
+    // 1c. Deduplication & Idempotency check:
     try {
       const allOrders = await getPersistentOrders();
       const normalizedSlug = courseSlug.trim().toLowerCase();

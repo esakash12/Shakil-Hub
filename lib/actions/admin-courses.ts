@@ -175,6 +175,7 @@ export async function createAdminCourseAction(payload: CoursePayload) {
     // 2. Persist CMS override as failsafe backup
     try {
       await saveCourseCmsOverride(slug, {
+        title: title.trim(),
         subtitle: payload.subtitle || description.trim() || "",
         badge: payload.badge,
         category: payload.category,
@@ -184,6 +185,10 @@ export async function createAdminCourseAction(payload: CoursePayload) {
         numericPrice: numPrice,
         numericOriginalPrice: origPrice,
         discountPct: payload.discountPct,
+        image: safeThumbnail,
+        thumbnail: safeThumbnail,
+        trailerImage: safeThumbnail,
+        trailerVideo: trailerUrl.trim(),
         instructorId: payload.instructorId,
         instructorName: instructor.trim(),
         highlights: payload.highlights,
@@ -409,6 +414,7 @@ export async function updateAdminCourseAction(
     // 2. Always update persistent CMS override
     try {
       await saveCourseCmsOverride(id, {
+        title: payload.title?.trim(),
         subtitle: payload.subtitle,
         badge: payload.badge,
         category: payload.category,
@@ -418,6 +424,10 @@ export async function updateAdminCourseAction(
         numericPrice: numPrice,
         numericOriginalPrice: origPrice,
         discountPct: payload.discountPct,
+        image: formattedThumbnail || undefined,
+        thumbnail: formattedThumbnail || undefined,
+        trailerImage: formattedThumbnail || undefined,
+        trailerVideo: formattedTrailer || undefined,
         instructorId: payload.instructorId,
         instructorName: formattedInstructor,
         highlights: payload.highlights,

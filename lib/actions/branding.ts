@@ -35,34 +35,11 @@ export async function updatePlatformBrandingAction(
   try {
     const updated = await updatePersistentBranding(payload);
 
-    // Also update cookie for immediate SSR / client hydration
+    // Clean up any legacy redundant cookies from client headers
     try {
       const cookieStore = await cookies();
-      cookieStore.set("sakil_branding_settings", JSON.stringify(updated), {
-        path: "/",
-        httpOnly: false,
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 365,
-      });
-
-      // Backward compatibility with legacy LMS settings cookie
-      cookieStore.set(
-        "sakil_lms_settings",
-        JSON.stringify({
-          bkashNumber: updated.bkashNumber,
-          nagadNumber: updated.nagadNumber,
-          announcement: updated.announcement,
-          welcomeMessage: updated.announcement,
-          supportEmail: updated.contactEmail,
-          supportPhone: updated.contactPhone,
-        }),
-        {
-          path: "/",
-          httpOnly: false,
-          sameSite: "lax",
-          maxAge: 60 * 60 * 24 * 365,
-        }
-      );
+      if (cookieStore.has("sakil_branding_settings")) cookieStore.delete("sakil_branding_settings");
+      if (cookieStore.has("sakil_lms_settings")) cookieStore.delete("sakil_lms_settings");
     } catch {}
 
 

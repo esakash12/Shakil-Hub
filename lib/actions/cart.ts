@@ -51,17 +51,22 @@ export async function addToCartAction(
 ): Promise<{ success: boolean; cart?: CartState; error?: string }> {
   try {
     const cartId = await getOrCreateCart();
-    const course: CourseDetail = getCourseBySlug(courseSlug);
+    let course: CourseDetail = getCourseBySlug(courseSlug);
+    try {
+      const { getLiveCourseBySlug } = await import("@/lib/data/courses-db");
+      const live = await getLiveCourseBySlug(courseSlug);
+      if (live) course = live;
+    } catch {}
 
     const newItem: CartItem = {
       id: `${cartId}_${course.slug}`,
       courseSlug: course.slug,
       title: course.title,
       subtitle: course.subtitle,
-      instructor: course.instructor.name,
-      thumbnail: course.image,
-      price: course.numericPrice,
-      originalPrice: course.numericOriginalPrice,
+      instructor: course.instructor?.name || "Instructor",
+      thumbnail: course.thumbnail || course.image || "",
+      price: course.numericPrice || 1299,
+      originalPrice: course.numericOriginalPrice || 2858,
       quantity,
     };
 

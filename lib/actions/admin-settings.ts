@@ -72,24 +72,9 @@ export async function updateLMSSettingsAction(
     const updatedBranding = await updatePersistentBranding(brandingUpdates);
 
     const cookieStore = await cookies();
-    cookieStore.set(
-      "sakil_lms_settings",
-      JSON.stringify({
-        bkashNumber: updatedBranding.bkashNumber,
-        nagadNumber: updatedBranding.nagadNumber,
-        rocketNumber: (updatedBranding as any).rocketNumber || "01912345678",
-        announcement: updatedBranding.announcement,
-        welcomeMessage: updatedBranding.announcement,
-        supportEmail: updatedBranding.contactEmail,
-        supportPhone: updatedBranding.contactPhone,
-      }),
-      {
-        path: "/",
-        httpOnly: false,
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 365,
-      }
-    );
+    if (cookieStore.has("sakil_lms_settings")) {
+      cookieStore.delete("sakil_lms_settings");
+    }
 
     revalidatePath("/admin/settings");
     revalidatePath("/checkout");

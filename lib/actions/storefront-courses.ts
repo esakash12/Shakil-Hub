@@ -50,10 +50,15 @@ async function applyCmsOverrides(course: CourseDetail, slug: string): Promise<Co
 
     return {
       ...course,
+      title: override.title || course.title,
       subtitle: override.subtitle || course.subtitle,
       badge: override.badge || course.badge,
       category: override.category || course.category,
       level: override.level || course.level,
+      image: override.image || course.image,
+      thumbnail: override.thumbnail || course.thumbnail,
+      trailerImage: override.trailerImage || course.trailerImage,
+      trailerVideo: override.trailerVideo !== undefined ? override.trailerVideo : course.trailerVideo,
       mainSlogan: override.mainSlogan || course.mainSlogan,
       heroSlogan: override.heroSlogan || course.heroSlogan,
       numericPrice: override.numericPrice ?? course.numericPrice,

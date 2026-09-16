@@ -101,17 +101,17 @@ export async function markPersistentLessonCompleted(
     return { success: false, completedLessonIds: [] };
   }
   const normalizedEmail = email.toLowerCase().trim();
-  const all = await readJsonFile<ProgressStorage>(PROGRESS_FILE, {});
+  const current = await getPersistentProgress(normalizedEmail, courseSlug);
 
-  if (!all[normalizedEmail]) all[normalizedEmail] = {};
-  if (!all[normalizedEmail][courseSlug]) all[normalizedEmail][courseSlug] = [];
-
-  const current = all[normalizedEmail][courseSlug];
   let updated = current;
   if (!current.includes(lessonId)) {
     updated = [...current, lessonId];
-    all[normalizedEmail][courseSlug] = updated;
-    await writeJsonFile(PROGRESS_FILE, all);
+    try {
+      const all = await readJsonFile<ProgressStorage>(PROGRESS_FILE, {});
+      if (!all[normalizedEmail]) all[normalizedEmail] = {};
+      all[normalizedEmail][courseSlug] = updated;
+      await writeJsonFile(PROGRESS_FILE, all);
+    } catch {}
   }
 
   try {
@@ -147,12 +147,8 @@ export async function togglePersistentLessonCompleted(
     return { success: false, isCompleted: false, completedLessonIds: [] };
   }
   const normalizedEmail = email.toLowerCase().trim();
-  const all = await readJsonFile<ProgressStorage>(PROGRESS_FILE, {});
+  const current = await getPersistentProgress(normalizedEmail, courseSlug);
 
-  if (!all[normalizedEmail]) all[normalizedEmail] = {};
-  if (!all[normalizedEmail][courseSlug]) all[normalizedEmail][courseSlug] = [];
-
-  const current = all[normalizedEmail][courseSlug];
   let isCompleted = false;
   let updated: string[];
 
@@ -164,8 +160,12 @@ export async function togglePersistentLessonCompleted(
     isCompleted = true;
   }
 
-  all[normalizedEmail][courseSlug] = updated;
-  await writeJsonFile(PROGRESS_FILE, all);
+  try {
+    const all = await readJsonFile<ProgressStorage>(PROGRESS_FILE, {});
+    if (!all[normalizedEmail]) all[normalizedEmail] = {};
+    all[normalizedEmail][courseSlug] = updated;
+    await writeJsonFile(PROGRESS_FILE, all);
+  } catch {}
 
   try {
     if (prisma && (await isPrismaReady())) {
