@@ -29,6 +29,8 @@ export default function Footer() {
   const quickLinks = [
     { name: "Home", href: "/" },
     { name: "Portfolio", href: "/#portfolio" },
+    { name: "Courses", href: "/courses" },
+    { name: "Shop", href: "/shop" },
     { name: "Services", href: "/#services" },
     { name: "About", href: "/#about-founder" },
     { name: "Contact", href: "/#contact" },
@@ -40,6 +42,7 @@ export default function Footer() {
     { name: "Digital Marketing", href: "/#services" },
     { name: "Website Development", href: "/#services" },
     { name: "Courses", href: "/courses" },
+    { name: "Digital Shop", href: "/shop" },
   ];
 
   const socialLinks = [

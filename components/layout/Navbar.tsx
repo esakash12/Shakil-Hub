@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Play, LayoutDashboard } from "lucide-react";
+import { Play, LayoutDashboard, Menu, X } from "lucide-react";
 import { getCustomerAction } from "@/lib/actions/auth";
 import { getPlatformBrandingAction } from "@/lib/actions/branding";
 import { PlatformBrandingSettings, DEFAULT_BRANDING } from "@/lib/data/branding-types";
@@ -12,10 +12,12 @@ import { PlatformBrandingSettings, DEFAULT_BRANDING } from "@/lib/data/branding-
 export default function Navbar() {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [branding, setBranding] = useState<PlatformBrandingSettings>(DEFAULT_BRANDING);
 
   useEffect(() => {
     let isMounted = true;
+    setIsMobileMenuOpen(false);
     async function checkAuthAndBranding() {
       try {
         const [auth, brandData] = await Promise.all([
@@ -37,8 +39,8 @@ export default function Navbar() {
   const navLinks = [
     { name: "Home", href: "/", exact: true },
     { name: "Portfolio", href: "/#portfolio", exact: false },
-    { name: "Services", href: "/#services", exact: false },
-    { name: "About", href: "/#about-founder", exact: false },
+    { name: "Courses", href: "/courses", exact: false },
+    { name: "Shop", href: "/shop", exact: false },
     { name: "Contact", href: "/#contact", exact: false },
   ];
 
@@ -100,27 +102,60 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Right Action - Book a Meeting & Get Started ➔ */}
-          <div className="flex items-center gap-2.5">
-            <a
-              href="#contact"
-              className="hidden sm:inline-flex px-4 py-2 rounded-full bg-white/[0.03] hover:bg-cyan-500/10 border border-cyan-500/30 hover:border-cyan-400 text-white hover:text-[#00d2ff] text-xs font-semibold transition-all items-center gap-1.5 cursor-pointer shadow-sm"
-            >
-              <span>Book a Meeting</span>
-            </a>
+          {/* Right Action - Dashboard / Login Button & Mobile Toggle */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {isLoggedIn ? (
+              <Link
+                href="/dashboard"
+                className="px-4 sm:px-5 py-2 rounded-full bg-[#00d2ff] hover:bg-[#00b8e6] text-black text-xs font-black shadow-[0_0_20px_rgba(0,210,255,0.4)] flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                <span>Dashboard</span>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="px-4 sm:px-5 py-2 rounded-full bg-[#00d2ff] hover:bg-[#00b8e6] text-black text-xs font-black shadow-[0_0_20px_rgba(0,210,255,0.4)] flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <span>Log In</span>
+              </Link>
+            )}
 
-            <a
-              href="https://wa.me/8801326896947?text=Hello%20Sakil%20Hub!%20I%20want%20to%20get%20started%20with%20a%20project."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-5 py-2 rounded-full bg-[#00d2ff] hover:bg-[#00b8e6] text-black text-xs font-black shadow-[0_0_20px_rgba(0,210,255,0.4)] flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            {/* Mobile Menu Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+              aria-label="Toggle navigation menu"
             >
-              <span>Get Started</span>
-              <span className="text-xs font-bold">➔</span>
-            </a>
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Navigation Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-white/[0.08] bg-[#02050e]/98 backdrop-blur-2xl px-4 py-3 space-y-1 shadow-2xl">
+          {navLinks.map((link) => {
+            const active = isLinkActive(link.href, link.exact);
+            return (
+              <Link
+                key={link.name}
+                href={link.href}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  active
+                    ? "bg-[#00d2ff]/10 text-[#00d2ff] font-bold"
+                    : "text-zinc-300 hover:bg-white/[0.04] hover:text-white"
+                }`}
+              >
+                {link.name}
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </header>
   );
 }
