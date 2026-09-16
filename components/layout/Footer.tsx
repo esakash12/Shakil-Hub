@@ -27,70 +27,47 @@ export default function Footer() {
   }, []);
 
   const quickLinks = [
-    { name: "Agency Portfolio", href: "/#portfolio" },
-    { name: "Creative Services", href: "/#services" },
-    { name: "Founder & Story", href: "/#about-founder" },
-    { name: "Free Consultation", href: "/#contact" },
-    { name: "All Courses", href: "/courses" },
-    { name: "Digital Shop", href: "/shop" },
+    { name: "Home", href: "/" },
+    { name: "Portfolio", href: "/#portfolio" },
+    { name: "Services", href: "/#services" },
+    { name: "About", href: "/#about-founder" },
+    { name: "Contact", href: "/#contact" },
   ];
 
-  const exploreCategories = [
-    { name: "Ai Work", href: "/#portfolio" },
-    { name: "Promotional ADS", href: "/#portfolio" },
-    { name: "Real estate", href: "/#portfolio" },
-    { name: "Wedding Films", href: "/#portfolio" },
-    { name: "Vlogs & Storytelling", href: "/#portfolio" },
+  const servicesList = [
+    { name: "Video Production", href: "/#services" },
+    { name: "Graphic Design", href: "/#services" },
+    { name: "Digital Marketing", href: "/#services" },
+    { name: "Website Development", href: "/#services" },
+    { name: "Courses", href: "/courses" },
   ];
 
   const socialLinks = [
-    { icon: Youtube, href: branding.youtubeUrl || "https://youtube.com", label: "YouTube" },
     { icon: Facebook, href: branding.facebookUrl || "https://facebook.com", label: "Facebook" },
     { icon: Instagram, href: branding.instagramUrl || "https://instagram.com", label: "Instagram" },
+    { icon: Youtube, href: branding.youtubeUrl || "https://youtube.com", label: "YouTube" },
     { icon: Linkedin, href: branding.linkedinUrl || "https://linkedin.com", label: "LinkedIn" },
-    { icon: Twitter, href: branding.twitterUrl || "https://twitter.com", label: "Twitter" },
-  ].filter((s) => Boolean(s.href));
+  ];
 
   return (
-    <footer className="w-full border-t border-white/10 bg-[#06080d]/90 backdrop-blur-xl text-gray-400 pt-8 sm:pt-12 pb-28 sm:pb-8 mt-4 sm:mt-8 select-none">
+    <footer className="w-full border-t border-white/[0.08] bg-[#02050e] text-gray-400 pt-10 sm:pt-14 pb-12 select-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 pb-10 border-b border-white/10">
-          {/* Brand & Bio */}
-          <div className="lg:col-span-2 space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 pb-10 border-b border-white/[0.08]">
+          {/* Brand & Subtitle (4 cols) */}
+          <div className="lg:col-span-4 space-y-3">
             <Link href="/" className="flex items-center gap-2 group inline-flex">
-              {branding.logoUrl ? (
-                <div className="relative h-8 w-36 overflow-hidden">
-                  <Image
-                    src={branding.logoUrl}
-                    alt={branding.siteName || "Sakil Hub"}
-                    fill
-                    sizes="144px"
-                    className="object-contain object-left group-hover:scale-105 transition-transform"
-                  />
-                </div>
-              ) : (
-                <>
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-                    <Play className="w-4 h-4 text-black fill-black ml-0.5" />
-                  </div>
-                  <span className="text-lg font-bold tracking-tight text-white">
-                    {branding.siteName ? (
-                      branding.siteName
-                    ) : (
-                      <>
-                        Sakil<span className="text-cyan-400">Hub</span>
-                      </>
-                    )}
-                  </span>
-                </>
-              )}
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#00d2ff] via-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(0,210,255,0.4)] group-hover:scale-105 transition-transform">
+                <Play className="w-4 h-4 text-black fill-black ml-0.5" />
+              </div>
+              <span className="text-xl font-black tracking-tight text-white">
+                Sakil<span className="text-[#00d2ff]">Hub</span>
+              </span>
             </Link>
-            <p className="text-xs text-gray-400 leading-relaxed max-w-sm font-normal">
-              {branding.footerBio ||
-                "Elite Creative Agency & High-End Video Production studio founded by Mehedi Hasan Sakil. Specializing in AI visuals, commercial ads, real estate, cinematic wedding films, and brand growth."}
+            <p className="text-xs font-mono text-zinc-400">
+              Creative Videos <span className="text-[#00d2ff]">•</span> AI <span className="text-[#00d2ff]">•</span> Marketing
             </p>
             {/* Social Links */}
-            <div className="flex items-center gap-2.5 pt-1">
+            <div className="flex items-center gap-2.5 pt-2">
               {socialLinks.map((social, i) => (
                 <a
                   key={i}
@@ -98,7 +75,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.label}
-                  className="w-8 h-8 rounded-lg bg-[#0e1320]/80 border border-white/10 hover:bg-[#121929] hover:border-cyan-500/40 hover:text-cyan-300 flex items-center justify-center text-gray-400 transition-all shadow-sm cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-white/[0.03] border border-white/[0.08] hover:border-[#00d2ff] text-zinc-400 hover:text-[#00d2ff] flex items-center justify-center transition-all cursor-pointer hover:scale-105"
                 >
                   <social.icon className="w-3.5 h-3.5" />
                 </a>
@@ -106,15 +83,15 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
+          {/* Quick Links (3 cols) */}
+          <div className="lg:col-span-3">
+            <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-3">
               Quick Links
             </h4>
             <ul className="space-y-2 text-xs">
               {quickLinks.map((item) => (
                 <li key={item.name}>
-                  <Link href={item.href} className="hover:text-cyan-300 transition-colors">
+                  <Link href={item.href} className="hover:text-[#00d2ff] transition-colors">
                     {item.name}
                   </Link>
                 </li>
@@ -122,15 +99,15 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Categories */}
-          <div>
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
-              Categories
+          {/* Services (3 cols) */}
+          <div className="lg:col-span-3">
+            <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-3">
+              Services
             </h4>
             <ul className="space-y-2 text-xs">
-              {exploreCategories.map((item) => (
+              {servicesList.map((item) => (
                 <li key={item.name}>
-                  <Link href={item.href} className="hover:text-cyan-300 transition-colors">
+                  <Link href={item.href} className="hover:text-[#00d2ff] transition-colors">
                     {item.name}
                   </Link>
                 </li>
@@ -138,52 +115,47 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
-          <div>
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
-              Get in Touch
+          {/* Contact (2 cols) */}
+          <div className="lg:col-span-2">
+            <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-3">
+              Contact
             </h4>
             <ul className="space-y-2 text-xs">
               <li className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <Mail className="w-3.5 h-3.5 text-[#00d2ff] shrink-0" />
+                <a href="mailto:sakilhub@gmail.com" className="text-zinc-300 hover:text-[#00d2ff] transition-colors truncate">
+                  sakilhub@gmail.com
+                </a>
+              </li>
+              <li className="flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5 text-[#00d2ff] shrink-0" />
                 <a
                   href="https://wa.me/8801326896947"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-300 hover:text-cyan-300 transition-colors inline-flex items-center gap-1.5"
+                  className="text-zinc-300 hover:text-[#00d2ff] transition-colors whitespace-nowrap"
                 >
-                  <span>+880 1326-896947</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">WhatsApp</span>
+                  +880 1326 896947
                 </a>
               </li>
-              {branding.contactEmail && (
-                <li className="flex items-center gap-2">
-                  <Mail className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <a href={`mailto:${branding.contactEmail}`} className="text-gray-300 hover:text-cyan-300 transition-colors">
-                    {branding.contactEmail}
-                  </a>
-                </li>
-              )}
               <li className="flex items-center gap-2">
-                <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                <span className="text-gray-300">{branding.address || "Banani, Dhaka, Bangladesh"}</span>
+                <MapPin className="w-3.5 h-3.5 text-[#00d2ff] shrink-0" />
+                <span className="text-zinc-300">Dhaka, Bangladesh</span>
               </li>
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-gray-500">
-          <p>{branding.footerCopyright || "© 2026 Sakil Hub. All rights reserved."}</p>
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500 font-mono">
+          <p>© 2026 Sakil Hub. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <Link href="/privacy" className="hover:text-cyan-300 transition-colors">
+            <Link href="/privacy" className="hover:text-[#00d2ff] transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="hover:text-cyan-300 transition-colors">
-              Terms of Service
-            </Link>
-            <Link href="/privacy#cookies" className="hover:text-cyan-300 transition-colors">
-              Cookie Policy
+            <span>|</span>
+            <Link href="/terms" className="hover:text-[#00d2ff] transition-colors">
+              Terms & Conditions
             </Link>
           </div>
         </div>

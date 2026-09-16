@@ -8,23 +8,28 @@ import AgencyConsultation from "@/components/agency/AgencyConsultation";
 
 export default async function HomePage() {
   return (
-    <div className="relative animate-in fade-in duration-500 bg-[#020306] text-white">
-      {/* 1. Agency Hero Section with Centered Showreel */}
+    <div className="relative min-h-screen bg-[#02050e] text-white overflow-hidden selection:bg-[#00d2ff] selection:text-black">
+      {/* Global Ambient Glow Atmosphere Matching Reference Mockup */}
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_60%_at_60%_-10%,rgba(0,210,255,0.12),transparent_70%)] pointer-events-none -z-10" />
+      <div className="fixed top-0 right-0 w-[700px] h-[700px] bg-[radial-gradient(circle,rgba(0,180,255,0.08)_0%,transparent_70%)] blur-[120px] pointer-events-none -z-10" />
+      <div className="fixed bottom-1/3 -left-48 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(0,102,255,0.06)_0%,transparent_70%)] blur-[140px] pointer-events-none -z-10" />
+
+      {/* 1. Agency Hero Section with 2-Column Workstation Mockup */}
       <AgencyHero />
 
-      {/* 2. Featured Portfolio Showcase — Curated Works & Category Filter */}
+      {/* 2. Featured Portfolio Showcase — 6 Curated Cards & Filter Pills */}
       <AgencyPortfolio />
 
-      {/* 3. Specialized Creative Agency Services — Balanced 2x2 Bento Grid */}
+      {/* 3. Specialized Creative Agency Services — 2x2 Bento Grid */}
       <AgencyServices />
 
-      {/* 4. Meet the Creative Director — Mehedi Hasan Sakil Executive Spotlight */}
+      {/* 4. Director & Founder — Mehedi Hasan Sakil Spotlight */}
       <AgencyFounder />
 
       {/* 5. Sakil Hub Academy & Masterclasses Preview */}
       <AgencyAcademyPreview />
 
-      {/* 6. Free Strategy Meeting & Consultation Terminal (WhatsApp: 01326896947) */}
+      {/* 6. Free Strategy Meeting Consultation & Booking Terminal */}
       <AgencyConsultation />
     </div>
   );

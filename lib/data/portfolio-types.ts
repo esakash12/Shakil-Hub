@@ -1,5 +1,10 @@
 export type PortfolioCategory =
   | "all"
+  | "commercials"
+  | "social-media"
+  | "motion-graphics"
+  | "ai-videos"
+  | "branding"
   | "ai-work"
   | "promotional-ads"
   | "real-estate"
@@ -16,7 +21,7 @@ export interface PortfolioCategoryMeta {
 export interface PortfolioItem {
   id: string;
   title: string;
-  category: "ai-work" | "promotional-ads" | "real-estate" | "wedding" | "vlogs";
+  category: PortfolioCategory;
   categoryLabel: string;
   description: string;
   client?: string;

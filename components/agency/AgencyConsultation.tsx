@@ -2,284 +2,133 @@
 
 import React, { useState } from "react";
 import {
-  MessageCircle,
   Calendar,
-  Send,
   Sparkles,
-  Phone,
-  Clock,
   Check,
-  ShieldCheck,
-  User,
-  ArrowUpRight,
+  ArrowRight,
 } from "lucide-react";
 
 export default function AgencyConsultation() {
-  const [selectedService, setSelectedService] = useState("Video Production");
-  const [selectedBudget, setSelectedBudget] = useState("Standard (৳30K - ৳80K)");
-  const [formData, setFormData] = useState({
-    fullName: "",
-    whatsappNumber: "",
-    projectBrief: "",
-    preferredTime: "As soon as possible",
-  });
+  const [selectedDate, setSelectedDate] = useState("September 20, 2026");
+  const [selectedTime, setSelectedTime] = useState("11:00 AM");
 
-  const serviceOptions = [
-    "Video Production",
-    "AI Commercials",
-    "Promotional ADS",
-    "Real Estate Cinema",
-    "Wedding Film",
-    "Graphic Design",
-    "Digital Marketing",
-    "Website Development",
-  ];
+  const timeSlots = ["10:00 AM", "11:00 AM", "02:00 PM", "04:00 PM"];
 
-  const budgetOptions = [
-    "Starter (< ৳30K)",
-    "Standard (৳30K - ৳80K)",
-    "Premium (৳80K - ৳200K)",
-    "Enterprise / Retainer",
-  ];
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleBookMeeting = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.fullName.trim() || !formData.whatsappNumber.trim()) return;
-
-    const messageText = `*New Studio Consultation Request — Sakil Hub*
-👤 *Client Name:* ${formData.fullName.trim()}
-📱 *WhatsApp:* ${formData.whatsappNumber.trim()}
-🎬 *Service:* ${selectedService}
-💰 *Budget Tier:* ${selectedBudget}
-⏰ *Preferred Meeting:* ${formData.preferredTime}
-📝 *Project Notes:* ${formData.projectBrief.trim() || "Ready to discuss scope & vision directly."}`;
-
-    const whatsappUrl = `https://wa.me/8801326896947?text=${encodeURIComponent(messageText)}`;
-    window.open(whatsappUrl, "_blank");
+    const message = `Hello Sakil Hub! I would like to book a Free Strategy Meeting on ${selectedDate} at ${selectedTime}.`;
+    const url = `https://wa.me/8801326896947?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank");
   };
 
   return (
-    <section id="contact" className="relative py-10 sm:py-14 bg-[#030508] select-none overflow-hidden">
+    <section id="contact" className="relative py-12 sm:py-16 bg-[#02050e] select-none overflow-hidden">
       {/* Background Ambient Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-emerald-600/8 blur-[150px] rounded-full pointer-events-none -z-0" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-[#00d2ff]/6 blur-[160px] rounded-full pointer-events-none -z-0" />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6 sm:space-y-8">
-        {/* Centered Section Header */}
-        <div className="text-center max-w-2xl mx-auto space-y-2.5">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-emerald-400 text-xs font-mono font-medium tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            <span>04 // STUDIO COMMISSION</span>
-          </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          
+          {/* Left Column: Value Copy & Guarantees */}
+          <div className="lg:col-span-6 space-y-6">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-950/40 border border-[#00d2ff]/30 text-[#00d2ff] text-xs font-mono font-medium tracking-wider">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>✦ LET&apos;S WORK TOGETHER</span>
+            </div>
 
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-            Book a Free Strategy Meeting
-          </h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-[44px] font-black text-white tracking-tight leading-tight">
+              Book a Free Strategy Meeting
+            </h2>
 
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-xl mx-auto leading-relaxed">
-            Have an upcoming commercial, viral ad campaign, real estate project, or website? Let&apos;s engineer your creative roadmap and budget.
-          </p>
-        </div>
+            <p className="text-xs sm:text-sm text-zinc-400 max-w-md leading-relaxed">
+              Discuss your project, get expert advice, and find the best solution for your brand.
+            </p>
 
-        {/* 2-Column Terminal Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
-          {/* Left Column: Direct Hotline Card (5 cols) */}
-          <div className="lg:col-span-5 rounded-3xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/[0.08] p-6 sm:p-8 flex flex-col justify-between space-y-6 backdrop-blur-xl relative overflow-hidden">
-            {/* Ambient Card Glow */}
-            <div className="absolute -top-20 -left-20 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="space-y-5 relative z-10">
-              <div className="space-y-1.5">
-                <span className="text-[11px] font-mono uppercase text-emerald-400 font-bold tracking-wider">
-                  Direct Line
-                </span>
-                <h3 className="text-xl sm:text-2xl font-black text-white">
-                  WhatsApp Direct Desk
-                </h3>
-                <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-                  Skip the long email chains. Connect directly with our production leads on WhatsApp for immediate feedback within 15 minutes.
-                </p>
+            {/* Checklist items with 3D Calendar Graphic Tile */}
+            <div className="flex items-center gap-6 pt-2">
+              {/* 3D Perspective Calendar Graphic Tile */}
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#07132c] to-[#040916] border border-[#00d2ff]/30 flex flex-col items-center justify-center text-[#00d2ff] shadow-[0_0_20px_rgba(0,210,255,0.25)] shrink-0">
+                <Calendar className="w-7 h-7" />
               </div>
-
-              {/* WhatsApp Live Card */}
-              <a
-                href="https://wa.me/8801326896947?text=Hello%20Sakil%20Hub!%20I%20want%20to%20schedule%20a%20Free%20Meeting%20%26%20Consultation."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-emerald-500/50 flex items-center justify-between gap-3 transition-all group cursor-pointer hover:bg-white/[0.05]"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                    <MessageCircle className="w-5 h-5 fill-current" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">
-                      OFFICIAL STUDIO WHATSAPP
-                    </div>
-                    <div className="text-base font-mono font-bold text-white tracking-wide">
-                      01326896947
-                    </div>
-                  </div>
-                </div>
-                <ArrowUpRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform stroke-[2.5]" />
-              </a>
 
               {/* Guarantees List */}
-              <div className="space-y-2 pt-2 border-t border-white/[0.06] text-xs text-zinc-300">
-                <div className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 stroke-[2.5]" />
-                  <span>Free 30-Minute Creative Strategy Session</span>
+              <div className="space-y-2 text-xs sm:text-sm text-zinc-300">
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-[#00d2ff] shrink-0 stroke-[2.5]" />
+                  <span>Free Consultation</span>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 stroke-[2.5]" />
-                  <span>Itemized Pricing & Milestone Breakdowns</span>
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-[#00d2ff] shrink-0 stroke-[2.5]" />
+                  <span>Project Planning</span>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 stroke-[2.5]" />
-                  <span>Commercial Non-Disclosure (NDA) Guaranteed</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 stroke-[2.5]" />
-                  <span>Private In-Person Studio Meeting (Banani, Dhaka)</span>
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-[#00d2ff] shrink-0 stroke-[2.5]" />
+                  <span>Custom Quote</span>
                 </div>
               </div>
-            </div>
-
-            {/* Operating Hours Note */}
-            <div className="p-3 rounded-full bg-white/[0.03] border border-white/[0.06] text-[11px] font-mono text-zinc-400 flex items-center justify-center gap-2 relative z-10">
-              <Clock className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-              <span>Sat – Thu, 10:00 AM – 9:00 PM BST</span>
             </div>
           </div>
 
-          {/* Right Column: Interactive Project Inquiry Terminal (7 cols) */}
-          <div className="lg:col-span-7 rounded-3xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/[0.08] p-6 sm:p-8 backdrop-blur-xl relative overflow-hidden">
-            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-              {/* 1. Select Service Pills */}
-              <div className="space-y-2">
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
-                  1. Select Service Category:
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {serviceOptions.map((srv) => {
-                    const isSelected = selectedService === srv;
-                    return (
-                      <button
-                        key={srv}
-                        type="button"
-                        onClick={() => setSelectedService(srv)}
-                        className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                          isSelected
-                            ? "bg-cyan-500/20 border border-cyan-400 text-cyan-200 font-semibold shadow-[0_0_15px_rgba(6,182,212,0.3)]"
-                            : "bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:text-white hover:border-white/20"
-                        }`}
-                      >
-                        {srv}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* 2. Select Budget Tier */}
-              <div className="space-y-2">
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-semibold">
-                  2. Anticipated Budget Tier:
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {budgetOptions.map((bgt) => {
-                    const isSelected = selectedBudget === bgt;
-                    return (
-                      <button
-                        key={bgt}
-                        type="button"
-                        onClick={() => setSelectedBudget(bgt)}
-                        className={`px-3.5 py-1.5 rounded-full text-xs font-mono transition-all cursor-pointer ${
-                          isSelected
-                            ? "bg-emerald-500/20 border border-emerald-400 text-emerald-200 font-semibold shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-                            : "bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:text-white hover:border-white/20"
-                        }`}
-                      >
-                        {bgt}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* 3. Client Identity Inputs */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div className="space-y-1">
-                  <label className="block text-[11px] font-mono uppercase text-zinc-400 font-medium">
-                    Your Name *
+          {/* Right Column: Interactive Booking Card (From Mockup) */}
+          <div className="lg:col-span-6">
+            <div className="rounded-2xl bg-[#070b16] border border-white/[0.08] p-6 sm:p-7 space-y-5 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(0,210,255,0.1)]">
+              <form onSubmit={handleBookMeeting} className="space-y-5">
+                {/* 1. Choose a Date */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-mono text-zinc-300 font-bold">
+                    Choose a Date
                   </label>
                   <div className="relative">
-                    <User className="w-3.5 h-3.5 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="text"
-                      required
-                      value={formData.fullName}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, fullName: e.target.value }))
-                      }
-                      placeholder="e.g. Tanvir Ahmed"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-black/40 border border-white/[0.08] hover:border-white/20 focus:border-cyan-400 text-white placeholder-zinc-500 text-xs transition-colors outline-none"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/[0.08] hover:border-white/20 focus:border-[#00d2ff] text-white text-xs font-mono transition-colors outline-none cursor-pointer"
                     />
+                    <Calendar className="w-4 h-4 text-zinc-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="block text-[11px] font-mono uppercase text-zinc-400 font-medium">
-                    WhatsApp Number *
+                {/* 2. Choose a Time Slots */}
+                <div className="space-y-2">
+                  <label className="block text-xs font-mono text-zinc-300 font-bold">
+                    Choose a Time
                   </label>
-                  <div className="relative">
-                    <Phone className="w-3.5 h-3.5 text-emerald-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="tel"
-                      required
-                      value={formData.whatsappNumber}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, whatsappNumber: e.target.value }))
-                      }
-                      placeholder="01XXXXXXXXX"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-black/40 border border-white/[0.08] hover:border-white/20 focus:border-emerald-400 text-white placeholder-zinc-500 text-xs transition-colors outline-none font-mono"
-                    />
+                  <div className="grid grid-cols-4 gap-2">
+                    {timeSlots.map((time) => {
+                      const isSelected = selectedTime === time;
+                      return (
+                        <button
+                          key={time}
+                          type="button"
+                          onClick={() => setSelectedTime(time)}
+                          className={`py-2 px-1 rounded-xl text-xs font-mono font-medium text-center transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-[#00d2ff] text-black font-extrabold shadow-[0_0_15px_rgba(0,210,255,0.4)]"
+                              : "bg-black/50 text-zinc-400 border border-white/[0.08] hover:text-white hover:border-white/20"
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-              </div>
 
-              {/* 4. Project Notes */}
-              <div className="space-y-1">
-                <label className="block text-[11px] font-mono uppercase text-zinc-400 font-medium">
-                  Brief Project Notes / Objectives
-                </label>
-                <textarea
-                  rows={2}
-                  value={formData.projectBrief}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, projectBrief: e.target.value }))
-                  }
-                  placeholder="Tell us about the deliverable, desired timeline, or reference videos..."
-                  className="w-full px-4 py-2.5 rounded-2xl bg-black/40 border border-white/[0.08] hover:border-white/20 focus:border-cyan-400 text-white placeholder-zinc-500 text-xs transition-colors outline-none resize-none"
-                />
-              </div>
-
-              {/* Submit Button: Silky Pill Button */}
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  className="w-full py-3.5 px-8 rounded-full bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-black font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(6,182,212,0.35)] hover:scale-[1.02] active:scale-[0.99] transition-all cursor-pointer"
-                >
-                  <Send className="w-3.5 h-3.5 fill-black" />
-                  <span>Send Project Brief to WhatsApp (01326896947)</span>
-                </button>
-              </div>
-
-              <div className="flex items-center justify-center gap-2 text-[10.5px] font-mono text-zinc-500">
-                <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                <span>Confidential. 100% direct connection with Mehedi Hasan Sakil.</span>
-              </div>
-            </form>
+                {/* 3. Book a Meeting Solid Vibrant Cyan Button */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    className="w-full py-3.5 px-6 rounded-full bg-[#00d2ff] hover:bg-[#00b8e6] text-black font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(0,210,255,0.4)] hover:scale-[1.02] active:scale-[0.99] transition-all cursor-pointer"
+                  >
+                    <span>Book a Meeting</span>
+                    <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
+
         </div>
       </div>
     </section>

@@ -38,9 +38,8 @@ export default function Navbar() {
     { name: "Home", href: "/", exact: true },
     { name: "Portfolio", href: "/#portfolio", exact: false },
     { name: "Services", href: "/#services", exact: false },
-    { name: "Founder", href: "/#about-founder", exact: false },
-    { name: "Courses", href: "/courses", exact: false },
-    { name: "Shop", href: "/shop", exact: false },
+    { name: "About", href: "/#about-founder", exact: false },
+    { name: "Contact", href: "/#contact", exact: false },
   ];
 
   const isLinkActive = (href: string, exact: boolean) => {
@@ -51,10 +50,10 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#07090e]/85 backdrop-blur-xl shadow-lg">
+    <header className="sticky top-0 z-40 w-full border-b border-white/[0.08] bg-[#02050e]/90 backdrop-blur-2xl shadow-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
-          {/* Brand Logo */}
+          {/* Brand Logo - Stylized SH Play Logo */}
           <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group">
             {branding.logoUrl ? (
               <div className="relative h-7 sm:h-8 w-28 sm:w-36 overflow-hidden">
@@ -67,20 +66,16 @@ export default function Navbar() {
                 />
               </div>
             ) : (
-              <>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)] group-hover:scale-105 transition-transform">
-                  <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black fill-black ml-0.5" />
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#00d2ff] via-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(0,210,255,0.4)] group-hover:scale-105 transition-transform">
+                  <Play className="w-4 h-4 text-black fill-black ml-0.5" />
                 </div>
-                <span className="text-base sm:text-lg font-bold tracking-tight text-white">
-                  {branding.siteName ? (
-                    branding.siteName
-                  ) : (
-                    <>
-                      Sakil<span className="text-cyan-400">Hub</span>
-                    </>
-                  )}
-                </span>
-              </>
+                <div className="flex items-baseline">
+                  <span className="text-lg sm:text-xl font-black tracking-tight text-white">
+                    Sakil<span className="text-[#00d2ff]">Hub</span>
+                  </span>
+                </div>
+              </div>
             )}
           </Link>
 
@@ -95,8 +90,8 @@ export default function Navbar() {
                   href={link.href}
                   className={`text-xs lg:text-sm font-medium transition-all duration-200 ${
                     active
-                      ? "text-cyan-400 font-semibold drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]"
-                      : "text-gray-400 hover:text-white hover:drop-shadow-sm"
+                      ? "text-[#00d2ff] font-bold drop-shadow-[0_0_10px_rgba(0,210,255,0.5)]"
+                      : "text-zinc-400 hover:text-white hover:drop-shadow-sm"
                   }`}
                 >
                   {link.name}
@@ -105,31 +100,24 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Right Action - Book Meeting & Dashboard / Login Button */}
+          {/* Right Action - Book a Meeting & Get Started ➔ */}
           <div className="flex items-center gap-2.5">
             <a
               href="#contact"
-              className="hidden sm:inline-flex px-4 py-2 rounded-full bg-white/[0.04] hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 text-xs font-bold transition-all items-center gap-1.5 cursor-pointer shadow-sm"
+              className="hidden sm:inline-flex px-4 py-2 rounded-full bg-white/[0.03] hover:bg-cyan-500/10 border border-cyan-500/30 hover:border-cyan-400 text-white hover:text-[#00d2ff] text-xs font-semibold transition-all items-center gap-1.5 cursor-pointer shadow-sm"
             >
-              <span>Book Meeting</span>
+              <span>Book a Meeting</span>
             </a>
 
-            {isLoggedIn ? (
-              <Link
-                href="/dashboard"
-                className="px-5 py-2 rounded-full bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-black text-xs font-extrabold shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
-              >
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                <span>Dashboard</span>
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="px-5 py-2 rounded-full bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-black text-xs font-extrabold shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
-              >
-                Log In
-              </Link>
-            )}
+            <a
+              href="https://wa.me/8801326896947?text=Hello%20Sakil%20Hub!%20I%20want%20to%20get%20started%20with%20a%20project."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-5 py-2 rounded-full bg-[#00d2ff] hover:bg-[#00b8e6] text-black text-xs font-black shadow-[0_0_20px_rgba(0,210,255,0.4)] flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            >
+              <span>Get Started</span>
+              <span className="text-xs font-bold">➔</span>
+            </a>
           </div>
         </div>
       </div>

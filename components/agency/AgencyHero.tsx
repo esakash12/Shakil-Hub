@@ -3,183 +3,308 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowDown, MessageCircle, Play, Star, Sparkles, Film, ShieldCheck } from "lucide-react";
+import {
+  Play,
+  ArrowRight,
+  Sparkles,
+  Zap,
+  Award,
+  Users,
+  Layers,
+  Volume2,
+} from "lucide-react";
 import VideoModal from "./VideoModal";
 import { PORTFOLIO_ITEMS } from "@/lib/data/portfolio";
 
 export default function AgencyHero() {
   const [showreelOpen, setShowreelOpen] = useState(false);
-
-  const showreelItem = PORTFOLIO_ITEMS[0]; // Cyberpunk Next-Gen commercial as flagship showreel
-
-  const tickerItems = [
-    "AI COMMERCIALS",
-    "4K / 6K CINEMA SHOOT",
-    "STUDIO RENT AVAILABLE",
-    "SCRIPT TO SCREEN",
-    "VIRAL SOCIAL ADS",
-    "DIRECTED BY MEHEDI HASAN SAKIL",
-    "COLOR GRADING & VFX",
-    "15M+ ORGANIC VIEWS",
-  ];
+  const showreelItem = PORTFOLIO_ITEMS[0];
 
   return (
-    <section className="relative overflow-hidden bg-[#020306] pt-8 sm:pt-12 pb-8 sm:pb-10 select-none">
-      {/* Centered Ambient Glow */}
-      <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[700px] h-[300px] bg-gradient-to-b from-cyan-600/10 via-blue-600/6 to-transparent blur-[130px] rounded-full pointer-events-none -z-0" />
+    <section className="relative overflow-hidden bg-[#02050e] pt-10 sm:pt-14 pb-12 sm:pb-16 select-none">
+      {/* Radiant Electric Blue Atmosphere from Top-Right (Matching Mockup) */}
+      <div className="absolute -top-32 -right-32 w-[650px] h-[650px] bg-gradient-to-br from-[#00d2ff]/18 via-[#0066ff]/14 to-transparent blur-[140px] rounded-full pointer-events-none -z-0" />
+      <div className="absolute top-1/2 -left-48 w-[500px] h-[500px] bg-[#0055ff]/10 blur-[150px] rounded-full pointer-events-none -z-0" />
 
       {/* Subtle Grid Backdrop */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff04_1px,transparent_1px),linear-gradient(to_bottom,#ffffff04_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_35%,#000_70%,transparent_100%)] pointer-events-none -z-0" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_40%,#000_70%,transparent_100%)] pointer-events-none -z-0" />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 sm:space-y-8">
-        {/* Status Pill */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl text-[11px] font-mono tracking-wider shadow-sm"
-        >
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-          </span>
-          <span className="text-zinc-300 uppercase">
-            STUDIO STATUS: <strong className="text-white font-semibold">AVAILABLE FOR NEW PROJECTS</strong>
-          </span>
-          <span className="text-zinc-600">•</span>
-          <span className="text-cyan-400 font-medium">DHAKA / GLOBAL</span>
-        </motion.div>
-
-        {/* Centered Bold Headline */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="space-y-3.5 max-w-4xl mx-auto"
-        >
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.12]">
-            We Craft High-Converting{" "}
-            <span className="bg-gradient-to-r from-cyan-300 via-teal-200 to-emerald-300 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(6,182,212,0.35)]">
-              Cinematic Videos
-            </span>{" "}
-            & AI Commercials
-          </h1>
-
-          <p className="text-xs sm:text-base text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal">
-            Turnkey commercial production, AI-driven visual storytelling, and high-CTR brand ads. Directed by{" "}
-            <strong className="text-white font-semibold">Mehedi Hasan Sakil</strong> with private studio access, cinema cameras, and certified talent casting.
-          </p>
-        </motion.div>
-
-        {/* Centered Modern Pill Action CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-1"
-        >
-          <a
-            href="#portfolio"
-            className="px-8 py-3.5 rounded-full bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-black font-extrabold text-xs sm:text-sm flex items-center gap-2.5 shadow-[0_0_30px_rgba(6,182,212,0.35)] hover:shadow-[0_0_40px_rgba(6,182,212,0.55)] hover:scale-105 active:scale-95 transition-all cursor-pointer"
-          >
-            <span>Explore Portfolio / কাজ দেখুন</span>
-            <ArrowDown className="w-4 h-4 stroke-[2.5]" />
-          </a>
-
-          <a
-            href="https://wa.me/8801326896947?text=Hello%20Sakil%20Hub!%20I%20would%20like%20to%20book%20a%20Free%20Meeting%20%26%20Consultation%20for%20my%20project."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-7 py-3.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] hover:border-emerald-400/50 text-white font-bold text-xs sm:text-sm flex items-center gap-2.5 transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
-          >
-            <MessageCircle className="w-4 h-4 text-emerald-400 fill-emerald-400/20" />
-            <span>WhatsApp: 01326896947</span>
-          </a>
-        </motion.div>
-
-        {/* Featured Centerpiece Showreel Card (Fills visual void & balances screen!) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="relative max-w-4xl mx-auto rounded-2xl sm:rounded-3xl overflow-hidden bg-[#070a11] border border-white/[0.1] shadow-[0_20px_60px_rgba(0,0,0,0.9)] group cursor-pointer"
-          onClick={() => setShowreelOpen(true)}
-        >
-          <div className="relative aspect-[21/9] sm:aspect-[16/7] w-full overflow-hidden bg-black">
-            <Image
-              src={showreelItem.thumbnail}
-              alt="Sakil Hub Agency Showreel"
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 1024px"
-              className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-75 group-hover:opacity-90"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#070a11] via-black/20 to-transparent" />
-
-            {/* Top Bar on Showreel */}
-            <div className="absolute top-3 inset-x-3 sm:top-4 sm:inset-x-4 flex items-center justify-between pointer-events-none">
-              <span className="px-2.5 py-1 rounded-md text-[10px] font-mono uppercase tracking-wider bg-black/80 backdrop-blur-md text-cyan-300 border border-white/10">
-                OFFICIAL AGENCY REEL 2026
-              </span>
-              <span className="px-2.5 py-1 rounded-md text-[10px] font-mono text-zinc-300 bg-black/80 backdrop-blur-md border border-white/10">
-                4K CINEMA MASTER
-              </span>
-            </div>
-
-            {/* Play Button Capsule */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="px-5 py-2.5 rounded-full bg-black/80 backdrop-blur-md border border-white/20 group-hover:border-cyan-400 text-white group-hover:text-cyan-300 flex items-center gap-2.5 text-xs font-mono font-bold tracking-wider shadow-[0_0_30px_rgba(0,0,0,0.8)] group-hover:scale-110 transition-all">
-                <Play className="w-4 h-4 fill-current ml-0.5" />
-                <span>WATCH SHOWREEL • 0:45</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Integrated Trust Metric Strip Across Bottom of Frame */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-white/[0.06] border-t border-white/[0.08] bg-[#06080e]/90 text-center py-3.5 px-2">
-            <div className="space-y-0.5 px-2">
-              <div className="text-lg sm:text-xl font-black text-white font-mono">500+</div>
-              <div className="text-[10px] font-mono text-zinc-500 uppercase">Commercial Works</div>
-            </div>
-            <div className="space-y-0.5 px-2">
-              <div className="text-lg sm:text-xl font-black text-cyan-400 font-mono">4K / 6K</div>
-              <div className="text-[10px] font-mono text-zinc-500 uppercase">Cinema Standard</div>
-            </div>
-            <div className="space-y-0.5 px-2">
-              <div className="text-lg sm:text-xl font-black text-emerald-400 font-mono">48h Rush</div>
-              <div className="text-[10px] font-mono text-zinc-500 uppercase">Turnaround Option</div>
-            </div>
-            <div className="space-y-0.5 px-2">
-              <div className="text-lg sm:text-xl font-black text-white font-mono flex items-center justify-center gap-1">
-                <span>4.9</span>
-                <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-              </div>
-              <div className="text-[10px] font-mono text-zinc-500 uppercase">Client Rating</div>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Kinetic Infinite Scrolling Marquee Strip */}
-      <div className="relative w-full overflow-hidden border-y border-white/[0.06] bg-white/[0.01] py-2.5 mt-6 sm:mt-8">
-        <div className="flex whitespace-nowrap animate-marquee select-none">
-          {tickerItems.concat(tickerItems).map((item, idx) => (
-            <span
-              key={idx}
-              className="inline-flex items-center gap-3 mx-4 text-xs font-mono tracking-widest text-zinc-400 uppercase"
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+          
+          {/* LEFT COLUMN: Core Value Proposition */}
+          <div className="lg:col-span-7 space-y-6 sm:space-y-7">
+            {/* Pill Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/40 border border-[#00d2ff]/30 backdrop-blur-xl text-xs font-mono text-zinc-300"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400/80" />
-              <span>{item}</span>
-            </span>
-          ))}
+              <div className="w-4 h-4 rounded-full bg-[#00d2ff]/20 flex items-center justify-center">
+                <Play className="w-2 h-2 text-[#00d2ff] fill-[#00d2ff] ml-0.5" />
+              </div>
+              <span className="font-semibold text-white tracking-wide">
+                Creative Video <span className="text-[#00d2ff]">•</span> AI <span className="text-[#00d2ff]">•</span> Marketing
+              </span>
+            </motion.div>
+
+            {/* Main Headline */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="space-y-2 max-w-xl"
+            >
+              <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-black text-white tracking-tight leading-[1.12]">
+                We Craft High-Converting{" "}
+                <span className="text-[#00d2ff] drop-shadow-[0_0_35px_rgba(0,210,255,0.4)]">
+                  Cinematic Videos & AI
+                </span>{" "}
+                Commercials
+              </h1>
+            </motion.div>
+
+            {/* Subtitle / Value Copy */}
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="text-xs sm:text-sm lg:text-base text-zinc-400 max-w-lg leading-relaxed font-normal"
+            >
+              Turn your ideas into powerful visual stories. We create cinematic videos, AI-powered commercials, and strategic content that helps your brand grow and get real results.
+            </motion.p>
+
+            {/* CTAs Row */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex flex-wrap items-center gap-3.5 pt-1"
+            >
+              {/* Primary Vibrant Cyan Button */}
+              <a
+                href="#portfolio"
+                className="px-6 sm:px-7 py-3 rounded-full bg-[#00d2ff] hover:bg-[#00b8e6] text-black font-extrabold text-xs sm:text-sm flex items-center gap-2 shadow-[0_0_25px_rgba(0,210,255,0.45)] hover:shadow-[0_0_35px_rgba(0,210,255,0.65)] hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              >
+                <span>Explore Our Portfolio</span>
+                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              </a>
+
+              {/* Secondary Dark Glass Pill with Cyan Border */}
+              <button
+                type="button"
+                onClick={() => setShowreelOpen(true)}
+                className="px-5 sm:px-6 py-3 rounded-full bg-white/[0.04] hover:bg-white/[0.08] backdrop-blur-xl border border-cyan-500/30 hover:border-cyan-400 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              >
+                <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
+                  <Play className="w-2.5 h-2.5 text-white fill-white ml-0.5" />
+                </div>
+                <span>Watch Showreel</span>
+              </button>
+            </motion.div>
+
+            {/* Feature / Trust Badges (Row of 3 items from mockup) */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+              className="grid grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-white/[0.08] max-w-lg"
+            >
+              {/* 1. High Quality */}
+              <div className="flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 text-[#00d2ff]">
+                  <Award className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white tracking-tight">High Quality</div>
+                  <div className="text-[11px] font-mono text-zinc-400">4K/8K Output</div>
+                </div>
+              </div>
+
+              {/* 2. Fast Delivery */}
+              <div className="flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 text-[#00d2ff]">
+                  <Zap className="w-4 h-4 fill-current" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white tracking-tight">Fast Delivery</div>
+                  <div className="text-[11px] font-mono text-zinc-400">On Time</div>
+                </div>
+              </div>
+
+              {/* 3. Creative Team */}
+              <div className="flex items-start gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 text-[#00d2ff]">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white tracking-tight">Creative Team</div>
+                  <div className="text-[11px] font-mono text-zinc-400 leading-tight">Experts in Visual Storytelling</div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* RIGHT COLUMN: 3D DaVinci Resolve Workstation Mockup */}
+          <div className="lg:col-span-5 relative">
+            {/* Top Pill Badge above Workstation */}
+            <div className="flex justify-end mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/40 border border-[#00d2ff]/30 text-[11px] font-mono text-[#00d2ff]">
+                <Play className="w-2.5 h-2.5 fill-current" />
+                <span>Turn Ideas ➔ To Impact</span>
+              </div>
+            </div>
+
+            {/* 3D Tilted Timeline Workstation Mockup */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="relative rounded-2xl p-2.5 sm:p-3 bg-[#080d1a] border border-white/[0.12] shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_50px_rgba(0,210,255,0.15)] group"
+            >
+              {/* Window Title Bar */}
+              <div className="flex items-center justify-between px-2 pb-2 border-b border-white/[0.08]">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+                  <span className="ml-2 text-[10px] font-mono text-zinc-400">
+                    SakilHub_Showreel_2026.drp — 4K DCI
+                  </span>
+                </div>
+                <div className="hidden sm:flex items-center gap-2 text-[9px] font-mono text-zinc-500 uppercase">
+                  <span>Media</span>
+                  <span>Cut</span>
+                  <span className="text-[#00d2ff] font-bold">Edit</span>
+                  <span>Fusion</span>
+                  <span>Color</span>
+                  <span>Fairlight</span>
+                </div>
+              </div>
+
+              {/* Main Workspace Frame (Preview + Audio Meters) */}
+              <div className="grid grid-cols-12 gap-1.5 my-2">
+                {/* Left Panel: Media Pool / Project Files */}
+                <div className="hidden sm:block sm:col-span-3 rounded-lg bg-black/50 border border-white/[0.06] p-2 space-y-1.5 text-[9.5px] font-mono text-zinc-400">
+                  <div className="text-white font-bold flex items-center gap-1">
+                    <Layers className="w-3 h-3 text-[#00d2ff]" />
+                    <span>Project Assets</span>
+                  </div>
+                  <div className="space-y-1 pl-1 text-zinc-400">
+                    <div className="text-cyan-300">📁 01_Cinematic_Car.mov</div>
+                    <div>📁 02_AI_Commercial.mp4</div>
+                    <div>📁 03_Product_Launch.r3d</div>
+                    <div>📁 04_Sound_Design_WAV</div>
+                  </div>
+                </div>
+
+                {/* Center: Cinema Screen Preview */}
+                <div className="col-span-12 sm:col-span-8 relative aspect-[16/9] rounded-lg overflow-hidden bg-black border border-white/[0.08]">
+                  <Image
+                    src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80"
+                    alt="Workstation Preview"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 500px"
+                    className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+
+                  {/* Play Overlay Button */}
+                  <div
+                    onClick={() => setShowreelOpen(true)}
+                    className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                  >
+                    <div className="w-11 h-11 rounded-full bg-[#00d2ff]/90 text-black flex items-center justify-center shadow-[0_0_20px_rgba(0,210,255,0.6)] group-hover:scale-110 transition-transform">
+                      <Play className="w-4 h-4 fill-current ml-0.5" />
+                    </div>
+                  </div>
+
+                  {/* Timecode Pill */}
+                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-mono px-2 py-0.5 rounded bg-black/70 backdrop-blur-sm text-zinc-300 border border-white/10">
+                    <span className="text-[#00d2ff] font-bold">TC 01:04:22:18</span>
+                    <span>4K 60FPS • ProRes 422 HQ</span>
+                  </div>
+                </div>
+
+                {/* Right: Audio VU Meter Levels */}
+                <div className="hidden sm:flex sm:col-span-1 flex-col justify-between items-center py-1 bg-black/60 rounded-lg border border-white/[0.06]">
+                  <div className="h-full w-2 bg-zinc-800 rounded flex flex-col justify-end overflow-hidden p-0.5">
+                    <div className="w-full h-3/4 bg-gradient-to-t from-[#00d2ff] via-emerald-400 to-yellow-400 rounded-sm animate-pulse" />
+                  </div>
+                  <Volume2 className="w-3 h-3 text-[#00d2ff] mt-1" />
+                </div>
+              </div>
+
+              {/* Bottom: Multitrack Video Editing Timeline */}
+              <div className="rounded-lg bg-black/70 border border-white/[0.08] p-2 space-y-1.5 relative overflow-hidden">
+                {/* Playhead Red Vertical Marker */}
+                <div className="absolute top-0 bottom-0 left-[45%] w-0.5 bg-red-500 shadow-[0_0_8px_red] z-20 pointer-events-none">
+                  <div className="w-2 h-2 bg-red-500 rounded-full -ml-[3px] -mt-0.5" />
+                </div>
+
+                {/* Timeline Ruler */}
+                <div className="flex justify-between text-[8px] font-mono text-zinc-500 border-b border-white/[0.05] pb-0.5">
+                  <span>00:00:00</span>
+                  <span>00:30:00</span>
+                  <span>01:00:00</span>
+                  <span>01:30:00</span>
+                  <span>02:00:00</span>
+                </div>
+
+                {/* Video Tracks (V2 & V1) */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[8px] font-mono text-zinc-500 w-4">V2</span>
+                    <div className="flex-1 h-3.5 bg-cyan-950/60 rounded border border-cyan-500/30 flex items-center px-1.5">
+                      <span className="text-[8px] font-mono text-cyan-300 truncate">Adjustment Layer // Color Grade Teal-Orange</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[8px] font-mono text-zinc-500 w-4">V1</span>
+                    <div className="w-1/3 h-4 bg-blue-900/60 rounded border border-blue-500/30 flex items-center px-1.5">
+                      <span className="text-[8px] font-mono text-blue-200 truncate">Clip_A.r3d</span>
+                    </div>
+                    <div className="w-1/2 h-4 bg-cyan-900/60 rounded border border-[#00d2ff]/40 flex items-center px-1.5">
+                      <span className="text-[8px] font-mono text-cyan-200 truncate">Cinematic_Shot_02.mov</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Audio Tracks (A1 & A2) */}
+                <div className="space-y-1 pt-1 border-t border-white/[0.05]">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[8px] font-mono text-zinc-500 w-4">A1</span>
+                    <div className="flex-1 h-3 bg-emerald-950/60 rounded border border-emerald-500/30 flex items-center px-1">
+                      <span className="text-[7.5px] font-mono text-emerald-300">Soundtrack_Cinematic_Bass_Stereo</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[8px] font-mono text-zinc-500 w-4">A2</span>
+                    <div className="w-2/3 h-3 bg-teal-950/60 rounded border border-teal-500/30 flex items-center px-1">
+                      <span className="text-[7.5px] font-mono text-teal-300">SFX_Whoosh_Impact.wav</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating Pill Badge on Bottom Right of Workstation (From Mockup) */}
+              <div className="absolute -bottom-3 -right-3 z-30">
+                <div className="px-3.5 py-1.5 rounded-full bg-[#050b18]/90 backdrop-blur-xl border border-[#00d2ff]/50 text-[#00d2ff] text-xs font-mono font-bold flex items-center gap-1.5 shadow-[0_0_20px_rgba(0,210,255,0.4)]">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>AI Powered Creativity</span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
         </div>
       </div>
 
-      {/* Video Modal for Showreel */}
-      <VideoModal
-        item={showreelOpen ? showreelItem : null}
-        onClose={() => setShowreelOpen(false)}
-      />
+      {/* Global Interactive Video Modal */}
+      {showreelOpen && (
+        <VideoModal item={showreelItem} onClose={() => setShowreelOpen(false)} />
+      )}
     </section>
   );
 }
