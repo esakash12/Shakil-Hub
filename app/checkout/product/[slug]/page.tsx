@@ -13,6 +13,7 @@ import {
   ArrowRight,
   Lock,
   User,
+  Mail,
   MessageSquare,
   AlertCircle,
   Loader2,
@@ -24,6 +25,7 @@ import { getCustomerProfile } from "@/lib/actions/auth";
 import { DigitalProduct } from "@/lib/data/shop-types";
 import {
   nameSchema,
+  emailSchema,
   bangladeshiPhoneSchema,
   productCheckoutFormSchema,
 } from "@/lib/security/schemas";
@@ -46,15 +48,43 @@ export default function ProductCheckoutPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [fieldErrors, setFieldErrors] = useState<{
     fullName?: string;
+    email?: string;
     whatsappNumber?: string;
   }>({});
 
+  const [studentProfileEmail, setStudentProfileEmail] = useState("");
   const [formData, setFormData] = useState({
     fullName: "",
+    email: "",
     whatsappNumber: "",
   });
 
-  const validateField = (field: "fullName" | "whatsappNumber", value: string) => {
+  const validateField = (field: "fullName" | "email" | "whatsappNumber", value: string) => {
+    if (field === "email") {
+      if (!value.trim()) {
+        setFieldErrors((prev) => {
+          const next = { ...prev };
+          delete next.email;
+          return next;
+        });
+        return;
+      }
+      const res = emailSchema.safeParse(value);
+      if (!res.success) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          email: res.error.issues[0]?.message || "Invalid email address",
+        }));
+      } else {
+        setFieldErrors((prev) => {
+          const next = { ...prev };
+          delete next.email;
+          return next;
+        });
+      }
+      return;
+    }
+
     const schema = field === "fullName" ? nameSchema : bangladeshiPhoneSchema;
     const result = schema.safeParse(value);
     if (!result.success) {
@@ -92,8 +122,11 @@ export default function ProductCheckoutPage() {
 
           if (profile) {
             const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
+            const pEmail = profile.email || "";
+            if (pEmail) setStudentProfileEmail(pEmail);
             setFormData((prev) => ({
               fullName: prev.fullName || fullName || "",
+              email: prev.email || pEmail || "",
               whatsappNumber: prev.whatsappNumber || profile.phone || "",
             }));
           }
@@ -131,8 +164,12 @@ export default function ProductCheckoutPage() {
     }
 
     setFieldErrors({});
-    const cleanFullName = result.data.fullName;
-    const cleanWhatsapp = result.data.whatsappNumber;
+    const cleanFullName = result.data.fullName.trim();
+    const cleanWhatsapp = result.data.whatsappNumber.replace(/\D/g, "");
+    const cleanEmail =
+      result.data.email?.trim() ||
+      studentProfileEmail ||
+      `${cleanWhatsapp.slice(-8)}@customer.sakilhub.com`;
 
     // 1. Caches customer details in sessionStorage
     try {
@@ -140,7 +177,7 @@ export default function ProductCheckoutPage() {
         "sakil_checkout_data",
         JSON.stringify({
           fullName: cleanFullName,
-          email: `${cleanWhatsapp.slice(-8)}@customer.sakilhub.com`,
+          email: cleanEmail,
           phone: cleanWhatsapp,
           whatsappNumber: cleanWhatsapp,
           itemType: "product",
@@ -151,6 +188,7 @@ export default function ProductCheckoutPage() {
     // 2. Encodes fallback query parameters
     const query = new URLSearchParams({
       name: cleanFullName,
+      email: cleanEmail,
       whatsapp: cleanWhatsapp,
       type: "product",
     });
@@ -381,7 +419,52 @@ export default function ProductCheckoutPage() {
                   )}
                 </div>
 
-                {/* Field 2: WhatsApp Number */}
+                {/* Field 2: Email Address (Optional for Guest, prefilled for logged in student) */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-zinc-300">
+                      Email Address (ইমেইল ঠিকানা)
+                    </label>
+                    {studentProfileEmail ? (
+                      <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3" />
+                        Account Linked
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-zinc-500">Optional</span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => {
+                        setErrorMsg("");
+                        setFormData((prev) => ({ ...prev, email: e.target.value }));
+                        validateField("email", e.target.value);
+                      }}
+                      placeholder={studentProfileEmail || "e.g. name@domain.com"}
+                      className={`w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl bg-black/50 border text-white placeholder-zinc-500 text-xs sm:text-sm transition-colors outline-none ${
+                        fieldErrors.email
+                          ? "border-red-500/80 focus:border-red-500 focus:ring-1 focus:ring-red-500/40"
+                          : "border-white/10 hover:border-white/20 focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30"
+                      }`}
+                    />
+                  </div>
+                  {fieldErrors.email ? (
+                    <p className="text-[11px] text-red-400 flex items-center gap-1 mt-1 font-medium animate-in fade-in">
+                      <AlertCircle className="w-3 h-3 text-red-400 shrink-0" />
+                      <span>{fieldErrors.email}</span>
+                    </p>
+                  ) : (
+                    <p className="text-[10.5px] sm:text-[11px] text-zinc-500">
+                      Order updates and student dashboard tracking will be linked to this email.
+                    </p>
+                  )}
+                </div>
+
+                {/* Field 3: WhatsApp Number */}
                 <div className="space-y-1">
                   <label className="block text-xs font-semibold text-zinc-300">
                     WhatsApp Number (হোয়াটসঅ্যাপ নম্বর) <span className="text-red-400">*</span>

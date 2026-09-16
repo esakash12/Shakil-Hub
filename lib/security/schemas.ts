@@ -54,11 +54,9 @@ export const courseCheckoutFormSchema = z.object({
   whatsappNumber: bangladeshiPhoneSchema,
 });
 
-/**
- * Product Checkout Form Schema (Step 1: Digital Asset Customer Details)
- */
 export const productCheckoutFormSchema = z.object({
   fullName: nameSchema,
+  email: z.string().trim().email("Enter a valid email address").optional().or(z.literal("")),
   whatsappNumber: bangladeshiPhoneSchema,
 });
 

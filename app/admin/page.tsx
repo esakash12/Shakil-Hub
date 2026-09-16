@@ -20,6 +20,7 @@ import { fetchAdminOrders, AdminOrderRecord } from "@/lib/actions/admin-orders";
 import { fetchAdminStudentsAction } from "@/lib/actions/admin-students";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function AdminDashboardPage() {
   const [liveCourses, ordersResult, studentsResult] = await Promise.all([

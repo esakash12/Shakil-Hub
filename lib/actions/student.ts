@@ -275,11 +275,26 @@ export async function getAllStudentOrdersAction(): Promise<PendingStudentOrder[]
       return [];
     }
 
+    const userPhoneDigits = customer?.phone?.replace(/\D/g, "") || "";
+    const userPhoneSuffix = userPhoneDigits.length >= 8 ? userPhoneDigits.slice(-8) : "";
+
     const { getPersistentOrders } = await import("@/lib/data/orders");
     const allPersistent = await getPersistentOrders();
-    const studentOrders = allPersistent.filter(
-      (o) => o.email && o.email.toLowerCase().trim() === userEmail
-    );
+    const studentOrders = allPersistent.filter((o) => {
+      if (!o) return false;
+      const orderEmail = (o.email || "").toLowerCase().trim();
+      // Direct email match
+      if (orderEmail && orderEmail === userEmail) return true;
+
+      // Match by student's registered mobile number or dummy email containing mobile digits
+      if (userPhoneSuffix) {
+        const senderDigits = (o.senderNumber || "").replace(/\D/g, "");
+        if (senderDigits.endsWith(userPhoneSuffix)) return true;
+        if (orderEmail.includes(userPhoneSuffix)) return true;
+      }
+
+      return false;
+    });
 
     const orderMap = new Map<string, PendingStudentOrder>();
     const seenTrx = new Set<string>();
@@ -300,7 +315,7 @@ export async function getAllStudentOrdersAction(): Promise<PendingStudentOrder[]
         id: canonicalNumber,
         orderNumber: canonicalNumber,
         courseSlug: o.courseSlug || "",
-        courseTitle: o.courseTitle || "Masterclass",
+        courseTitle: o.courseTitle || "Masterclass / Digital Asset",
         amount: o.amount || 1299,
         paymentMethod: o.paymentMethod || "bKash",
         trxId: o.trxId || "N/A",
@@ -315,7 +330,7 @@ export async function getAllStudentOrdersAction(): Promise<PendingStudentOrder[]
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
-    // Enrich course titles and thumbnails with live course metadata
+    // Enrich course and digital product titles and thumbnails with live metadata
     const enrichedList = await Promise.all(
       orderList.map(async (item) => {
         try {
@@ -330,6 +345,17 @@ export async function getAllStudentOrdersAction(): Promise<PendingStudentOrder[]
                   live.course.image ||
                   item.courseThumbnail,
               };
+            } else {
+              // Fallback for digital assets / shop products
+              const { getShopProductBySlug } = await import("@/lib/data/shop");
+              const shopProd = await getShopProductBySlug(item.courseSlug);
+              if (shopProd) {
+                return {
+                  ...item,
+                  courseTitle: shopProd.title || item.courseTitle,
+                  courseThumbnail: shopProd.thumbnail || item.courseThumbnail,
+                };
+              }
             }
           }
         } catch {}

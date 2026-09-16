@@ -1,7 +1,9 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { clearCartAction } from "@/lib/actions/cart";
+import { getCustomerProfile } from "@/lib/actions/auth";
 import { getCourseBySlug, CourseDetail } from "@/lib/data/courses";
 import { getLiveCourseBySlug } from "@/lib/data/courses-db";
 import { getShopProductBySlug } from "@/lib/data/shop";
@@ -131,9 +133,18 @@ export async function processManualCheckout(
     }
     cleanWhatsapp = whatsappValidation.data;
 
-    if (!cleanEmail) {
-      const sanitizedDigits = cleanWhatsapp.replace(/\D/g, "");
-      cleanEmail = `${sanitizedDigits || "customer"}@customer.sakilhub.com`;
+    if (!cleanEmail || cleanEmail.endsWith("@customer.sakilhub.com") || cleanEmail === "customer@sakilhub.com") {
+      try {
+        const profile = await getCustomerProfile();
+        if (profile?.email) {
+          cleanEmail = profile.email.toLowerCase().trim();
+        }
+      } catch {}
+
+      if (!cleanEmail || cleanEmail.endsWith("@customer.sakilhub.com") || cleanEmail === "customer@sakilhub.com") {
+        const sanitizedDigits = cleanWhatsapp.replace(/\D/g, "");
+        cleanEmail = `${sanitizedDigits || "customer"}@customer.sakilhub.com`;
+      }
     }
   }
 
@@ -258,6 +269,18 @@ export async function processManualCheckout(
 
     // 3. Clear cart
     await clearCartAction();
+
+    // 4. Invalidate server-rendered route caches for Admin and Student views
+    try {
+      revalidatePath("/admin");
+      revalidatePath("/admin/enrollments");
+      revalidatePath("/dashboard/pending");
+      revalidatePath("/dashboard/orders");
+      revalidatePath("/dashboard/courses");
+      revalidatePath("/dashboard");
+    } catch (revErr) {
+      console.warn("Checkout revalidation warning:", revErr);
+    }
 
     return {
       success: true,

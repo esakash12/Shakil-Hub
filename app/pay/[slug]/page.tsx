@@ -8,6 +8,7 @@ import { processManualCheckout } from "@/lib/actions/checkout";
 import { getLiveCourseAction } from "@/lib/actions/storefront-courses";
 import { getStorefrontShopProductBySlugAction } from "@/lib/actions/shop";
 import { getLMSSettingsAction, LMSSettingsPayload } from "@/lib/actions/admin-settings";
+import { getCustomerProfile } from "@/lib/actions/auth";
 import { getPendingOrdersAction } from "@/lib/actions/student";
 import { getCourseBySlug, CourseDetail } from "@/lib/data/courses";
 import PaymentSelectionModal from "@/components/checkout/PaymentSelectionModal";
@@ -60,10 +61,16 @@ function PayGatewayInner() {
       if (raw) savedData = JSON.parse(raw);
     } catch {}
 
+    const resolvedEmail =
+      qEmail ||
+      (savedData.email && !savedData.email.endsWith("@customer.sakilhub.com")
+        ? savedData.email
+        : "");
+
     setCustomerData((prev) => ({
       ...prev,
       fullName: qName || savedData.fullName || prev.fullName || "Customer",
-      email: qEmail || savedData.email || prev.email || "customer@sakilhub.com",
+      email: resolvedEmail || prev.email || "",
       phone: qPhone || savedData.phone || prev.phone || "",
       whatsappNumber: qWhatsapp || savedData.whatsappNumber || prev.whatsappNumber || "",
     }));
@@ -75,18 +82,37 @@ function PayGatewayInner() {
     }
   }, [searchParams]);
 
-  // Load live course / product and merchant settings
+  // Load live course / product, merchant settings, and authenticated student profile
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
       try {
-        const [courseRes, settingsRes, pendingOrders] = await Promise.all([
+        const [courseRes, settingsRes, pendingOrders, profile] = await Promise.all([
           getLiveCourseAction(slug),
           getLMSSettingsAction(),
           getPendingOrdersAction().catch(() => []),
+          getCustomerProfile().catch(() => null),
         ]);
 
         if (isMounted) {
+          if (profile?.email) {
+            setCustomerData((prev) => ({
+              ...prev,
+              fullName:
+                prev.fullName && prev.fullName !== "Customer"
+                  ? prev.fullName
+                  : [profile.first_name, profile.last_name].filter(Boolean).join(" ") || "Student",
+              email:
+                prev.email &&
+                !prev.email.endsWith("@customer.sakilhub.com") &&
+                prev.email !== "customer@sakilhub.com"
+                  ? prev.email
+                  : profile.email,
+              phone: prev.phone || profile.phone || "",
+              whatsappNumber: prev.whatsappNumber || profile.phone || "",
+            }));
+          }
+
           if (courseRes.success && courseRes.course) {
             setCourse(courseRes.course);
             setItemType("course");
@@ -178,17 +204,19 @@ function PayGatewayInner() {
 
     setErrorMsg("");
 
-    const cleanSender = customerData.senderNumber.trim().replace(/[\s-]/g, "");
+    const cleanSender = customerData.senderNumber.replace(/\D/g, "");
     const cleanTrx = customerData.trxId.trim().toUpperCase();
+    const cleanWhatsapp = (customerData.whatsappNumber || cleanSender).replace(/\D/g, "");
+    const cleanPhone = (customerData.phone || cleanWhatsapp || cleanSender).replace(/\D/g, "");
 
-    const BD_PHONE_REGEX = /^01[3-9]\d{8,10}$/;
+    const BD_PHONE_REGEX = /^01[3-9]\d{8}$/;
     if (!cleanSender) {
       setErrorMsg(`Please enter your ${selectedGateway.toUpperCase()} sender number.`);
       return;
     }
     if (!BD_PHONE_REGEX.test(cleanSender)) {
       setErrorMsg(
-        `Invalid sender number. Must be a valid mobile banking number starting with 01.`
+        `Invalid sender number. Must be a valid 11-digit mobile banking number starting with 01 (e.g. 01712345678).`
       );
       return;
     }
@@ -216,8 +244,8 @@ function PayGatewayInner() {
         paymentMethod: selectedGateway,
         fullName: customerData.fullName.trim(),
         email: customerData.email.trim(),
-        phone: customerData.phone.trim() || customerData.whatsappNumber.trim() || cleanSender,
-        whatsappNumber: customerData.whatsappNumber.trim(),
+        phone: cleanPhone,
+        whatsappNumber: cleanWhatsapp,
         itemType,
       });
 

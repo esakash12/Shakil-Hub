@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
   Clock,
@@ -37,7 +38,13 @@ export default function OrderList({
   initialFilter = "all",
   pendingOnly = false,
 }: OrderListProps) {
+  const router = useRouter();
+  const [isRefreshing, startTransition] = useTransition();
   const [orders, setOrders] = useState<AdminOrderRecord[]>(initialOrders);
+
+  useEffect(() => {
+    setOrders(initialOrders);
+  }, [initialOrders]);
   const [filterTab, setFilterTab] = useState<"all" | "pending" | "approved" | "rejected">(
     initialFilter
   );
@@ -273,16 +280,32 @@ export default function OrderList({
           </button>
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-xs w-full">
-          <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search TrxID, student, phone..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-          />
+        {/* Search & Refresh Actions */}
+        <div className="flex items-center gap-2 max-w-sm w-full">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search TrxID, student, phone..."
+              className="w-full pl-9 pr-4 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              startTransition(() => {
+                router.refresh();
+              });
+            }}
+            disabled={isRefreshing}
+            title="Refresh Orders"
+            className="px-3 py-2 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-gray-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shrink-0"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isRefreshing ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">{isRefreshing ? "Syncing..." : "Refresh"}</span>
+          </button>
         </div>
       </div>
 
