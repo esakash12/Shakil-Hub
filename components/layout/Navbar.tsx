@@ -109,7 +109,7 @@ export default function Navbar() {
           <div className="flex items-center gap-2.5">
             <a
               href="#contact"
-              className="hidden sm:inline-flex px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-white/[0.04] hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 text-xs font-bold transition-all items-center gap-1.5 cursor-pointer shadow-sm"
+              className="hidden sm:inline-flex px-4 py-2 rounded-full bg-white/[0.04] hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-400 text-emerald-400 hover:text-emerald-300 text-xs font-bold transition-all items-center gap-1.5 cursor-pointer shadow-sm"
             >
               <span>Book Meeting</span>
             </a>
@@ -117,7 +117,7 @@ export default function Navbar() {
             {isLoggedIn ? (
               <Link
                 href="/dashboard"
-                className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-1.5 transition-all active:scale-95 border border-cyan-300/40"
+                className="px-5 py-2 rounded-full bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-black text-xs font-extrabold shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
               >
                 <LayoutDashboard className="w-3.5 h-3.5" />
                 <span>Dashboard</span>
@@ -125,7 +125,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-1.5 transition-all active:scale-95 border border-cyan-300/40"
+                className="px-5 py-2 rounded-full bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-black text-xs font-extrabold shadow-[0_0_20px_rgba(6,182,212,0.35)] flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
               >
                 Log In
               </Link>

@@ -59,13 +59,13 @@ export default function AgencyConsultation() {
   };
 
   return (
-    <section id="contact" className="relative py-16 sm:py-24 bg-[#030508] select-none overflow-hidden">
+    <section id="contact" className="relative py-10 sm:py-14 bg-[#030508] select-none overflow-hidden">
       {/* Background Ambient Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-emerald-600/8 blur-[150px] rounded-full pointer-events-none -z-0" />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10 sm:space-y-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6 sm:space-y-8">
         {/* Centered Section Header */}
-        <div className="text-center max-w-2xl mx-auto space-y-3">
+        <div className="text-center max-w-2xl mx-auto space-y-2.5">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-emerald-400 text-xs font-mono font-medium tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
             <span>04 // STUDIO COMMISSION</span>
@@ -81,18 +81,21 @@ export default function AgencyConsultation() {
         </div>
 
         {/* 2-Column Terminal Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
           {/* Left Column: Direct Hotline Card (5 cols) */}
-          <div className="lg:col-span-5 rounded-2xl bg-[#070a11] border border-white/[0.08] p-6 sm:p-7 flex flex-col justify-between space-y-6">
-            <div className="space-y-5">
+          <div className="lg:col-span-5 rounded-3xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/[0.08] p-6 sm:p-8 flex flex-col justify-between space-y-6 backdrop-blur-xl relative overflow-hidden">
+            {/* Ambient Card Glow */}
+            <div className="absolute -top-20 -left-20 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="space-y-5 relative z-10">
               <div className="space-y-1.5">
-                <span className="text-[10.5px] font-mono uppercase text-emerald-400 font-semibold tracking-wider">
+                <span className="text-[11px] font-mono uppercase text-emerald-400 font-bold tracking-wider">
                   Direct Line
                 </span>
                 <h3 className="text-xl sm:text-2xl font-black text-white">
                   WhatsApp Direct Desk
                 </h3>
-                <p className="text-xs text-zinc-400 leading-relaxed">
+                <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
                   Skip the long email chains. Connect directly with our production leads on WhatsApp for immediate feedback within 15 minutes.
                 </p>
               </div>
@@ -102,10 +105,10 @@ export default function AgencyConsultation() {
                 href="https://wa.me/8801326896947?text=Hello%20Sakil%20Hub!%20I%20want%20to%20schedule%20a%20Free%20Meeting%20%26%20Consultation."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.08] hover:border-emerald-500/50 flex items-center justify-between gap-3 transition-all group cursor-pointer"
+                className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-emerald-500/50 flex items-center justify-between gap-3 transition-all group cursor-pointer hover:bg-white/[0.05]"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                     <MessageCircle className="w-5 h-5 fill-current" />
                   </div>
                   <div>
@@ -117,39 +120,39 @@ export default function AgencyConsultation() {
                     </div>
                   </div>
                 </div>
-                <ArrowUpRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                <ArrowUpRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform stroke-[2.5]" />
               </a>
 
               {/* Guarantees List */}
               <div className="space-y-2 pt-2 border-t border-white/[0.06] text-xs text-zinc-300">
-                <div className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <div className="flex items-center gap-2.5">
+                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 stroke-[2.5]" />
                   <span>Free 30-Minute Creative Strategy Session</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <div className="flex items-center gap-2.5">
+                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 stroke-[2.5]" />
                   <span>Itemized Pricing & Milestone Breakdowns</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <div className="flex items-center gap-2.5">
+                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 stroke-[2.5]" />
                   <span>Commercial Non-Disclosure (NDA) Guaranteed</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <div className="flex items-center gap-2.5">
+                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 stroke-[2.5]" />
                   <span>Private In-Person Studio Meeting (Banani, Dhaka)</span>
                 </div>
               </div>
             </div>
 
             {/* Operating Hours Note */}
-            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] text-[11px] font-mono text-zinc-400 flex items-center gap-2">
+            <div className="p-3 rounded-full bg-white/[0.03] border border-white/[0.06] text-[11px] font-mono text-zinc-400 flex items-center justify-center gap-2 relative z-10">
               <Clock className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
               <span>Sat – Thu, 10:00 AM – 9:00 PM BST</span>
             </div>
           </div>
 
           {/* Right Column: Interactive Project Inquiry Terminal (7 cols) */}
-          <div className="lg:col-span-7 rounded-2xl bg-[#070a11] border border-white/[0.08] p-6 sm:p-7">
+          <div className="lg:col-span-7 rounded-3xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/[0.08] p-6 sm:p-8 backdrop-blur-xl relative overflow-hidden">
             <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               {/* 1. Select Service Pills */}
               <div className="space-y-2">
@@ -164,10 +167,10 @@ export default function AgencyConsultation() {
                         key={srv}
                         type="button"
                         onClick={() => setSelectedService(srv)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                           isSelected
-                            ? "bg-cyan-500/20 border border-cyan-400 text-cyan-200 font-semibold shadow-[0_0_12px_rgba(6,182,212,0.25)]"
-                            : "bg-white/[0.02] border border-white/[0.06] text-zinc-400 hover:text-white hover:border-white/20"
+                            ? "bg-cyan-500/20 border border-cyan-400 text-cyan-200 font-semibold shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                            : "bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:text-white hover:border-white/20"
                         }`}
                       >
                         {srv}
@@ -190,10 +193,10 @@ export default function AgencyConsultation() {
                         key={bgt}
                         type="button"
                         onClick={() => setSelectedBudget(bgt)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-mono transition-all cursor-pointer ${
                           isSelected
-                            ? "bg-emerald-500/20 border border-emerald-400 text-emerald-200 font-semibold shadow-[0_0_12px_rgba(16,185,129,0.25)]"
-                            : "bg-white/[0.02] border border-white/[0.06] text-zinc-400 hover:text-white hover:border-white/20"
+                            ? "bg-emerald-500/20 border border-emerald-400 text-emerald-200 font-semibold shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                            : "bg-white/[0.03] border border-white/[0.06] text-zinc-400 hover:text-white hover:border-white/20"
                         }`}
                       >
                         {bgt}
@@ -206,11 +209,11 @@ export default function AgencyConsultation() {
               {/* 3. Client Identity Inputs */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1">
-                  <label className="block text-[11px] font-mono uppercase text-zinc-400">
+                  <label className="block text-[11px] font-mono uppercase text-zinc-400 font-medium">
                     Your Name *
                   </label>
                   <div className="relative">
-                    <User className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <User className="w-3.5 h-3.5 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="text"
                       required
@@ -219,17 +222,17 @@ export default function AgencyConsultation() {
                         setFormData((prev) => ({ ...prev, fullName: e.target.value }))
                       }
                       placeholder="e.g. Tanvir Ahmed"
-                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-black/50 border border-white/[0.08] hover:border-white/20 focus:border-cyan-400 text-white placeholder-zinc-500 text-xs transition-colors outline-none"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-black/40 border border-white/[0.08] hover:border-white/20 focus:border-cyan-400 text-white placeholder-zinc-500 text-xs transition-colors outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block text-[11px] font-mono uppercase text-zinc-400">
+                  <label className="block text-[11px] font-mono uppercase text-zinc-400 font-medium">
                     WhatsApp Number *
                   </label>
                   <div className="relative">
-                    <Phone className="w-3.5 h-3.5 text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Phone className="w-3.5 h-3.5 text-emerald-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="tel"
                       required
@@ -238,7 +241,7 @@ export default function AgencyConsultation() {
                         setFormData((prev) => ({ ...prev, whatsappNumber: e.target.value }))
                       }
                       placeholder="01XXXXXXXXX"
-                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-black/50 border border-white/[0.08] hover:border-white/20 focus:border-emerald-400 text-white placeholder-zinc-500 text-xs transition-colors outline-none font-mono"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-black/40 border border-white/[0.08] hover:border-white/20 focus:border-emerald-400 text-white placeholder-zinc-500 text-xs transition-colors outline-none font-mono"
                     />
                   </div>
                 </div>
@@ -246,7 +249,7 @@ export default function AgencyConsultation() {
 
               {/* 4. Project Notes */}
               <div className="space-y-1">
-                <label className="block text-[11px] font-mono uppercase text-zinc-400">
+                <label className="block text-[11px] font-mono uppercase text-zinc-400 font-medium">
                   Brief Project Notes / Objectives
                 </label>
                 <textarea
@@ -256,15 +259,15 @@ export default function AgencyConsultation() {
                     setFormData((prev) => ({ ...prev, projectBrief: e.target.value }))
                   }
                   placeholder="Tell us about the deliverable, desired timeline, or reference videos..."
-                  className="w-full px-3 py-2 rounded-xl bg-black/50 border border-white/[0.08] hover:border-white/20 focus:border-cyan-400 text-white placeholder-zinc-500 text-xs transition-colors outline-none resize-none"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-black/40 border border-white/[0.08] hover:border-white/20 focus:border-cyan-400 text-white placeholder-zinc-500 text-xs transition-colors outline-none resize-none"
                 />
               </div>
 
-              {/* Submit Button */}
+              {/* Submit Button: Silky Pill Button */}
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-black font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(6,182,212,0.35)] hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
+                  className="w-full py-3.5 px-8 rounded-full bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-black font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(6,182,212,0.35)] hover:scale-[1.02] active:scale-[0.99] transition-all cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5 fill-black" />
                   <span>Send Project Brief to WhatsApp (01326896947)</span>

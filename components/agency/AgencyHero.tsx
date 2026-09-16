@@ -24,20 +24,20 @@ export default function AgencyHero() {
   ];
 
   return (
-    <section className="relative overflow-hidden bg-[#020306] pt-14 sm:pt-20 pb-12 sm:pb-16 select-none">
+    <section className="relative overflow-hidden bg-[#020306] pt-8 sm:pt-12 pb-8 sm:pb-10 select-none">
       {/* Centered Ambient Glow */}
-      <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-b from-cyan-600/12 via-blue-600/8 to-transparent blur-[140px] rounded-full pointer-events-none -z-0" />
+      <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[700px] h-[300px] bg-gradient-to-b from-cyan-600/10 via-blue-600/6 to-transparent blur-[130px] rounded-full pointer-events-none -z-0" />
 
       {/* Subtle Grid Backdrop */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff04_1px,transparent_1px),linear-gradient(to_bottom,#ffffff04_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_35%,#000_70%,transparent_100%)] pointer-events-none -z-0" />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-7 sm:space-y-9">
+      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 sm:space-y-8">
         {/* Status Pill */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl text-[11px] font-mono tracking-wider shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl text-[11px] font-mono tracking-wider shadow-sm"
         >
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -55,7 +55,7 @@ export default function AgencyHero() {
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="space-y-4 max-w-4xl mx-auto"
+          className="space-y-3.5 max-w-4xl mx-auto"
         >
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.12]">
             We Craft High-Converting{" "}
@@ -71,7 +71,7 @@ export default function AgencyHero() {
           </p>
         </motion.div>
 
-        {/* Centered Action CTAs */}
+        {/* Centered Modern Pill Action CTAs */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
@@ -80,7 +80,7 @@ export default function AgencyHero() {
         >
           <a
             href="#portfolio"
-            className="px-6 py-3 sm:px-7 sm:py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-black font-extrabold text-xs sm:text-sm flex items-center gap-2 shadow-[0_0_25px_rgba(6,182,212,0.4)] hover:shadow-[0_0_35px_rgba(6,182,212,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+            className="px-8 py-3.5 rounded-full bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-black font-extrabold text-xs sm:text-sm flex items-center gap-2.5 shadow-[0_0_30px_rgba(6,182,212,0.35)] hover:shadow-[0_0_40px_rgba(6,182,212,0.55)] hover:scale-105 active:scale-95 transition-all cursor-pointer"
           >
             <span>Explore Portfolio / কাজ দেখুন</span>
             <ArrowDown className="w-4 h-4 stroke-[2.5]" />
@@ -90,7 +90,7 @@ export default function AgencyHero() {
             href="https://wa.me/8801326896947?text=Hello%20Sakil%20Hub!%20I%20would%20like%20to%20book%20a%20Free%20Meeting%20%26%20Consultation%20for%20my%20project."
             target="_blank"
             rel="noopener noreferrer"
-            className="px-5 py-3 sm:px-6 sm:py-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] hover:border-emerald-500/40 text-white font-bold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
+            className="px-7 py-3.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] backdrop-blur-xl border border-white/[0.12] hover:border-emerald-400/50 text-white font-bold text-xs sm:text-sm flex items-center gap-2.5 transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
           >
             <MessageCircle className="w-4 h-4 text-emerald-400 fill-emerald-400/20" />
             <span>WhatsApp: 01326896947</span>
@@ -161,7 +161,7 @@ export default function AgencyHero() {
       </div>
 
       {/* Kinetic Infinite Scrolling Marquee Strip */}
-      <div className="relative w-full overflow-hidden border-y border-white/[0.06] bg-white/[0.01] py-3 mt-10 sm:mt-14">
+      <div className="relative w-full overflow-hidden border-y border-white/[0.06] bg-white/[0.01] py-2.5 mt-6 sm:mt-8">
         <div className="flex whitespace-nowrap animate-marquee select-none">
           {tickerItems.concat(tickerItems).map((item, idx) => (
             <span

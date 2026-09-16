@@ -15,13 +15,13 @@ import { FOUNDER_DATA } from "@/lib/data/founder-data";
 
 export default function AgencyFounder() {
   return (
-    <section id="about-founder" className="relative py-16 sm:py-24 bg-[#030508] select-none overflow-hidden">
+    <section id="about-founder" className="relative py-10 sm:py-14 bg-[#030508] select-none overflow-hidden">
       {/* Ambient Lighting */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-cyan-600/6 blur-[160px] rounded-full pointer-events-none -z-0" />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10 sm:space-y-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6 sm:space-y-8">
         {/* Centered Section Header */}
-        <div className="text-center max-w-2xl mx-auto space-y-3">
+        <div className="text-center max-w-2xl mx-auto space-y-2.5">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-cyan-400 text-xs font-mono font-medium tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
             <span>03 // CREATIVE LEADERSHIP</span>
@@ -37,12 +37,15 @@ export default function AgencyFounder() {
         </div>
 
         {/* Balanced Editorial Profile Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
           {/* Left Column: Portrait & Roles (5 cols) */}
-          <div className="lg:col-span-5 rounded-2xl bg-[#070a11] border border-white/[0.08] p-6 sm:p-7 flex flex-col justify-between space-y-6">
-            <div className="space-y-5">
+          <div className="lg:col-span-5 rounded-3xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/[0.08] p-6 sm:p-8 flex flex-col justify-between space-y-6 backdrop-blur-xl relative overflow-hidden">
+            {/* Ambient Card Glow */}
+            <div className="absolute -top-20 -left-20 w-44 h-44 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="space-y-5 relative z-10">
               {/* Portrait Frame with Ambient Vignette */}
-              <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-black border border-white/10">
+              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-black border border-white/10 shadow-lg">
                 <Image
                   src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80"
                   alt={FOUNDER_DATA.name}
@@ -50,10 +53,10 @@ export default function AgencyFounder() {
                   sizes="(max-width: 768px) 100vw, 400px"
                   className="object-cover object-center grayscale hover:grayscale-0 transition-all duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
                 {/* Director Location Pill */}
-                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between px-3 py-1.5 rounded-lg bg-black/85 backdrop-blur-md border border-white/10 text-[11px] font-mono">
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between px-3.5 py-1.5 rounded-full bg-black/80 backdrop-blur-md border border-white/15 text-[11px] font-mono">
                   <span className="text-white font-bold">{FOUNDER_DATA.name}</span>
                   <span className="text-cyan-400 font-semibold">BANANI, DHAKA</span>
                 </div>
@@ -61,57 +64,59 @@ export default function AgencyFounder() {
 
               {/* Verified Title */}
               <div className="space-y-1">
-                <div className="text-xs font-mono text-cyan-400 uppercase tracking-wider">
+                <div className="text-[11px] font-mono text-cyan-400 uppercase tracking-wider font-semibold">
                   Professional Identity
                 </div>
-                <div className="text-sm font-bold text-white">
+                <div className="text-sm sm:text-base font-bold text-white">
                   Digital Creator • Commercial Video Editor • AI Visualist
                 </div>
               </div>
 
               {/* Verified Positions List */}
               <div className="space-y-2 pt-2 border-t border-white/[0.06]">
-                <div className="text-[10px] font-mono uppercase text-zinc-500 tracking-wider">
-                  Active Management Roles:
+                <div className="text-[10px] font-mono uppercase text-zinc-400 tracking-wider font-medium">
+                  Active Leadership Roles
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {FOUNDER_DATA.currentPositions.map((pos, pIdx) => (
                     <div
                       key={pIdx}
-                      className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-center gap-2.5 text-xs text-zinc-200"
+                      className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center gap-2.5 text-xs text-zinc-200"
                     >
                       <Briefcase className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                      <span className="font-medium text-[11.5px]">{pos}</span>
+                      <span className="font-medium text-xs">{pos}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Direct Connect Action */}
-            <a
-              href={`https://wa.me/880${FOUNDER_DATA.whatsappNumber}?text=${encodeURIComponent(
-                "Hello Sakil ভাই! I would like to consult with you directly regarding a video or digital project."
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-3 rounded-xl bg-white/[0.03] hover:bg-gradient-to-r hover:from-cyan-400 hover:to-emerald-400 hover:text-black border border-white/[0.08] hover:border-transparent text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all cursor-pointer"
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-              <span>Direct WhatsApp with Sakil</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </a>
+            {/* Direct Connect Action: Silky Pill Button */}
+            <div className="pt-2 relative z-10">
+              <a
+                href={`https://wa.me/880${FOUNDER_DATA.whatsappNumber}?text=${encodeURIComponent(
+                  "Hello Sakil ভাই! I would like to consult with you directly regarding a video or digital project."
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 px-6 rounded-full bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(6,182,212,0.35)] transition-all cursor-pointer hover:scale-[1.02]"
+              >
+                <MessageCircle className="w-3.5 h-3.5 fill-black" />
+                <span>Direct WhatsApp with Sakil</span>
+                <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+              </a>
+            </div>
           </div>
 
           {/* Right Column: Bio Narrative & Expertise (7 cols) */}
-          <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
+          <div className="lg:col-span-7 flex flex-col justify-between space-y-5">
             {/* Top Story Card */}
-            <div className="rounded-2xl bg-[#070a11] border border-white/[0.08] p-6 sm:p-7 space-y-5">
+            <div className="rounded-3xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/[0.08] p-6 sm:p-8 space-y-5 backdrop-blur-xl relative overflow-hidden">
               <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/[0.06]">
-                <div className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wide">
+                <div className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider">
                   Track Record & Evolution
                 </div>
-                <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                <span className="px-3 py-1 rounded-full text-[10px] font-mono font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
                   Active Since 2018 (6+ Years)
                 </span>
               </div>
@@ -123,21 +128,21 @@ export default function AgencyFounder() {
               </p>
 
               {/* Founder Quote Card */}
-              <div className="p-4 sm:p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] relative">
-                <p className="text-xs sm:text-sm italic text-zinc-300 leading-relaxed font-normal">
+              <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] relative">
+                <p className="text-xs sm:text-sm italic text-zinc-200 leading-relaxed font-normal">
                   &ldquo;{FOUNDER_DATA.quote}&rdquo;
                 </p>
-                <div className="mt-2 text-[10.5px] font-mono text-cyan-400 uppercase tracking-wider">
+                <div className="mt-2 text-[10.5px] font-mono text-cyan-400 uppercase tracking-wider font-semibold">
                   — Mehedi Hasan Sakil, Founder & CEO
                 </div>
               </div>
 
               {/* Minimalist Stats Strip */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
                 {FOUNDER_DATA.stats.map((st, idx) => (
-                  <div key={idx} className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04] space-y-0.5">
-                    <div className="text-sm sm:text-base font-black text-white font-mono">{st.value}</div>
-                    <div className="text-[10px] font-mono text-zinc-500 uppercase">{st.label}</div>
+                  <div key={idx} className="p-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-0.5 text-center">
+                    <div className="text-base sm:text-lg font-black text-white font-mono">{st.value}</div>
+                    <div className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">{st.label}</div>
                   </div>
                 ))}
               </div>
@@ -146,12 +151,12 @@ export default function AgencyFounder() {
             {/* Bottom: Journey Stages & Skill Arsenal */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Evolution Milestones */}
-              <div className="rounded-xl bg-[#070a11] border border-white/[0.08] p-4 sm:p-5 space-y-2.5">
-                <div className="flex items-center gap-1.5 text-[11px] font-mono text-emerald-400 uppercase tracking-wider font-semibold">
+              <div className="rounded-3xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/[0.08] p-5 sm:p-6 space-y-3 backdrop-blur-xl">
+                <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 uppercase tracking-wider font-bold">
                   <Calendar className="w-3.5 h-3.5" />
                   <span>Strategic Evolution</span>
                 </div>
-                <div className="space-y-1.5 text-xs text-zinc-300">
+                <div className="space-y-2 text-xs text-zinc-300">
                   {FOUNDER_DATA.journeyStages.map((stage, sIdx) => (
                     <div key={sIdx} className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
@@ -162,8 +167,8 @@ export default function AgencyFounder() {
               </div>
 
               {/* Core Skill Tags */}
-              <div className="rounded-xl bg-[#070a11] border border-white/[0.08] p-4 sm:p-5 space-y-2.5">
-                <div className="flex items-center gap-1.5 text-[11px] font-mono text-cyan-400 uppercase tracking-wider font-semibold">
+              <div className="rounded-3xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/[0.08] p-5 sm:p-6 space-y-3 backdrop-blur-xl">
+                <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 uppercase tracking-wider font-bold">
                   <Bot className="w-3.5 h-3.5" />
                   <span>Core Expertise</span>
                 </div>
@@ -171,7 +176,7 @@ export default function AgencyFounder() {
                   {FOUNDER_DATA.coreCompetencies.map((skill, cIdx) => (
                     <span
                       key={cIdx}
-                      className="px-2 py-0.5 rounded text-[10.5px] font-mono bg-white/[0.03] border border-white/[0.05] text-zinc-300 hover:text-white"
+                      className="px-2.5 py-1 rounded-full text-[11px] font-mono bg-cyan-500/10 border border-cyan-500/20 text-cyan-200"
                     >
                       {skill}
                     </span>
