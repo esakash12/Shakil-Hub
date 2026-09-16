@@ -162,13 +162,30 @@ export async function processManualCheckout(
       itemAmount = course?.numericPrice || itemAmount;
     }
 
-    // 1b. Prevent duplicate pending orders for the same course (Only for courses, not products)
-    if (itemType === "course") {
-      try {
-        const allOrders = await getPersistentOrders();
-        const normalizedSlug = courseSlug.trim().toLowerCase();
-        const normalizedEmail = cleanEmail.trim().toLowerCase();
+    // 1b. Deduplication & Idempotency check:
+    try {
+      const allOrders = await getPersistentOrders();
+      const normalizedSlug = courseSlug.trim().toLowerCase();
+      const normalizedEmail = cleanEmail.trim().toLowerCase();
+      const normalizedTrx = (trxId || "").trim().toUpperCase();
 
+      // If an order with the exact same TrxID was already submitted (e.g. double click), return existing order safely
+      if (normalizedTrx && normalizedTrx !== "N/A" && normalizedTrx !== "TRX-VERIFY") {
+        const existingWithTrx = allOrders.find(
+          (o) => o.trxId && o.trxId.trim().toUpperCase() === normalizedTrx
+        );
+        if (existingWithTrx) {
+          return {
+            success: true,
+            orderId: existingWithTrx.orderNumber || existingWithTrx.id,
+            orderNumber: existingWithTrx.orderNumber,
+            courseSlug: existingWithTrx.courseSlug,
+          };
+        }
+      }
+
+      // Prevent duplicate pending orders for the same course (Only for courses, not products)
+      if (itemType === "course") {
         const existingPending = allOrders.find((o) => {
           const oSlug = (o.courseSlug || "").trim().toLowerCase();
           const oEmail = (o.email || "").trim().toLowerCase();
@@ -185,13 +202,13 @@ export async function processManualCheckout(
             error: `এই কোর্সে আপনার একটি অর্ডার ইতোমধ্যে পেন্ডিং অবস্থায় ভেরিফিকেশনের অপেক্ষায় আছে (Order #${existingPending.orderNumber || existingPending.id})। অনুগ্রহ করে অ্যাডমিন ভেরিফিকেশন সম্পন্ন হওয়া পর্যন্ত অপেক্ষা করুন অথবা ড্যাশবোর্ডের Pending Orders চেক করুন।`,
           };
         }
-      } catch (checkErr) {
-        console.error("Error checking existing pending orders:", checkErr);
       }
+    } catch (checkErr) {
+      console.error("Error checking existing pending orders:", checkErr);
     }
 
-    const orderId = `SKL-${Date.now().toString().slice(-6)}`;
     const orderNumber = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+    const orderId = orderNumber;
 
     const orderRecord: OrderDetails = {
       orderId,
@@ -211,7 +228,7 @@ export async function processManualCheckout(
 
     // 2. Persist Order directly to PostgreSQL (via Prisma with ACID transaction)
     await savePersistentOrder({
-      id: orderRecord.orderId,
+      id: orderRecord.orderNumber,
       orderNumber: orderRecord.orderNumber,
       studentName: orderRecord.fullName,
       email: orderRecord.email,
@@ -238,19 +255,22 @@ export async function processManualCheckout(
     }
 
     // Add or update order
-    pendingOrders = [orderRecord, ...pendingOrders.filter((o) => o.orderId !== orderRecord.orderId)];
+    pendingOrders = [
+      orderRecord,
+      ...pendingOrders.filter((o) => (o.orderNumber || o.orderId) !== orderRecord.orderNumber),
+    ];
 
     cookieStore.set("sakil_pending_orders", JSON.stringify(pendingOrders), getSessionCookieOptions(60 * 60 * 24 * 30));
 
     // Store active order for immediate success page rendering
-    cookieStore.set(`sakil_order_${orderRecord.orderId}`, JSON.stringify(orderRecord), getSessionCookieOptions());
+    cookieStore.set(`sakil_order_${orderRecord.orderNumber}`, JSON.stringify(orderRecord), getSessionCookieOptions());
 
     // 5. Clear cart
     await clearCartAction();
 
     return {
       success: true,
-      orderId: orderRecord.orderId,
+      orderId: orderRecord.orderNumber,
       orderNumber: orderRecord.orderNumber,
       courseSlug: courseSlug,
     };

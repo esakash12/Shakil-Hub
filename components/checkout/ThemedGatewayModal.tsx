@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   ArrowLeft,
   X,
@@ -55,6 +55,14 @@ export default function ThemedGatewayModal({
     trxId?: string;
   }>({});
 
+  const isSubmittingRef = useRef(false);
+
+  useEffect(() => {
+    if (!isProcessing) {
+      isSubmittingRef.current = false;
+    }
+  }, [isProcessing]);
+
   const validateField = (field: "senderNumber" | "trxId", value: string) => {
     const schema = field === "senderNumber" ? bangladeshiPhoneSchema : trxIdSchema;
     const result = schema.safeParse(value);
@@ -74,6 +82,8 @@ export default function ThemedGatewayModal({
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isProcessing || isSubmittingRef.current) return;
+
     const result = gatewaySubmissionSchema.safeParse({ senderNumber, trxId });
     if (!result.success) {
       const newErrors: Record<string, string> = {};
@@ -88,6 +98,7 @@ export default function ThemedGatewayModal({
     }
 
     setFieldErrors({});
+    isSubmittingRef.current = true;
     onSubmit(e);
   };
 

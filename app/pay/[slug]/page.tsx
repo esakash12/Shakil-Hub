@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, Loader2 } from "lucide-react";
@@ -35,6 +35,7 @@ function PayGatewayInner() {
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const isSubmittingRef = useRef(false);
 
   const [customerData, setCustomerData] = useState({
     fullName: "",
@@ -173,6 +174,8 @@ function PayGatewayInner() {
   /* Final Verification & Checkout Action */
   const handleGatewaySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isProcessing || isSubmittingRef.current) return;
+
     setErrorMsg("");
 
     const cleanSender = customerData.senderNumber.trim().replace(/[\s-]/g, "");
@@ -203,6 +206,7 @@ function PayGatewayInner() {
     }
 
     try {
+      isSubmittingRef.current = true;
       setIsProcessing(true);
 
       const res = await processManualCheckout({
@@ -227,10 +231,12 @@ function PayGatewayInner() {
       } else {
         setErrorMsg(res.error || "Failed to process order. Please try again.");
         setIsProcessing(false);
+        isSubmittingRef.current = false;
       }
     } catch (err: any) {
       setErrorMsg(err.message || "A network error occurred. Please try again.");
       setIsProcessing(false);
+      isSubmittingRef.current = false;
     }
   };
 

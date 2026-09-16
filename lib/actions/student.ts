@@ -12,6 +12,7 @@ import {
   deleteCustomerNotice,
   CustomerNotice,
 } from "@/lib/data/customers";
+import { getSessionCookieOptions } from "@/lib/security/cookies";
 
 export interface EnrolledCourseItem {
   slug: string;
@@ -267,64 +268,131 @@ export async function getAllStudentOrdersAction(): Promise<PendingStudentOrder[]
     const userEmail = customer?.email?.toLowerCase().trim() || "";
 
     const orderMap = new Map<string, PendingStudentOrder>();
+    const seenTrx = new Set<string>();
 
-    // 1. Check orders in session cookies
+    // 1. If user is authenticated, query persistent database orders as the primary authority
+    let persistentOrders: any[] = [];
+    if (userEmail) {
+      try {
+        const { getPersistentOrders } = await import("@/lib/data/orders");
+        const allPersistent = await getPersistentOrders();
+        persistentOrders = allPersistent.filter(
+          (o) => o.email && o.email.toLowerCase().trim() === userEmail
+        );
+      } catch (err) {
+        console.error("GET PERSISTENT ORDERS FOR STUDENT ERROR:", err);
+      }
+    }
+
+    // 2. Add persistent orders from PostgreSQL to orderMap (deduplicating by orderNumber & trxId)
+    persistentOrders.forEach((o) => {
+      const canonicalNumber = o.orderNumber || o.id;
+      const normTrx = (o.trxId || "").trim().toUpperCase();
+
+      // If duplicate order with same TrxID already processed, skip duplicate
+      if (normTrx && normTrx !== "N/A" && normTrx !== "TRX-VERIFY" && seenTrx.has(normTrx)) {
+        return;
+      }
+      if (normTrx && normTrx !== "N/A" && normTrx !== "TRX-VERIFY") {
+        seenTrx.add(normTrx);
+      }
+
+      orderMap.set(canonicalNumber, {
+        id: canonicalNumber,
+        orderNumber: canonicalNumber,
+        courseSlug: o.courseSlug || "",
+        courseTitle: o.courseTitle || "Masterclass",
+        amount: o.amount || 1299,
+        paymentMethod: o.paymentMethod || "bKash",
+        trxId: o.trxId || "N/A",
+        senderNumber: o.senderNumber,
+        status: o.status || "pending_verification",
+        createdAt: o.createdAt || new Date().toISOString(),
+        rejectionReason: o.rejectionReason,
+      });
+    });
+
+    // 3. Inspect session cookie: reconcile, sync, or purge stale/deleted orders
     const pendingOrdersRaw = cookieStore.get("sakil_pending_orders")?.value;
     if (pendingOrdersRaw) {
       try {
         const sessionOrders: any[] = JSON.parse(pendingOrdersRaw);
         if (Array.isArray(sessionOrders)) {
-          sessionOrders.forEach((o) => {
-            if (o) {
-              const id = o.orderId || o.id || o.orderNumber || o.trxId;
-              if (id) {
-                orderMap.set(id, {
-                  id,
-                  orderNumber: o.orderNumber || o.orderId || id,
-                  courseSlug: o.courseSlug || "",
-                  courseTitle: o.courseTitle || "Masterclass",
-                  courseThumbnail: o.thumbnail || o.image,
-                  amount: o.amount || 1499,
-                  paymentMethod: o.paymentMethod || o.method || "bKash",
-                  trxId: o.trxId || "N/A",
-                  senderNumber: o.senderNumber,
-                  status: o.status || "pending_verification",
-                  createdAt: o.createdAt || new Date().toISOString(),
-                  rejectionReason: o.rejectionReason,
-                });
-              }
-            }
-          });
-        }
-      } catch {}
-    }
+          if (userEmail) {
+            // Student is logged in:
+            // Cookie orders that belong to this student must be reconciled against the database.
+            // If the order was deleted in the DB by the admin, remove it from the cookie!
+            // If the order exists in DB, synchronize its status to match the DB!
+            const updatedCookieOrders = sessionOrders
+              .filter((so) => {
+                const soEmail = (so.email || "").toLowerCase().trim();
+                if (soEmail === userEmail || !soEmail) {
+                  // If order belongs to this student, check if it still exists in persistentOrders
+                  const existsInDb = persistentOrders.some(
+                    (po) =>
+                      (po.orderNumber && (po.orderNumber === so.orderNumber || po.orderNumber === so.orderId)) ||
+                      (po.id && (po.id === so.orderId || po.id === so.id)) ||
+                      (po.trxId && so.trxId && po.trxId.toLowerCase() === so.trxId.toLowerCase())
+                  );
+                  return existsInDb;
+                }
+                return true;
+              })
+              .map((so) => {
+                const match = persistentOrders.find(
+                  (po) =>
+                    (po.orderNumber && (po.orderNumber === so.orderNumber || po.orderNumber === so.orderId)) ||
+                    (po.id && (po.id === so.orderId || po.id === so.id)) ||
+                    (po.trxId && so.trxId && po.trxId.toLowerCase() === so.trxId.toLowerCase())
+                );
+                if (match) {
+                  return {
+                    ...so,
+                    status: match.status,
+                    rejectionReason: match.rejectionReason,
+                  };
+                }
+                return so;
+              });
 
-    // 2. Check persistent orders from orders.json for the authenticated student email
-    if (userEmail) {
-      try {
-        const { getPersistentOrders } = await import("@/lib/data/orders");
-        const persistentOrders = await getPersistentOrders();
-        persistentOrders.forEach((o) => {
-          if (o.email && o.email.toLowerCase().trim() === userEmail) {
-            const id = o.id || o.orderNumber || o.trxId;
-            orderMap.set(id, {
-              id,
-              orderNumber: o.orderNumber || id,
-              courseSlug: o.courseSlug || "",
-              courseTitle: o.courseTitle || "Masterclass",
-              amount: o.amount || 1499,
-              paymentMethod: o.paymentMethod || "bKash",
-              trxId: o.trxId || "N/A",
-              senderNumber: o.senderNumber,
-              status: o.status || "pending_verification",
-              createdAt: o.createdAt || new Date().toISOString(),
-              rejectionReason: o.rejectionReason,
+            cookieStore.set(
+              "sakil_pending_orders",
+              JSON.stringify(updatedCookieOrders),
+              getSessionCookieOptions(60 * 60 * 24 * 30)
+            );
+          } else {
+            // Guest mode (unauthenticated): use session orders
+            sessionOrders.forEach((o) => {
+              if (o) {
+                const canonicalNumber = o.orderNumber || o.orderId || o.id;
+                const normTrx = (o.trxId || "").trim().toUpperCase();
+                if (normTrx && normTrx !== "N/A" && normTrx !== "TRX-VERIFY" && seenTrx.has(normTrx)) {
+                  return;
+                }
+                if (normTrx && normTrx !== "N/A" && normTrx !== "TRX-VERIFY") {
+                  seenTrx.add(normTrx);
+                }
+                if (canonicalNumber && !orderMap.has(canonicalNumber)) {
+                  orderMap.set(canonicalNumber, {
+                    id: canonicalNumber,
+                    orderNumber: canonicalNumber,
+                    courseSlug: o.courseSlug || "",
+                    courseTitle: o.courseTitle || "Masterclass",
+                    courseThumbnail: o.thumbnail || o.image,
+                    amount: o.amount || 1299,
+                    paymentMethod: o.paymentMethod || o.method || "bKash",
+                    trxId: o.trxId || "N/A",
+                    senderNumber: o.senderNumber,
+                    status: o.status || "pending_verification",
+                    createdAt: o.createdAt || new Date().toISOString(),
+                    rejectionReason: o.rejectionReason,
+                  });
+                }
+              }
             });
           }
-        });
-      } catch (err) {
-        console.error("GET PERSISTENT ORDERS FOR STUDENT ERROR:", err);
-      }
+        }
+      } catch {}
     }
 
     const orderList = Array.from(orderMap.values()).sort(

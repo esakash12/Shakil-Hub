@@ -81,12 +81,23 @@ export async function getAdminOrdersAction(): Promise<{
     };
 
     const mergedMap = new Map<string, AdminOrderRecord>();
+    const seenTrx = new Set<string>();
 
-    // Add persistent orders from PostgreSQL
+    // Add persistent orders from PostgreSQL (deduplicating by orderNumber & trxId)
     persistentOrders.forEach((o) => {
-      mergedMap.set(o.id, {
-        id: o.id,
-        orderNumber: o.orderNumber,
+      const canonicalId = o.orderNumber || o.id;
+      const normTrx = (o.trxId || "").trim().toUpperCase();
+
+      if (normTrx && normTrx !== "N/A" && normTrx !== "TRX-VERIFY" && seenTrx.has(normTrx)) {
+        return;
+      }
+      if (normTrx && normTrx !== "N/A" && normTrx !== "TRX-VERIFY") {
+        seenTrx.add(normTrx);
+      }
+
+      mergedMap.set(canonicalId, {
+        id: canonicalId,
+        orderNumber: o.orderNumber || canonicalId,
         studentName: resolveStudentName(o.studentName, o.email),
         email: o.email,
         courseTitle: o.courseTitle,
@@ -104,14 +115,18 @@ export async function getAdminOrdersAction(): Promise<{
 
     // Merge session orders (if not already present in DB)
     sessionOrders.forEach((o) => {
+      const canonicalId = o.orderNumber || o.id;
+      const normTrx = (o.trxId || "").trim().toUpperCase();
       const matchInMap = Array.from(mergedMap.values()).find(
         (existing) =>
-          existing.orderNumber === o.orderNumber ||
-          (existing.trxId && existing.trxId.toLowerCase() === o.trxId.toLowerCase())
+          existing.orderNumber === canonicalId ||
+          (normTrx && normTrx !== "N/A" && normTrx !== "TRX-VERIFY" && existing.trxId?.toUpperCase() === normTrx)
       );
       if (!matchInMap) {
-        mergedMap.set(o.id, {
+        mergedMap.set(canonicalId, {
           ...o,
+          id: canonicalId,
+          orderNumber: canonicalId,
           studentName: resolveStudentName(o.studentName, o.email),
         });
       }
@@ -237,7 +252,7 @@ export async function rejectOrderAction(
     const cookieStore = await cookies();
 
     // 1. Update in PostgreSQL
-    await updatePersistentOrderStatus(orderId, "rejected", {
+    const rejectedOrder = await updatePersistentOrderStatus(orderId, "rejected", {
       rejectionReason: reason || "Invalid or unverifiable Transaction ID",
     });
 
@@ -247,7 +262,14 @@ export async function rejectOrderAction(
       try {
         const orders: any[] = JSON.parse(pendingOrdersRaw);
         const updated = orders.map((o) => {
-          if (o.orderId === orderId || o.id === orderId || o.orderNumber === orderId) {
+          const isMatch =
+            o.orderId === orderId ||
+            o.id === orderId ||
+            o.orderNumber === orderId ||
+            (rejectedOrder?.trxId &&
+              rejectedOrder.trxId !== "N/A" &&
+              o.trxId?.toUpperCase() === rejectedOrder.trxId.toUpperCase());
+          if (isMatch) {
             return {
               ...o,
               status: "rejected",
@@ -313,9 +335,16 @@ export async function deleteAdminOrderAction(orderId: string): Promise<{
     if (pendingOrdersRaw) {
       try {
         const orders: any[] = JSON.parse(pendingOrdersRaw);
-        const filtered = orders.filter(
-          (o) => o.orderId !== orderId && o.id !== orderId && o.orderNumber !== orderId
-        );
+        const filtered = orders.filter((o) => {
+          const isMatch =
+            o.orderId === orderId ||
+            o.id === orderId ||
+            o.orderNumber === orderId ||
+            (deletedOrder?.trxId &&
+              deletedOrder.trxId !== "N/A" &&
+              o.trxId?.toUpperCase() === deletedOrder.trxId.toUpperCase());
+          return !isMatch;
+        });
         cookieStore.set("sakil_pending_orders", JSON.stringify(filtered), getSessionCookieOptions(60 * 60 * 24 * 30));
       } catch {}
     }

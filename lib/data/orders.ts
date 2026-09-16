@@ -83,6 +83,7 @@ export async function savePersistentOrder(order: OrderItem): Promise<OrderItem[]
           verifiedAt: order.verifiedAt ? new Date(order.verifiedAt) : null,
         },
         create: {
+          id: order.id || orderNo,
           orderNumber: orderNo,
           studentName: order.studentName,
           email: order.email.toLowerCase().trim(),
@@ -138,8 +139,15 @@ export async function updatePersistentOrderStatus(
       });
 
       if (order) {
-        const updated = await prisma.order.update({
-          where: { id: order.id },
+        const hasValidTrx = order.trxId && order.trxId !== "N/A" && order.trxId !== "TRX-VERIFY";
+        await prisma.order.updateMany({
+          where: {
+            OR: [
+              { id: order.id },
+              { orderNumber: order.orderNumber },
+              ...(hasValidTrx ? [{ trxId: order.trxId }] : []),
+            ],
+          },
           data: {
             status,
             rejectionReason: extra?.rejectionReason || null,
@@ -171,20 +179,20 @@ export async function updatePersistentOrderStatus(
         }
 
         return {
-          id: updated.id,
-          orderNumber: updated.orderNumber,
-          studentName: updated.studentName,
-          email: updated.email,
-          courseTitle: updated.courseTitle,
-          courseSlug: updated.courseSlug,
-          amount: updated.amount,
-          paymentMethod: updated.paymentMethod,
-          senderNumber: updated.senderNumber,
-          trxId: updated.trxId,
-          status: updated.status as any,
-          createdAt: updated.createdAt.toISOString(),
-          verifiedAt: updated.verifiedAt?.toISOString(),
-          rejectionReason: updated.rejectionReason || undefined,
+          id: order.id,
+          orderNumber: order.orderNumber,
+          studentName: order.studentName,
+          email: order.email,
+          courseTitle: order.courseTitle,
+          courseSlug: order.courseSlug,
+          amount: order.amount,
+          paymentMethod: order.paymentMethod,
+          senderNumber: order.senderNumber,
+          trxId: order.trxId,
+          status,
+          createdAt: order.createdAt.toISOString(),
+          verifiedAt: extra?.verifiedAt || (status === "approved" ? new Date().toISOString() : undefined),
+          rejectionReason: extra?.rejectionReason,
         };
       }
     }
@@ -198,9 +206,20 @@ export async function updatePersistentOrderStatus(
     const target = existing.find((o) => o.id === orderId || o.orderNumber === orderId);
     if (!target) return null;
 
-    target.status = status;
-    if (extra?.verifiedAt) target.verifiedAt = extra.verifiedAt;
-    if (extra?.rejectionReason) target.rejectionReason = extra.rejectionReason;
+    const targetTrx = target.trxId;
+    const hasValidTrx = targetTrx && targetTrx !== "N/A" && targetTrx !== "TRX-VERIFY";
+
+    existing.forEach((o) => {
+      if (
+        o.id === orderId ||
+        o.orderNumber === orderId ||
+        (hasValidTrx && o.trxId?.toUpperCase() === targetTrx.toUpperCase())
+      ) {
+        o.status = status;
+        if (extra?.verifiedAt) o.verifiedAt = extra.verifiedAt;
+        if (extra?.rejectionReason) o.rejectionReason = extra.rejectionReason;
+      }
+    });
 
     await writeDataFile("orders.json", existing);
     return target;
@@ -220,7 +239,16 @@ export async function deletePersistentOrder(orderId: string): Promise<OrderItem 
         where: { OR: [{ id: orderId }, { orderNumber: orderId }] },
       });
       if (order) {
-        await prisma.order.delete({ where: { id: order.id } });
+        const hasValidTrx = order.trxId && order.trxId !== "N/A" && order.trxId !== "TRX-VERIFY";
+        await prisma.order.deleteMany({
+          where: {
+            OR: [
+              { id: order.id },
+              { orderNumber: order.orderNumber },
+              ...(hasValidTrx ? [{ trxId: order.trxId }] : []),
+            ],
+          },
+        });
         return {
           id: order.id,
           orderNumber: order.orderNumber,
@@ -243,13 +271,20 @@ export async function deletePersistentOrder(orderId: string): Promise<OrderItem 
 
   try {
     const existing = await readDataFile<OrderItem[]>("orders.json", []);
-    const targetIndex = existing.findIndex((o) => o.id === orderId || o.orderNumber === orderId);
-    if (targetIndex < 0) return null;
+    const target = existing.find((o) => o.id === orderId || o.orderNumber === orderId);
+    if (!target) return null;
 
-    const deleted = existing[targetIndex];
-    const updated = existing.filter((_, idx) => idx !== targetIndex);
+    const targetTrx = target.trxId;
+    const hasValidTrx = targetTrx && targetTrx !== "N/A" && targetTrx !== "TRX-VERIFY";
+
+    const updated = existing.filter(
+      (o) =>
+        o.id !== orderId &&
+        o.orderNumber !== orderId &&
+        !(hasValidTrx && o.trxId?.toUpperCase() === targetTrx.toUpperCase())
+    );
     await writeDataFile("orders.json", updated);
-    return deleted;
+    return target;
   } catch (err) {
     console.error("FAILED TO DELETE PERSISTENT ORDER FALLBACK:", err);
     return null;
