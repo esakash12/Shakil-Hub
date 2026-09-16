@@ -2,7 +2,6 @@
 
 import { cookies } from "next/headers";
 import { clearCartAction } from "@/lib/actions/cart";
-import { getSessionCookieOptions } from "@/lib/security/cookies";
 import { getCourseBySlug, CourseDetail } from "@/lib/data/courses";
 import { getLiveCourseBySlug } from "@/lib/data/courses-db";
 import { getShopProductBySlug } from "@/lib/data/shop";
@@ -242,30 +241,13 @@ export async function processManualCheckout(
       createdAt: orderRecord.createdAt,
     });
 
-    // 4. Persist Pending Order to Secure Cookies
+    // Clean up any legacy pending orders cookie from the browser
     const cookieStore = await cookies();
-    const existingOrdersRaw = cookieStore.get("sakil_pending_orders")?.value;
-    let pendingOrders: OrderDetails[] = [];
-    if (existingOrdersRaw) {
-      try {
-        pendingOrders = JSON.parse(existingOrdersRaw);
-      } catch {
-        pendingOrders = [];
-      }
+    if (cookieStore.has("sakil_pending_orders")) {
+      cookieStore.delete("sakil_pending_orders");
     }
 
-    // Add or update order
-    pendingOrders = [
-      orderRecord,
-      ...pendingOrders.filter((o) => (o.orderNumber || o.orderId) !== orderRecord.orderNumber),
-    ];
-
-    cookieStore.set("sakil_pending_orders", JSON.stringify(pendingOrders), getSessionCookieOptions(60 * 60 * 24 * 30));
-
-    // Store active order for immediate success page rendering
-    cookieStore.set(`sakil_order_${orderRecord.orderNumber}`, JSON.stringify(orderRecord), getSessionCookieOptions());
-
-    // 5. Clear cart
+    // 3. Clear cart
     await clearCartAction();
 
     return {
@@ -284,54 +266,30 @@ export async function processManualCheckout(
 }
 
 /**
- * Server Action: Retrieves specific order details for receipt and confirmation page
+ * Server Action: Retrieves specific order details for receipt and confirmation page directly from Database
  */
 export async function getOrderDetailsAction(orderId: string): Promise<OrderDetails | null> {
   if (!orderId) return null;
 
   try {
-    const cookieStore = await cookies();
-
-    // 1. Check specific order cookie
-    const singleOrderRaw = cookieStore.get(`sakil_order_${orderId}`)?.value;
-    if (singleOrderRaw) {
-      try {
-        return JSON.parse(singleOrderRaw);
-      } catch {}
+    const allOrders = await getPersistentOrders();
+    const found = allOrders.find((o) => o.id === orderId || o.orderNumber === orderId);
+    if (found) {
+      return {
+        orderId: found.orderNumber || found.id,
+        orderNumber: found.orderNumber || found.id,
+        courseSlug: found.courseSlug,
+        courseTitle: found.courseTitle,
+        amount: found.amount,
+        paymentMethod: found.paymentMethod,
+        senderNumber: found.senderNumber,
+        trxId: found.trxId,
+        fullName: found.studentName,
+        email: found.email,
+        createdAt: found.createdAt,
+        status: found.status === "approved" ? "verified" : "pending_verification",
+      };
     }
-
-    // 2. Check pending orders list
-    const pendingOrdersRaw = cookieStore.get("sakil_pending_orders")?.value;
-    if (pendingOrdersRaw) {
-      try {
-        const orders: OrderDetails[] = JSON.parse(pendingOrdersRaw);
-        const found = orders.find((o) => o.orderId === orderId || o.orderNumber === orderId);
-        if (found) return found;
-      } catch {}
-    }
-
-    // 3. Check persistent orders.json
-    try {
-      const allOrders = await getPersistentOrders();
-      const found = allOrders.find((o) => o.id === orderId || o.orderNumber === orderId);
-      if (found) {
-        return {
-          orderId: found.id,
-          orderNumber: found.orderNumber,
-          courseSlug: found.courseSlug,
-          courseTitle: found.courseTitle,
-          amount: found.amount,
-          paymentMethod: found.paymentMethod,
-          senderNumber: found.senderNumber,
-          trxId: found.trxId,
-          fullName: found.studentName,
-          email: found.email,
-          createdAt: found.createdAt,
-          status: found.status === "approved" ? "verified" : "pending_verification",
-        };
-      }
-    } catch {}
-
     return null;
   } catch (err) {
     console.error("GET ORDER DETAILS ERROR:", err);

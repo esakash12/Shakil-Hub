@@ -1,13 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 import {
   getPersistentOrders,
   updatePersistentOrderStatus,
   deletePersistentOrder,
 } from "@/lib/data/orders";
-import { getSessionCookieOptions } from "@/lib/security/cookies";
 
 export interface AdminOrderRecord {
   id: string;
@@ -27,7 +25,7 @@ export interface AdminOrderRecord {
 }
 
 /**
- * Server Action: Fetches all orders directly from PostgreSQL database
+ * Server Action: Fetches all orders directly from PostgreSQL database (Pure DB Architecture)
  */
 export async function getAdminOrdersAction(): Promise<{
   success: boolean;
@@ -35,35 +33,7 @@ export async function getAdminOrdersAction(): Promise<{
   error?: string;
 }> {
   try {
-    const cookieStore = await cookies();
-
-    // 1. Fetch live orders from PostgreSQL via persistent orders layer
     const persistentOrders = await getPersistentOrders();
-
-    // 2. Fetch session orders if in dev/preview
-    let sessionOrders: any[] = [];
-    const pendingOrdersRaw = cookieStore.get("sakil_pending_orders")?.value;
-    if (pendingOrdersRaw) {
-      try {
-        const parsed = JSON.parse(pendingOrdersRaw);
-        if (Array.isArray(parsed)) {
-          sessionOrders = parsed.map((o: any) => ({
-            id: o.orderId || o.id || `session_${Date.now()}`,
-            orderNumber: o.orderNumber || o.orderId || `ORD-${Date.now().toString().slice(-6)}`,
-            studentName: o.studentName || "Student",
-            email: o.email || "student@sakilhub.com",
-            courseTitle: o.courseTitle || "Digital Masterclass",
-            courseSlug: o.courseSlug || "",
-            amount: Number(o.amount) || 1299,
-            paymentMethod: o.paymentMethod || "bKash",
-            senderNumber: o.senderNumber || "017XXXXXXXX",
-            trxId: o.trxId || "TRX-VERIFY",
-            status: o.status || "pending_verification",
-            createdAt: o.createdAt || new Date().toISOString(),
-          }));
-        }
-      } catch {}
-    }
 
     const { getPersistentCustomers } = await import("@/lib/data/customers");
     const persistentCustomers = await getPersistentCustomers();
@@ -83,7 +53,6 @@ export async function getAdminOrdersAction(): Promise<{
     const mergedMap = new Map<string, AdminOrderRecord>();
     const seenTrx = new Set<string>();
 
-    // Add persistent orders from PostgreSQL (deduplicating by orderNumber & trxId)
     persistentOrders.forEach((o) => {
       const canonicalId = o.orderNumber || o.id;
       const normTrx = (o.trxId || "").trim().toUpperCase();
@@ -113,26 +82,6 @@ export async function getAdminOrdersAction(): Promise<{
       });
     });
 
-    // Merge session orders (if not already present in DB)
-    sessionOrders.forEach((o) => {
-      const canonicalId = o.orderNumber || o.id;
-      const normTrx = (o.trxId || "").trim().toUpperCase();
-      const matchInMap = Array.from(mergedMap.values()).find(
-        (existing) =>
-          existing.orderNumber === canonicalId ||
-          (normTrx && normTrx !== "N/A" && normTrx !== "TRX-VERIFY" && existing.trxId?.toUpperCase() === normTrx)
-      );
-      if (!matchInMap) {
-        mergedMap.set(canonicalId, {
-          ...o,
-          id: canonicalId,
-          orderNumber: canonicalId,
-          studentName: resolveStudentName(o.studentName, o.email),
-        });
-      }
-    });
-
-    // Sort descending by date
     const sortedOrders = Array.from(mergedMap.values()).sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
@@ -165,8 +114,6 @@ export async function verifyAdminOrderAction(orderId: string): Promise<{
   }
 
   try {
-    const cookieStore = await cookies();
-
     // 1. Update in PostgreSQL
     const updatedPersistent = await updatePersistentOrderStatus(orderId, "approved", {
       verifiedAt: new Date().toISOString(),
@@ -174,35 +121,7 @@ export async function verifyAdminOrderAction(orderId: string): Promise<{
 
     const targetSlug = updatedPersistent?.courseSlug || "";
 
-    // 2. Update session cookie if active
-    const pendingOrdersRaw = cookieStore.get("sakil_pending_orders")?.value;
-    if (pendingOrdersRaw) {
-      try {
-        const orders: any[] = JSON.parse(pendingOrdersRaw);
-        const updated = orders.map((o) => {
-          if (o.orderId === orderId || o.id === orderId || o.orderNumber === orderId) {
-            return {
-              ...o,
-              status: "approved",
-            };
-          }
-          return o;
-        });
-        cookieStore.set("sakil_pending_orders", JSON.stringify(updated), getSessionCookieOptions(60 * 60 * 24 * 30));
-      } catch {}
-    }
-
-    // 3. Update single order cookie
-    const singleOrderRaw = cookieStore.get(`sakil_order_${orderId}`)?.value;
-    if (singleOrderRaw) {
-      try {
-        const single = JSON.parse(singleOrderRaw);
-        single.status = "approved";
-        cookieStore.set(`sakil_order_${orderId}`, JSON.stringify(single), getSessionCookieOptions());
-      } catch {}
-    }
-
-    // 4. Grant course entitlement to student account
+    // 2. Grant course entitlement to student account
     if (updatedPersistent?.email && targetSlug) {
       try {
         const { grantCustomerCourse } = await import("@/lib/data/customers");
@@ -249,49 +168,10 @@ export async function rejectOrderAction(
   }
 
   try {
-    const cookieStore = await cookies();
-
     // 1. Update in PostgreSQL
-    const rejectedOrder = await updatePersistentOrderStatus(orderId, "rejected", {
+    await updatePersistentOrderStatus(orderId, "rejected", {
       rejectionReason: reason || "Invalid or unverifiable Transaction ID",
     });
-
-    // 2. Update session cookie
-    const pendingOrdersRaw = cookieStore.get("sakil_pending_orders")?.value;
-    if (pendingOrdersRaw) {
-      try {
-        const orders: any[] = JSON.parse(pendingOrdersRaw);
-        const updated = orders.map((o) => {
-          const isMatch =
-            o.orderId === orderId ||
-            o.id === orderId ||
-            o.orderNumber === orderId ||
-            (rejectedOrder?.trxId &&
-              rejectedOrder.trxId !== "N/A" &&
-              o.trxId?.toUpperCase() === rejectedOrder.trxId.toUpperCase());
-          if (isMatch) {
-            return {
-              ...o,
-              status: "rejected",
-              rejectionReason: reason || "Invalid or unverifiable Transaction ID",
-            };
-          }
-          return o;
-        });
-
-        cookieStore.set("sakil_pending_orders", JSON.stringify(updated), getSessionCookieOptions(60 * 60 * 24 * 30));
-      } catch {}
-    }
-
-    // 3. Update single order cookie
-    const singleOrderRaw = cookieStore.get(`sakil_order_${orderId}`)?.value;
-    if (singleOrderRaw) {
-      try {
-        const single = JSON.parse(singleOrderRaw);
-        single.status = "rejected";
-        cookieStore.set(`sakil_order_${orderId}`, JSON.stringify(single), getSessionCookieOptions());
-      } catch {}
-    }
 
     // Revalidate routes
     revalidatePath("/dashboard/pending");
@@ -313,7 +193,7 @@ export async function rejectOrderAction(
 }
 
 /**
- * Server Action: Hard Deletes an order permanently from database, session, and student entitlements
+ * Server Action: Hard Deletes an order permanently from database and student entitlements
  */
 export async function deleteAdminOrderAction(orderId: string): Promise<{
   success: boolean;
@@ -325,34 +205,10 @@ export async function deleteAdminOrderAction(orderId: string): Promise<{
   }
 
   try {
-    const cookieStore = await cookies();
-
     // 1. Delete from PostgreSQL
     const deletedOrder = await deletePersistentOrder(orderId);
 
-    // 2. If session cookie has this order, remove it
-    const pendingOrdersRaw = cookieStore.get("sakil_pending_orders")?.value;
-    if (pendingOrdersRaw) {
-      try {
-        const orders: any[] = JSON.parse(pendingOrdersRaw);
-        const filtered = orders.filter((o) => {
-          const isMatch =
-            o.orderId === orderId ||
-            o.id === orderId ||
-            o.orderNumber === orderId ||
-            (deletedOrder?.trxId &&
-              deletedOrder.trxId !== "N/A" &&
-              o.trxId?.toUpperCase() === deletedOrder.trxId.toUpperCase());
-          return !isMatch;
-        });
-        cookieStore.set("sakil_pending_orders", JSON.stringify(filtered), getSessionCookieOptions(60 * 60 * 24 * 30));
-      } catch {}
-    }
-
-    // 3. Clear single order cookie if exists
-    cookieStore.delete(`sakil_order_${orderId}`);
-
-    // 4. If the deleted order was approved, revoke entitlement if no other approved order exists
+    // 2. If the deleted order was approved, revoke entitlement if no other approved order exists
     if (deletedOrder && deletedOrder.email && deletedOrder.courseSlug) {
       try {
         const { getApprovedSlugsByEmail } = await import("@/lib/data/orders");
