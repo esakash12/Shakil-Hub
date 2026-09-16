@@ -85,3 +85,47 @@ html[lang="bn"] {
   letter-spacing: normal;
 }
 
+/* ========================================================================= */
+/* === Studio Marquee & Luxury Kinetic Animations                         === */
+/* ========================================================================= */
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes marquee2 {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 32s linear infinite;
+}
+
+.animate-marquee2 {
+  animation: marquee2 32s linear infinite;
+}
+
+/* Glass & Glow utilities */
+.glass-panel {
+  background: rgba(10, 14, 23, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-hover:hover {
+  border-color: rgba(6, 182, 212, 0.35);
+  box-shadow: 0 0 30px rgba(6, 182, 212, 0.12);
+}
+
+
