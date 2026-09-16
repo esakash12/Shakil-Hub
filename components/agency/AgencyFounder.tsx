@@ -10,38 +10,35 @@ import {
   ArrowUpRight,
   Bot,
   Calendar,
-  CheckCircle2,
 } from "lucide-react";
 import { FOUNDER_DATA } from "@/lib/data/founder-data";
 
 export default function AgencyFounder() {
   return (
-    <section id="about-founder" className="relative py-16 sm:py-24 bg-[#04060a] select-none overflow-hidden">
+    <section id="about-founder" className="relative py-16 sm:py-24 bg-[#030508] select-none overflow-hidden">
       {/* Ambient Lighting */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-cyan-600/6 blur-[160px] rounded-full pointer-events-none -z-0" />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10 sm:space-y-14">
-        {/* Editorial Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/[0.08]">
-          <div className="space-y-3 max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-cyan-400 text-xs font-mono font-medium tracking-wider">
-              <Sparkles className="w-3 h-3 text-cyan-400" />
-              <span>03 // CREATIVE LEADERSHIP</span>
-            </div>
-
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-              Meet the Creative Director
-            </h2>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10 sm:space-y-12">
+        {/* Centered Section Header */}
+        <div className="text-center max-w-2xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-cyan-400 text-xs font-mono font-medium tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <span>03 // CREATIVE LEADERSHIP</span>
           </div>
 
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-md leading-relaxed">
-            The visionary orchestrating high-retention video production, commercial TVCs, and AI visual storytelling.
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+            Directed by Mehedi Hasan Sakil
+          </h2>
+
+          <p className="text-xs sm:text-sm text-zinc-400 max-w-xl mx-auto leading-relaxed">
+            The visionary orchestrating high-retention commercial video production and AI visual storytelling across national and global brands.
           </p>
         </div>
 
-        {/* Editorial Profile Grid */}
+        {/* Balanced Editorial Profile Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          {/* Left Column: Portrait & Key Roles (5 cols) */}
+          {/* Left Column: Portrait & Roles (5 cols) */}
           <div className="lg:col-span-5 rounded-2xl bg-[#070a11] border border-white/[0.08] p-6 sm:p-7 flex flex-col justify-between space-y-6">
             <div className="space-y-5">
               {/* Portrait Frame with Ambient Vignette */}
@@ -55,27 +52,27 @@ export default function AgencyFounder() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
 
-                {/* Director Pill */}
+                {/* Director Location Pill */}
                 <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between px-3 py-1.5 rounded-lg bg-black/85 backdrop-blur-md border border-white/10 text-[11px] font-mono">
                   <span className="text-white font-bold">{FOUNDER_DATA.name}</span>
                   <span className="text-cyan-400 font-semibold">BANANI, DHAKA</span>
                 </div>
               </div>
 
-              {/* Title & Core Roles */}
+              {/* Verified Title */}
               <div className="space-y-1">
                 <div className="text-xs font-mono text-cyan-400 uppercase tracking-wider">
-                  Digital Creator • Video Editor • AI Visualist
+                  Professional Identity
                 </div>
-                <h3 className="text-xl sm:text-2xl font-black text-white">
-                  Mehedi Hasan Sakil
-                </h3>
+                <div className="text-sm font-bold text-white">
+                  Digital Creator • Commercial Video Editor • AI Visualist
+                </div>
               </div>
 
               {/* Verified Positions List */}
               <div className="space-y-2 pt-2 border-t border-white/[0.06]">
                 <div className="text-[10px] font-mono uppercase text-zinc-500 tracking-wider">
-                  Active Positions & Management:
+                  Active Management Roles:
                 </div>
                 <div className="space-y-1.5">
                   {FOUNDER_DATA.currentPositions.map((pos, pIdx) => (
@@ -188,4 +185,5 @@ export default function AgencyFounder() {
     </section>
   );
 }
+
 

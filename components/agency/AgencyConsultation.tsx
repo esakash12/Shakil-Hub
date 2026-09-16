@@ -63,21 +63,19 @@ export default function AgencyConsultation() {
       {/* Background Ambient Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-emerald-600/8 blur-[150px] rounded-full pointer-events-none -z-0" />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10 sm:space-y-14">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/[0.08]">
-          <div className="space-y-3 max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-emerald-400 text-xs font-mono font-medium tracking-wider">
-              <Sparkles className="w-3 h-3 text-emerald-400" />
-              <span>04 // STUDIO COMMISSION</span>
-            </div>
-
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-              Book a Free Strategy Meeting
-            </h2>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10 sm:space-y-12">
+        {/* Centered Section Header */}
+        <div className="text-center max-w-2xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-emerald-400 text-xs font-mono font-medium tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <span>04 // STUDIO COMMISSION</span>
           </div>
 
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-md leading-relaxed">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+            Book a Free Strategy Meeting
+          </h2>
+
+          <p className="text-xs sm:text-sm text-zinc-400 max-w-xl mx-auto leading-relaxed">
             Have an upcoming commercial, viral ad campaign, real estate project, or website? Let&apos;s engineer your creative roadmap and budget.
           </p>
         </div>

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Sparkles, MessageCircle, Clock, ArrowUpRight } from "lucide-react";
+import { Play, Sparkles, MessageCircle, Clock, ArrowUpRight, ChevronDown, ChevronUp } from "lucide-react";
 import {
   PORTFOLIO_CATEGORIES,
   PORTFOLIO_ITEMS,
@@ -14,11 +14,18 @@ import VideoModal from "./VideoModal";
 export default function AgencyPortfolio() {
   const [activeCategory, setActiveCategory] = useState<PortfolioCategory>("all");
   const [activeVideo, setActiveVideo] = useState<PortfolioItem | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   const filteredItems =
     activeCategory === "all"
       ? PORTFOLIO_ITEMS
       : PORTFOLIO_ITEMS.filter((item) => item.category === activeCategory);
+
+  // When 'all' is selected, show 6 top items by default to prevent visual overload
+  const displayedItems =
+    activeCategory === "all" && !showAll
+      ? filteredItems.slice(0, 6)
+      : filteredItems;
 
   const activeCategoryMeta = PORTFOLIO_CATEGORIES.find((c) => c.id === activeCategory);
 
@@ -28,27 +35,25 @@ export default function AgencyPortfolio() {
       <div className="absolute top-20 right-1/4 w-[500px] h-[500px] bg-cyan-600/8 blur-[150px] rounded-full pointer-events-none -z-0" />
       <div className="absolute bottom-20 left-1/4 w-[500px] h-[500px] bg-emerald-600/8 blur-[150px] rounded-full pointer-events-none -z-0" />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10 sm:space-y-14">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/[0.08]">
-          <div className="space-y-3 max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-cyan-400 text-xs font-mono font-medium tracking-wider">
-              <Sparkles className="w-3 h-3 text-cyan-400" />
-              <span>01 // SELECTED ARCHIVE</span>
-            </div>
-
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-              Featured Video Portfolio
-            </h2>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-8 sm:space-y-11">
+        {/* Centered Section Header */}
+        <div className="text-center max-w-2xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] text-cyan-400 text-xs font-mono font-medium tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <span>01 // SELECTED ARCHIVE</span>
           </div>
 
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-md leading-relaxed">
-            Every frame engineered for high viewer retention, brand prestige, and commercial conversions. Filter by category below:
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+            Featured Video Portfolio
+          </h2>
+
+          <p className="text-xs sm:text-sm text-zinc-400 max-w-xl mx-auto leading-relaxed">
+            Every frame engineered for high viewer retention, brand prestige, and commercial conversions.
           </p>
         </div>
 
         {/* Category Filter Tabs with Framer Motion Sliding Pill */}
-        <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <div className="flex items-center justify-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl">
             {PORTFOLIO_CATEGORIES.map((cat) => {
               const count =
@@ -61,7 +66,10 @@ export default function AgencyPortfolio() {
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() => setActiveCategory(cat.id)}
+                  onClick={() => {
+                    setActiveCategory(cat.id);
+                    setShowAll(false);
+                  }}
                   className={`relative px-4 py-2 rounded-xl text-xs font-medium transition-colors duration-200 cursor-pointer flex items-center gap-2 shrink-0 ${
                     isActive ? "text-black font-bold" : "text-zinc-400 hover:text-white"
                   }`}
@@ -94,20 +102,20 @@ export default function AgencyPortfolio() {
           </div>
         )}
 
-        {/* Animated Portfolio Showcase Grid */}
+        {/* Curated Portfolio Showcase Grid */}
         <motion.div
           layout
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"
         >
           <AnimatePresence>
-            {filteredItems.map((item, index) => (
+            {displayedItems.map((item, index) => (
               <motion.div
                 key={item.id}
                 layout
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.35, delay: index * 0.04 }}
+                transition={{ duration: 0.35, delay: index * 0.03 }}
                 onClick={() => setActiveVideo(item)}
                 className="group relative rounded-2xl overflow-hidden bg-[#080b12] border border-white/[0.08] hover:border-cyan-400/40 transition-all duration-500 flex flex-col cursor-pointer hover:shadow-[0_15px_45px_rgba(0,0,0,0.8)]"
               >
@@ -179,6 +187,20 @@ export default function AgencyPortfolio() {
           </AnimatePresence>
         </motion.div>
 
+        {/* View All Works Toggle Button (for 'all' category) */}
+        {activeCategory === "all" && filteredItems.length > 6 && (
+          <div className="text-center pt-2">
+            <button
+              type="button"
+              onClick={() => setShowAll(!showAll)}
+              className="px-6 py-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-white font-mono text-xs font-semibold inline-flex items-center gap-2 transition-all cursor-pointer shadow-sm hover:scale-105"
+            >
+              <span>{showAll ? "Show Curated 6 Works" : `View All ${filteredItems.length} Projects Archive`}</span>
+              {showAll ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+          </div>
+        )}
+
         {/* Portfolio Bottom Banner: Direct Inquiry Callout */}
         <div className="p-5 sm:p-7 rounded-2xl bg-gradient-to-r from-cyan-950/20 via-[#0a0d16] to-emerald-950/20 border border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left shadow-xl backdrop-blur-xl">
           <div className="space-y-1">
@@ -208,4 +230,5 @@ export default function AgencyPortfolio() {
     </section>
   );
 }
+
 
