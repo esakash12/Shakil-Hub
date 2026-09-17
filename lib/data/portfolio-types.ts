@@ -1,4 +1,4 @@
-export type PortfolioCategory =
+export type StandardPortfolioCategory =
   | "all"
   | "commercials"
   | "social-media"
@@ -11,11 +11,13 @@ export type PortfolioCategory =
   | "wedding"
   | "vlogs";
 
+export type PortfolioCategory = StandardPortfolioCategory | (string & {});
+
 export interface PortfolioCategoryMeta {
-  id: PortfolioCategory;
+  id: string;
   label: string;
   badge?: string;
-  description: string;
+  description?: string;
 }
 
 export interface PortfolioItem {

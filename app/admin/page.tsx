@@ -14,6 +14,7 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
+  Film,
 } from "lucide-react";
 import { getLiveStorefrontCourses } from "@/lib/data/courses-db";
 import { fetchAdminOrders, AdminOrderRecord } from "@/lib/actions/admin-orders";
@@ -120,10 +121,17 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href="/admin/portfolio"
+            className="px-3.5 py-2.5 rounded-xl bg-white/[0.04] hover:bg-[#00d2ff]/10 border border-white/10 hover:border-[#00d2ff]/30 text-white font-medium text-xs flex items-center gap-1.5 transition-all"
+          >
+            <Film className="w-3.5 h-3.5 text-[#00d2ff]" />
+            <span>Portfolio CMS</span>
+          </Link>
           <Link
             href="/admin/settings"
-            className="px-4 py-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-white font-medium text-xs flex items-center gap-1.5 transition-all"
+            className="px-3.5 py-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-white font-medium text-xs flex items-center gap-1.5 transition-all"
           >
             <Settings className="w-3.5 h-3.5" />
             <span>Platform Settings</span>

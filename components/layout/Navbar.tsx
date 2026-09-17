@@ -55,28 +55,27 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 w-full border-b border-white/[0.08] bg-[#02050e]/90 backdrop-blur-2xl shadow-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
-          {/* Brand Logo - Stylized SH Play Logo */}
-          <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group">
+          {/* Brand Logo - Sakil Hub */}
+          <Link href="/" className="flex items-center gap-2 group">
             {branding.logoUrl ? (
-              <div className="relative h-7 sm:h-8 w-28 sm:w-36 overflow-hidden">
+              <div className="relative h-8 sm:h-9 w-32 sm:w-36 overflow-hidden rounded-md">
                 <Image
                   src={branding.logoUrl}
                   alt={branding.siteName || "Sakil Hub"}
                   fill
-                  sizes="(max-width: 640px) 112px, 144px"
+                  sizes="(max-width: 640px) 128px, 144px"
                   className="object-contain object-left group-hover:scale-105 transition-transform"
+                  priority
                 />
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#00d2ff] via-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(0,210,255,0.4)] group-hover:scale-105 transition-transform">
-                  <Play className="w-4 h-4 text-black fill-black ml-0.5" />
-                </div>
-                <div className="flex items-baseline">
-                  <span className="text-lg sm:text-xl font-black tracking-tight text-white">
-                    Sakil<span className="text-[#00d2ff]">Hub</span>
-                  </span>
-                </div>
+              <div className="flex items-center gap-1 font-sans">
+                <span className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                  Sakil
+                </span>
+                <span className="px-2 py-0.5 rounded-lg bg-[#0070f3] text-black font-black text-base sm:text-lg shadow-[0_0_15px_rgba(0,112,243,0.4)]">
+                  Hub
+                </span>
               </div>
             )}
           </Link>

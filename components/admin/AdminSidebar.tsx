@@ -15,6 +15,7 @@ import {
   Play,
   Award,
   ShoppingBag,
+  Film,
 } from "lucide-react";
 import { adminLogoutAction } from "@/lib/actions/admin-auth";
 
@@ -27,6 +28,12 @@ export default function AdminSidebar() {
       href: "/admin",
       icon: LayoutDashboard,
       exact: true,
+    },
+    {
+      label: "Portfolio CMS",
+      href: "/admin/portfolio",
+      icon: Film,
+      exact: false,
     },
     {
       label: "Enrollments",
@@ -77,19 +84,19 @@ export default function AdminSidebar() {
     <aside className="w-64 bg-[#080808] border-r border-white/5 flex flex-col justify-between h-screen sticky top-0 shrink-0 select-none">
       {/* Brand Header */}
       <div className="p-6 space-y-6">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-[0_0_15px_rgba(37,99,235,0.4)]">
-            <Play className="w-4 h-4 text-white fill-white ml-0.5" />
+        <Link href="/" className="flex items-center gap-2 group cursor-pointer">
+          <div className="flex items-center gap-1 font-sans">
+            <span className="text-lg font-black tracking-tight text-white group-hover:text-cyan-400 transition-colors">
+              Sakil
+            </span>
+            <span className="px-1.5 py-0.5 rounded-md bg-[#0070f3] text-black font-black text-sm shadow-[0_0_12px_rgba(0,112,243,0.4)]">
+              Hub
+            </span>
           </div>
-          <div>
-            <div className="text-sm font-extrabold text-white tracking-tight leading-none">
-              Sakil<span className="text-blue-500">Hub</span>
-            </div>
-            <div className="text-[10px] font-mono text-gray-500 font-semibold mt-0.5 uppercase tracking-wider">
-              Admin Console
-            </div>
-          </div>
-        </div>
+          <span className="text-[10px] font-mono text-zinc-400 font-semibold uppercase tracking-wider ml-auto bg-white/[0.05] border border-white/[0.08] px-1.5 py-0.5 rounded">
+            Admin
+          </span>
+        </Link>
 
         {/* Navigation */}
         <nav className="space-y-1">

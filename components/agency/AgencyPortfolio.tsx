@@ -8,18 +8,44 @@ import {
   PORTFOLIO_CATEGORIES,
   PORTFOLIO_ITEMS,
 } from "@/lib/data/portfolio";
-import { PortfolioCategory, PortfolioItem } from "@/lib/data/portfolio-types";
+import { PortfolioCategoryMeta, PortfolioItem } from "@/lib/data/portfolio-types";
 import VideoModal from "./VideoModal";
 
-export default function AgencyPortfolio() {
-  const [activeCategory, setActiveCategory] = useState<PortfolioCategory>("all");
+interface AgencyPortfolioProps {
+  initialData?: {
+    categories: PortfolioCategoryMeta[];
+    items: PortfolioItem[];
+  };
+}
+
+export default function AgencyPortfolio({ initialData }: AgencyPortfolioProps) {
+  const [categories, setCategories] = useState<PortfolioCategoryMeta[]>(
+    initialData?.categories && initialData.categories.length > 0
+      ? initialData.categories
+      : PORTFOLIO_CATEGORIES
+  );
+  const [items, setItems] = useState<PortfolioItem[]>(
+    initialData?.items && initialData.items.length > 0
+      ? initialData.items
+      : PORTFOLIO_ITEMS
+  );
+  const [activeCategory, setActiveCategory] = useState<string>("all");
   const [activeVideo, setActiveVideo] = useState<PortfolioItem | null>(null);
   const [showAll, setShowAll] = useState(false);
 
+  React.useEffect(() => {
+    if (initialData?.categories && initialData.categories.length > 0) {
+      setCategories(initialData.categories);
+    }
+    if (initialData?.items && initialData.items.length > 0) {
+      setItems(initialData.items);
+    }
+  }, [initialData]);
+
   const filteredItems =
     activeCategory === "all"
-      ? PORTFOLIO_ITEMS
-      : PORTFOLIO_ITEMS.filter((item) => item.category === activeCategory);
+      ? items
+      : items.filter((item) => item.category === activeCategory);
 
   // When 'all' is selected, show 6 top items by default to prevent visual overload
   const displayedItems =
@@ -27,7 +53,7 @@ export default function AgencyPortfolio() {
       ? filteredItems.slice(0, 6)
       : filteredItems;
 
-  const activeCategoryMeta = PORTFOLIO_CATEGORIES.find((c) => c.id === activeCategory);
+  const activeCategoryMeta = categories.find((c) => c.id === activeCategory);
 
   return (
     <section id="portfolio" className="relative py-12 sm:py-16 bg-[#02050e] select-none overflow-hidden">
@@ -55,7 +81,7 @@ export default function AgencyPortfolio() {
         {/* Category Filter Tabs */}
         <div className="flex items-center justify-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl">
-            {PORTFOLIO_CATEGORIES.map((cat) => {
+            {categories.map((cat) => {
               const isActive = activeCategory === cat.id;
 
               return (

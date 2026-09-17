@@ -54,14 +54,14 @@ export default function AgencyHero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="space-y-2 max-w-xl"
+              className="space-y-2 max-w-2xl"
             >
-              <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-black text-white tracking-tight leading-[1.12]">
-                We Craft High-Converting{" "}
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-[40px] font-black text-white tracking-tight leading-[1.2]">
+                We Build Powerful{" "}
                 <span className="text-[#00d2ff] drop-shadow-[0_0_35px_rgba(0,210,255,0.4)]">
-                  Cinematic Videos & AI
-                </span>{" "}
-                Commercials
+                  Digital Experiences
+                </span>
+                , Videos & Brands
               </h1>
             </motion.div>
 

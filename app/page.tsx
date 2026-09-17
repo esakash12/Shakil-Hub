@@ -5,8 +5,11 @@ import AgencyServices from "@/components/agency/AgencyServices";
 import AgencyFounder from "@/components/agency/AgencyFounder";
 import AgencyAcademyPreview from "@/components/agency/AgencyAcademyPreview";
 import AgencyConsultation from "@/components/agency/AgencyConsultation";
+import { getPortfolioAction } from "@/lib/actions/portfolio";
 
 export default async function HomePage() {
+  const portfolioData = await getPortfolioAction();
+
   return (
     <div className="relative min-h-screen bg-[#02050e] text-white overflow-hidden selection:bg-[#00d2ff] selection:text-black">
       {/* Global Ambient Glow Atmosphere Matching Reference Mockup */}
@@ -18,7 +21,7 @@ export default async function HomePage() {
       <AgencyHero />
 
       {/* 2. Featured Portfolio Showcase — 6 Curated Cards & Filter Pills */}
-      <AgencyPortfolio />
+      <AgencyPortfolio initialData={portfolioData} />
 
       {/* 3. Specialized Creative Agency Services — 2x2 Bento Grid */}
       <AgencyServices />

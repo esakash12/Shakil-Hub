@@ -59,12 +59,24 @@ export default function Footer() {
           {/* Brand & Subtitle (4 cols) */}
           <div className="lg:col-span-4 space-y-3">
             <Link href="/" className="flex items-center gap-2 group inline-flex">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#00d2ff] via-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_20px_rgba(0,210,255,0.4)] group-hover:scale-105 transition-transform">
-                <Play className="w-4 h-4 text-black fill-black ml-0.5" />
-              </div>
-              <span className="text-xl font-black tracking-tight text-white">
-                Sakil<span className="text-[#00d2ff]">Hub</span>
-              </span>
+              {branding.logoUrl ? (
+                <div className="relative h-8 w-32 overflow-hidden rounded-md">
+                  <Image
+                    src={branding.logoUrl}
+                    alt={branding.siteName || "Sakil Hub"}
+                    fill
+                    sizes="128px"
+                    className="object-contain object-left group-hover:scale-105 transition-transform"
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 font-sans">
+                  <span className="text-xl font-black tracking-tight text-white">Sakil</span>
+                  <span className="px-2 py-0.5 rounded-lg bg-[#0070f3] text-black font-black text-base shadow-[0_0_15px_rgba(0,112,243,0.4)]">
+                    Hub
+                  </span>
+                </div>
+              )}
             </Link>
             <p className="text-xs font-mono text-zinc-400">
               Creative Videos <span className="text-[#00d2ff]">•</span> AI <span className="text-[#00d2ff]">•</span> Marketing
