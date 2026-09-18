@@ -40,19 +40,40 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
           {/* Left Column: Founder Photo Card with Neon Signature */}
           <div className="lg:col-span-5 space-y-4">
             <div className="relative rounded-2xl overflow-hidden bg-[#070b16] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(0,210,255,0.1)]">
-              {/* Black & White Portrait Photo */}
-              <div className="relative w-full aspect-[4/3] overflow-hidden bg-black">
-                <Image
-                  src={photoUrl}
-                  alt="Mehedi Hasan Sakil"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 450px"
-                  className="object-cover object-center grayscale hover:grayscale-0 transition-all duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#070b16] via-transparent to-transparent" />
+              {/* Full Natural Color Portrait Container (Fit Without Crop) */}
+              <div className="relative w-full aspect-[4/5] sm:aspect-[4/5] min-h-[380px] max-h-[520px] overflow-hidden bg-[#050812] flex items-center justify-center">
+                {/* Ambient Soft Blurred Glow Backdrop to gracefully fill any aspect ratio letterbox */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
+                  <Image
+                    src={photoUrl}
+                    alt=""
+                    fill
+                    unoptimized
+                    sizes="100px"
+                    className="object-cover blur-3xl opacity-25 scale-125"
+                    aria-hidden="true"
+                  />
+                  <div className="absolute inset-0 bg-black/40" />
+                </div>
+
+                {/* Foreground Uncropped Full-Color Image */}
+                <div className="relative w-full h-full p-2 sm:p-3 flex items-center justify-center z-[1]">
+                  <Image
+                    src={photoUrl}
+                    alt="Mehedi Hasan Sakil"
+                    fill
+                    unoptimized
+                    sizes="(max-width: 768px) 100vw, 450px"
+                    className="object-contain object-center transition-transform duration-500 hover:scale-[1.02]"
+                    priority
+                  />
+                </div>
+
+                {/* Subtle Bottom Vignette */}
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#070b16] via-[#070b16]/60 to-transparent pointer-events-none z-[2]" />
 
                 {/* Floating Neon Cyan Signature: Sakil */}
-                <div className="absolute bottom-3 right-4 select-none pointer-events-none">
+                <div className="absolute bottom-3 right-4 select-none pointer-events-none z-[3]">
                   <span className="font-serif italic font-normal text-2xl text-[#00d2ff] opacity-90 drop-shadow-[0_0_12px_rgba(0,210,255,0.8)] tracking-wider">
                     {signature}
                   </span>

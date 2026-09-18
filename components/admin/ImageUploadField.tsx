@@ -242,17 +242,17 @@ export default function ImageUploadField({
       {/* Layout Variant 2: Avatar Photo */}
       {variant === "avatar" && (
         <div className="flex items-center gap-3">
-          {/* Circular/Rounded Avatar Preview */}
+          {/* Portrait/Avatar Preview */}
           <div
             onClick={() => fileInputRef.current?.click()}
-            title="Click to upload avatar"
-            className="w-12 h-12 rounded-xl bg-black/60 border border-white/10 hover:border-cyan-500/50 flex items-center justify-center shrink-0 relative overflow-hidden group cursor-pointer transition-colors"
+            title="Click to upload portrait"
+            className="w-14 h-16 rounded-xl bg-black/60 border border-white/10 hover:border-cyan-500/50 flex items-center justify-center shrink-0 relative overflow-hidden group cursor-pointer transition-colors p-1"
           >
             {previewSrc && !hasLoadError ? (
               <img
                 src={previewSrc}
                 alt="Avatar Preview"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                 onError={() => setHasLoadError(true)}
               />
             ) : (
