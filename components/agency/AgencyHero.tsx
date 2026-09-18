@@ -15,10 +15,30 @@ import {
 } from "lucide-react";
 import VideoModal from "./VideoModal";
 import { PORTFOLIO_ITEMS } from "@/lib/data/portfolio";
+import { AgencyCmsData } from "@/lib/data/agency-cms-types";
 
-export default function AgencyHero() {
+export default function AgencyHero({ cmsData }: { cmsData?: AgencyCmsData }) {
   const [showreelOpen, setShowreelOpen] = useState(false);
-  const showreelItem = PORTFOLIO_ITEMS[0];
+  const showreelItem = PORTFOLIO_ITEMS && PORTFOLIO_ITEMS.length > 0 ? PORTFOLIO_ITEMS[0] : {
+    id: "showreel-default",
+    title: "Sakil Hub — Agency Showreel",
+    category: "all",
+    categoryLabel: "Agency Reel",
+    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80",
+    description: "Official agency showreel showcasing commercial edits, visual storytelling, and high-impact digital experiences.",
+    client: "Sakil Hub Original",
+    featured: true,
+    tags: ["Showreel", "Agency", "4K"],
+  };
+
+  const pillBadge = cmsData?.heroPillBadge || "Creative Video • AI • Marketing";
+  const headlinePrefix = cmsData?.heroHeadlinePrefix ?? "We Build Powerful ";
+  const headlineHighlight = cmsData?.heroHeadlineHighlight ?? "Digital Experiences";
+  const headlineSuffix = cmsData?.heroHeadlineSuffix ?? ", Videos & Brands";
+  const subtext = cmsData?.heroSubtext || "Turn your ideas into powerful visual stories. We create cinematic videos, AI-powered commercials, and strategic content that helps your brand grow and get real results.";
+  const ctaText = cmsData?.heroCtaText || "Explore Our Portfolio";
+  const showreelText = cmsData?.heroShowreelText || "Watch Showreel";
 
   return (
     <section className="relative overflow-hidden bg-[#02050e] pt-10 sm:pt-14 pb-12 sm:pb-16 select-none">
@@ -45,7 +65,7 @@ export default function AgencyHero() {
                 <Play className="w-2 h-2 text-[#00d2ff] fill-[#00d2ff] ml-0.5" />
               </div>
               <span className="font-semibold text-white tracking-wide">
-                Creative Video <span className="text-[#00d2ff]">•</span> AI <span className="text-[#00d2ff]">•</span> Marketing
+                {pillBadge}
               </span>
             </motion.div>
 
@@ -57,11 +77,11 @@ export default function AgencyHero() {
               className="space-y-2 max-w-2xl"
             >
               <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-[40px] font-black text-white tracking-tight leading-[1.2]">
-                We Build Powerful{" "}
+                {headlinePrefix}
                 <span className="text-[#00d2ff] drop-shadow-[0_0_35px_rgba(0,210,255,0.4)]">
-                  Digital Experiences
+                  {headlineHighlight}
                 </span>
-                , Videos & Brands
+                {headlineSuffix}
               </h1>
             </motion.div>
 
@@ -72,7 +92,7 @@ export default function AgencyHero() {
               transition={{ duration: 0.5, delay: 0.15 }}
               className="text-xs sm:text-sm lg:text-base text-zinc-400 max-w-lg leading-relaxed font-normal"
             >
-              Turn your ideas into powerful visual stories. We create cinematic videos, AI-powered commercials, and strategic content that helps your brand grow and get real results.
+              {subtext}
             </motion.p>
 
             {/* CTAs Row */}
@@ -87,7 +107,7 @@ export default function AgencyHero() {
                 href="#portfolio"
                 className="px-6 sm:px-7 py-3 rounded-full bg-[#00d2ff] hover:bg-[#00b8e6] text-black font-extrabold text-xs sm:text-sm flex items-center gap-2 shadow-[0_0_25px_rgba(0,210,255,0.45)] hover:shadow-[0_0_35px_rgba(0,210,255,0.65)] hover:scale-105 active:scale-95 transition-all cursor-pointer"
               >
-                <span>Explore Our Portfolio</span>
+                <span>{ctaText}</span>
                 <ArrowRight className="w-4 h-4 stroke-[2.5]" />
               </a>
 
@@ -100,7 +120,7 @@ export default function AgencyHero() {
                 <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
                   <Play className="w-2.5 h-2.5 text-white fill-white ml-0.5" />
                 </div>
-                <span>Watch Showreel</span>
+                <span>{showreelText}</span>
               </button>
             </motion.div>
 

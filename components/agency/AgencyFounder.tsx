@@ -12,8 +12,23 @@ import {
   Calendar,
 } from "lucide-react";
 import { FOUNDER_DATA } from "@/lib/data/founder-data";
+import { AgencyCmsData } from "@/lib/data/agency-cms-types";
 
-export default function AgencyFounder() {
+export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) {
+  const photoUrl = cmsData?.founderPhotoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80";
+  const signature = cmsData?.founderSignatureText || "Sakil";
+  const headline = cmsData?.founderHeadline || "Directed by Mehedi Hasan Sakil";
+  const subheading = cmsData?.founderSubheading || "Director & Founder";
+  const bio = cmsData?.founderBio1 || "I'm a video content creator and creative director, passionate about turning ideas into powerful visual stories. With years of experience in video production, design and digital marketing, I help brands grow through creativity and strategy.";
+  const stat1Val = cmsData?.founderStat1Value || "5+";
+  const stat1Lbl = cmsData?.founderStat1Label || "Years Experience";
+  const stat2Val = cmsData?.founderStat2Value || "100+";
+  const stat2Lbl = cmsData?.founderStat2Label || "Projects Completed";
+  const stat3Val = cmsData?.founderStat3Value || "50+";
+  const stat3Lbl = cmsData?.founderStat3Label || "Happy Clients";
+  const stat4Val = cmsData?.founderStat4Value || "98%";
+  const stat4Lbl = cmsData?.founderStat4Label || "Client Satisfaction";
+
   return (
     <section id="about-founder" className="relative py-12 sm:py-16 bg-[#02050e] select-none overflow-hidden">
       {/* Ambient Lighting */}
@@ -28,7 +43,7 @@ export default function AgencyFounder() {
               {/* Black & White Portrait Photo */}
               <div className="relative w-full aspect-[4/3] overflow-hidden bg-black">
                 <Image
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80"
+                  src={photoUrl}
                   alt="Mehedi Hasan Sakil"
                   fill
                   sizes="(max-width: 768px) 100vw, 450px"
@@ -39,7 +54,7 @@ export default function AgencyFounder() {
                 {/* Floating Neon Cyan Signature: Sakil */}
                 <div className="absolute bottom-3 right-4 select-none pointer-events-none">
                   <span className="font-serif italic font-normal text-2xl text-[#00d2ff] opacity-90 drop-shadow-[0_0_12px_rgba(0,210,255,0.8)] tracking-wider">
-                    Sakil
+                    {signature}
                   </span>
                 </div>
               </div>
@@ -50,7 +65,7 @@ export default function AgencyFounder() {
                   Mehedi Hasan Sakil
                 </span>
                 <span className="text-xs font-mono text-zinc-400">
-                  Director & Founder
+                  {subheading}
                 </span>
               </div>
             </div>
@@ -106,31 +121,31 @@ export default function AgencyFounder() {
 
             {/* Heading */}
             <h2 className="text-3xl sm:text-4xl lg:text-[44px] font-black text-white tracking-tight leading-tight">
-              Directed by <span className="text-[#00d2ff]">Mehedi Hasan Sakil</span>
+              {headline}
             </h2>
 
-            {/* Bio Narrative from Mockup */}
-            <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-normal">
-              I&apos;m a video content creator and creative director, passionate about turning ideas into powerful visual stories. With years of experience in video production, design and digital marketing, I help brands grow through creativity and strategy.
+            {/* Bio Narrative */}
+            <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-normal whitespace-pre-line">
+              {bio}
             </p>
 
-            {/* Single Horizontal Stats Card with 4 Metrics (From Mockup) */}
+            {/* Single Horizontal Stats Card with 4 Metrics */}
             <div className="p-4 sm:p-5 rounded-2xl bg-[#070b16] border border-white/[0.08] grid grid-cols-2 sm:grid-cols-4 gap-4 text-center divide-x-0 sm:divide-x divide-white/[0.06]">
               <div className="space-y-1">
-                <div className="text-xl sm:text-2xl font-black text-white font-mono">5+</div>
-                <div className="text-[11px] font-mono text-zinc-400">Years Experience</div>
+                <div className="text-xl sm:text-2xl font-black text-white font-mono">{stat1Val}</div>
+                <div className="text-[11px] font-mono text-zinc-400">{stat1Lbl}</div>
               </div>
               <div className="space-y-1">
-                <div className="text-xl sm:text-2xl font-black text-white font-mono">100+</div>
-                <div className="text-[11px] font-mono text-zinc-400">Projects Completed</div>
+                <div className="text-xl sm:text-2xl font-black text-white font-mono">{stat2Val}</div>
+                <div className="text-[11px] font-mono text-zinc-400">{stat2Lbl}</div>
               </div>
               <div className="space-y-1">
-                <div className="text-xl sm:text-2xl font-black text-white font-mono">50+</div>
-                <div className="text-[11px] font-mono text-zinc-400">Happy Clients</div>
+                <div className="text-xl sm:text-2xl font-black text-white font-mono">{stat3Val}</div>
+                <div className="text-[11px] font-mono text-zinc-400">{stat3Lbl}</div>
               </div>
               <div className="space-y-1">
-                <div className="text-xl sm:text-2xl font-black text-white font-mono">98%</div>
-                <div className="text-[11px] font-mono text-zinc-400">Client Satisfaction</div>
+                <div className="text-xl sm:text-2xl font-black text-white font-mono">{stat4Val}</div>
+                <div className="text-[11px] font-mono text-zinc-400">{stat4Lbl}</div>
               </div>
             </div>
           </div>

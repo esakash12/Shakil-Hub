@@ -6,9 +6,13 @@ import AgencyFounder from "@/components/agency/AgencyFounder";
 import AgencyAcademyPreview from "@/components/agency/AgencyAcademyPreview";
 import AgencyConsultation from "@/components/agency/AgencyConsultation";
 import { getPortfolioAction } from "@/lib/actions/portfolio";
+import { getAgencyCmsAction } from "@/lib/actions/agency-cms";
 
 export default async function HomePage() {
-  const portfolioData = await getPortfolioAction();
+  const [portfolioData, agencyCms] = await Promise.all([
+    getPortfolioAction(),
+    getAgencyCmsAction(),
+  ]);
 
   return (
     <div className="relative min-h-screen bg-[#02050e] text-white overflow-hidden selection:bg-[#00d2ff] selection:text-black">
@@ -18,7 +22,7 @@ export default async function HomePage() {
       <div className="fixed bottom-1/3 -left-48 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(0,102,255,0.06)_0%,transparent_70%)] blur-[140px] pointer-events-none -z-10" />
 
       {/* 1. Agency Hero Section with 2-Column Workstation Mockup */}
-      <AgencyHero />
+      <AgencyHero cmsData={agencyCms} />
 
       {/* 2. Featured Portfolio Showcase — 6 Curated Cards & Filter Pills */}
       <AgencyPortfolio initialData={portfolioData} />
@@ -27,13 +31,13 @@ export default async function HomePage() {
       <AgencyServices />
 
       {/* 4. Director & Founder — Mehedi Hasan Sakil Spotlight */}
-      <AgencyFounder />
+      <AgencyFounder cmsData={agencyCms} />
 
       {/* 5. Sakil Hub Academy & Masterclasses Preview */}
       <AgencyAcademyPreview />
 
       {/* 6. Free Strategy Meeting Consultation & Booking Terminal */}
-      <AgencyConsultation />
+      <AgencyConsultation cmsData={agencyCms} />
     </div>
   );
 }

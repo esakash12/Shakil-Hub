@@ -26,36 +26,31 @@ import {
   updatePlatformBrandingAction,
 } from "@/lib/actions/branding";
 import { PlatformBrandingSettings, DEFAULT_BRANDING } from "@/lib/data/branding-types";
-import { getAboutCmsAction, updateAboutCmsAction } from "@/lib/actions/about";
-import { AboutCmsData, DEFAULT_ABOUT_CMS } from "@/lib/data/about-cms-types";
-import { getHomeCmsAction, updateHomeCmsAction } from "@/lib/actions/home";
-import { HomeCmsData, DEFAULT_HOME_CMS } from "@/lib/data/home-cms-types";
+import { getAgencyCmsAction, updateAgencyCmsAction } from "@/lib/actions/agency-cms";
+import { AgencyCmsData, DEFAULT_AGENCY_CMS } from "@/lib/data/agency-cms-types";
 import ImageUploadField from "@/components/admin/ImageUploadField";
 
 export default function AdminSettingsPage() {
   const [formData, setFormData] = useState<PlatformBrandingSettings>(DEFAULT_BRANDING);
-  const [aboutData, setAboutData] = useState<AboutCmsData>(DEFAULT_ABOUT_CMS);
-  const [homeData, setHomeData] = useState<HomeCmsData>(DEFAULT_HOME_CMS);
+  const [agencyData, setAgencyData] = useState<AgencyCmsData>(DEFAULT_AGENCY_CMS);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [activeTab, setActiveTab] = useState<
-    "branding" | "payments" | "contact" | "social" | "about" | "home"
+    "branding" | "landing" | "payments" | "contact" | "social"
   >("branding");
 
   useEffect(() => {
     let isMounted = true;
     async function loadSettings() {
       try {
-        const [brandData, aboutCms, homeCms] = await Promise.all([
+        const [brandData, agencyCms] = await Promise.all([
           getPlatformBrandingAction(),
-          getAboutCmsAction(),
-          getHomeCmsAction(),
+          getAgencyCmsAction(),
         ]);
         if (isMounted) {
           if (brandData) setFormData(brandData);
-          if (aboutCms) setAboutData(aboutCms);
-          if (homeCms) setHomeData(homeCms);
+          if (agencyCms) setAgencyData(agencyCms);
         }
       } catch (err) {
         console.error("Failed to load platform settings:", err);
@@ -74,15 +69,8 @@ export default function AdminSettingsPage() {
     }));
   };
 
-  const handleAboutChange = <K extends keyof AboutCmsData>(field: K, value: AboutCmsData[K]) => {
-    setAboutData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleHomeChange = <K extends keyof HomeCmsData>(field: K, value: HomeCmsData[K]) => {
-    setHomeData((prev) => ({
+  const handleAgencyChange = <K extends keyof AgencyCmsData>(field: K, value: AgencyCmsData[K]) => {
+    setAgencyData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -94,23 +82,20 @@ export default function AdminSettingsPage() {
     setErrorMsg("");
 
     try {
-      const [brandRes, aboutRes, homeRes] = await Promise.all([
+      const [brandRes, agencyRes] = await Promise.all([
         updatePlatformBrandingAction(formData),
-        updateAboutCmsAction(aboutData),
-        updateHomeCmsAction(homeData),
+        updateAgencyCmsAction(agencyData),
       ]);
 
-      if (brandRes.success && aboutRes.success && homeRes.success) {
+      if (brandRes.success && agencyRes.success) {
         if (brandRes.settings) setFormData(brandRes.settings);
-        if (aboutRes.data) setAboutData(aboutRes.data);
-        if (homeRes.data) setHomeData(homeRes.data);
+        if (agencyRes.data) setAgencyData(agencyRes.data);
         setIsSaved(true);
         setTimeout(() => setIsSaved(false), 4000);
       } else {
         setErrorMsg(
           brandRes.error ||
-            aboutRes.error ||
-            homeRes.error ||
+            agencyRes.error ||
             "Failed to update platform settings."
         );
       }
@@ -155,8 +140,7 @@ export default function AdminSettingsPage() {
       <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-3">
         {[
           { id: "branding", label: "Brand & Logo", icon: Globe },
-          { id: "home", label: "Home Page CMS", icon: Layout },
-          { id: "about", label: "About Page CMS", icon: Sparkles },
+          { id: "landing", label: "Landing Page CMS", icon: Layout },
           { id: "payments", label: "Payment Gateways", icon: CreditCard },
           { id: "contact", label: "Contact & Support", icon: Building },
           { id: "social", label: "Footer & Social Links", icon: Share2 },
@@ -269,38 +253,38 @@ export default function AdminSettingsPage() {
           </div>
         )}
 
-        {/* Tab 2: Home Page CMS */}
-        {activeTab === "home" && (
+        {/* Tab 2: Landing Page CMS */}
+        {activeTab === "landing" && (
           <div className="space-y-6 animate-in fade-in">
             {/* Section 1: Hero Section */}
             <div className="p-6 sm:p-8 rounded-2xl bg-[#0e1320]/80 border border-white/10 space-y-6">
               <div className="border-b border-white/5 pb-3">
                 <div className="flex items-center gap-2">
-                  <Layout className="w-4 h-4 text-cyan-400" />
+                  <Layout className="w-4 h-4 text-[#00d2ff]" />
                   <h2 className="text-sm font-bold text-white tracking-tight">
-                    Hero Section Settings
+                    Hero Section Copy & Calls-to-Action
                   </h2>
                 </div>
                 <p className="text-xs text-gray-400">
-                  Configure the primary above-the-fold hero section shown on the root Home Page.
+                  Configure the primary above-the-fold headline, tagline, and call-to-action buttons shown on the agency landing page.
                 </p>
               </div>
 
               {/* Pill Badge */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium text-gray-300">
-                  Hero Pill Badge Text
+                  Hero Top Pill Badge
                 </label>
                 <input
                   type="text"
-                  value={homeData.heroPill}
-                  onChange={(e) => handleHomeChange("heroPill", e.target.value)}
-                  placeholder="Best Online Video Learning Platform"
+                  value={agencyData.heroPillBadge}
+                  onChange={(e) => handleAgencyChange("heroPillBadge", e.target.value)}
+                  placeholder="Creative Video • AI • Marketing"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium"
                 />
               </div>
 
-              {/* Headline Fields: 3 segments */}
+              {/* Main Headline (Prefix, Highlight, Suffix) */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium text-gray-300">
@@ -308,9 +292,9 @@ export default function AdminSettingsPage() {
                   </label>
                   <input
                     type="text"
-                    value={homeData.heroHeadlineLine1}
-                    onChange={(e) => handleHomeChange("heroHeadlineLine1", e.target.value)}
-                    placeholder="Learn Video Editing"
+                    value={agencyData.heroHeadlinePrefix}
+                    onChange={(e) => handleAgencyChange("heroHeadlinePrefix", e.target.value)}
+                    placeholder="We Build Powerful"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-bold"
                   />
                 </div>
@@ -321,9 +305,9 @@ export default function AdminSettingsPage() {
                   </label>
                   <input
                     type="text"
-                    value={homeData.heroHeadlineHighlight}
-                    onChange={(e) => handleHomeChange("heroHeadlineHighlight", e.target.value)}
-                    placeholder="From Zero to Pro"
+                    value={agencyData.heroHeadlineHighlight}
+                    onChange={(e) => handleAgencyChange("heroHeadlineHighlight", e.target.value)}
+                    placeholder="Digital Experiences"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-cyan-500/40 text-xs text-cyan-300 focus:outline-none focus:border-cyan-500 font-bold"
                   />
                 </div>
@@ -334,155 +318,321 @@ export default function AdminSettingsPage() {
                   </label>
                   <input
                     type="text"
-                    value={homeData.heroHeadlineLine2}
-                    onChange={(e) => handleHomeChange("heroHeadlineLine2", e.target.value)}
-                    placeholder="Build Your Creative Career"
+                    value={agencyData.heroHeadlineSuffix}
+                    onChange={(e) => handleAgencyChange("heroHeadlineSuffix", e.target.value)}
+                    placeholder=", Videos & Brands"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-bold"
                   />
                 </div>
               </div>
 
-              {/* Subtext / Description */}
+              {/* Subtext */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium text-gray-300">
-                  Hero Subtitle / Description
+                  Hero Subtitle / Value Proposition
                 </label>
                 <textarea
                   rows={3}
-                  value={homeData.heroSubtext}
-                  onChange={(e) => handleHomeChange("heroSubtext", e.target.value)}
-                  placeholder="Complete video editing masterclasses for beginners to advanced..."
+                  value={agencyData.heroSubtext}
+                  onChange={(e) => handleAgencyChange("heroSubtext", e.target.value)}
+                  placeholder="Turn your ideas into powerful visual stories..."
                   className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs text-gray-200 focus:outline-none focus:border-cyan-500 resize-none leading-relaxed"
                 />
               </div>
 
-              {/* CTA Buttons */}
+              {/* Action Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-3">
-                  <span className="text-[11px] font-mono text-cyan-400 font-bold uppercase">
-                    Primary CTA Button
-                  </span>
-                  <div className="space-y-1.5">
-                    <label className="block text-[11px] text-gray-400">Button Label</label>
-                    <input
-                      type="text"
-                      value={homeData.heroCtaText}
-                      onChange={(e) => handleHomeChange("heroCtaText", e.target.value)}
-                      placeholder="Explore Masterclasses"
-                      className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="block text-[11px] text-gray-400">Target Link</label>
-                    <input
-                      type="text"
-                      value={homeData.heroCtaHref}
-                      onChange={(e) => handleHomeChange("heroCtaHref", e.target.value)}
-                      placeholder="#courses or /courses"
-                      className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-cyan-500"
-                    />
-                  </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-300">
+                    Primary CTA Button Text
+                  </label>
+                  <input
+                    type="text"
+                    value={agencyData.heroCtaText}
+                    onChange={(e) => handleAgencyChange("heroCtaText", e.target.value)}
+                    placeholder="Explore Our Portfolio"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium"
+                  />
                 </div>
 
-                <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-3">
-                  <span className="text-[11px] font-mono text-blue-400 font-bold uppercase">
-                    Secondary CTA Button (Optional)
-                  </span>
-                  <div className="space-y-1.5">
-                    <label className="block text-[11px] text-gray-400">Button Label</label>
-                    <input
-                      type="text"
-                      value={homeData.heroSecondaryCtaText || ""}
-                      onChange={(e) => handleHomeChange("heroSecondaryCtaText", e.target.value)}
-                      placeholder="Browse Digital Shop"
-                      className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="block text-[11px] text-gray-400">Target Link</label>
-                    <input
-                      type="text"
-                      value={homeData.heroSecondaryCtaHref || ""}
-                      onChange={(e) => handleHomeChange("heroSecondaryCtaHref", e.target.value)}
-                      placeholder="/shop"
-                      className="w-full px-3 py-2 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-cyan-500"
-                    />
-                  </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-300">
+                    Showreel Button Text
+                  </label>
+                  <input
+                    type="text"
+                    value={agencyData.heroShowreelText}
+                    onChange={(e) => handleAgencyChange("heroShowreelText", e.target.value)}
+                    placeholder="Watch Showreel"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium"
+                  />
                 </div>
-              </div>
-
-              {/* Background Image Upload & URL */}
-              <div className="pt-2 border-t border-white/5">
-                <ImageUploadField
-                  label="Hero Studio Background Image"
-                  value={homeData.heroBackgroundImage || ""}
-                  onChange={(url) => handleHomeChange("heroBackgroundImage", url)}
-                  variant="banner"
-                  placeholder="https://images.unsplash.com/... or upload background"
-                  description="Dark ambient cinematic background banner displayed across the top of the Home landing page."
-                  buttonLabel="Upload Background"
-                  badgeText="Home Hero Background"
-                />
               </div>
             </div>
 
-            {/* Section 2: What You'll Learn Pillars */}
+            {/* Section 2: Director & Founder Spotlight */}
             <div className="p-6 sm:p-8 rounded-2xl bg-[#0e1320]/80 border border-white/10 space-y-6">
               <div className="border-b border-white/5 pb-3">
                 <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-cyan-400" />
+                  <Sparkles className="w-4 h-4 text-cyan-400" />
                   <h2 className="text-sm font-bold text-white tracking-tight">
-                    "What You&apos;ll Learn" Pillar Cards
+                    Director & Founder Spotlight Section
                   </h2>
                 </div>
                 <p className="text-xs text-gray-400">
-                  Configure the 4 core learning pillars displayed on the Home Page.
+                  Update the founder profile, headline, biography, photo, and key metrics.
                 </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="block text-xs font-medium text-gray-300">
+                    Founder Main Headline
+                  </label>
+                  <input
+                    type="text"
+                    value={agencyData.founderHeadline}
+                    onChange={(e) => handleAgencyChange("founderHeadline", e.target.value)}
+                    placeholder="Directed by Mehedi Hasan Sakil"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-semibold"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-300">
+                    Subheading / Role
+                  </label>
+                  <input
+                    type="text"
+                    value={agencyData.founderSubheading}
+                    onChange={(e) => handleAgencyChange("founderSubheading", e.target.value)}
+                    placeholder="Director & Founder"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-300">
+                    Neon Signature Watermark Text
+                  </label>
+                  <input
+                    type="text"
+                    value={agencyData.founderSignatureText}
+                    onChange={(e) => handleAgencyChange("founderSignatureText", e.target.value)}
+                    placeholder="Sakil"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-[#00d2ff] font-serif italic focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-300">
+                    Founder Portrait Photo
+                  </label>
+                  <ImageUploadField
+                    label="Founder Portrait"
+                    value={agencyData.founderPhotoUrl}
+                    onChange={(url) => handleAgencyChange("founderPhotoUrl", url)}
+                    variant="avatar"
+                    placeholder="https://... or upload photo"
+                    description="Portrait photo displayed on the founder spotlight card."
+                    buttonLabel="Upload Photo"
+                    badgeText="Founder Portrait"
+                  />
+                </div>
+              </div>
+
+              {/* Bio Narrative */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-gray-300">
+                  Founder Narrative / Bio Story
+                </label>
+                <textarea
+                  rows={4}
+                  value={agencyData.founderBio1}
+                  onChange={(e) => handleAgencyChange("founderBio1", e.target.value)}
+                  placeholder="I'm a video content creator and creative director..."
+                  className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs text-gray-200 focus:outline-none focus:border-cyan-500 resize-none leading-relaxed"
+                />
+              </div>
+
+              {/* 4 Metrics / Stats */}
+              <div className="space-y-3 pt-2 border-t border-white/5">
+                <label className="block text-xs font-medium text-gray-300">
+                  4 Key Metrics Bar (Value & Label)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Metric 1 */}
+                  <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-2">
+                    <span className="text-[10px] font-mono text-cyan-400 font-bold uppercase">
+                      Metric #1
+                    </span>
+                    <input
+                      type="text"
+                      value={agencyData.founderStat1Value}
+                      onChange={(e) => handleAgencyChange("founderStat1Value", e.target.value)}
+                      placeholder="5+"
+                      className="w-full px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-white font-bold focus:outline-none focus:border-cyan-500"
+                    />
+                    <input
+                      type="text"
+                      value={agencyData.founderStat1Label}
+                      onChange={(e) => handleAgencyChange("founderStat1Label", e.target.value)}
+                      placeholder="Years Experience"
+                      className="w-full px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-gray-300 focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+
+                  {/* Metric 2 */}
+                  <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-2">
+                    <span className="text-[10px] font-mono text-cyan-400 font-bold uppercase">
+                      Metric #2
+                    </span>
+                    <input
+                      type="text"
+                      value={agencyData.founderStat2Value}
+                      onChange={(e) => handleAgencyChange("founderStat2Value", e.target.value)}
+                      placeholder="100+"
+                      className="w-full px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-white font-bold focus:outline-none focus:border-cyan-500"
+                    />
+                    <input
+                      type="text"
+                      value={agencyData.founderStat2Label}
+                      onChange={(e) => handleAgencyChange("founderStat2Label", e.target.value)}
+                      placeholder="Projects Completed"
+                      className="w-full px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-gray-300 focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+
+                  {/* Metric 3 */}
+                  <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-2">
+                    <span className="text-[10px] font-mono text-cyan-400 font-bold uppercase">
+                      Metric #3
+                    </span>
+                    <input
+                      type="text"
+                      value={agencyData.founderStat3Value}
+                      onChange={(e) => handleAgencyChange("founderStat3Value", e.target.value)}
+                      placeholder="50+"
+                      className="w-full px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-white font-bold focus:outline-none focus:border-cyan-500"
+                    />
+                    <input
+                      type="text"
+                      value={agencyData.founderStat3Label}
+                      onChange={(e) => handleAgencyChange("founderStat3Label", e.target.value)}
+                      placeholder="Happy Clients"
+                      className="w-full px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-gray-300 focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+
+                  {/* Metric 4 */}
+                  <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-2">
+                    <span className="text-[10px] font-mono text-cyan-400 font-bold uppercase">
+                      Metric #4
+                    </span>
+                    <input
+                      type="text"
+                      value={agencyData.founderStat4Value}
+                      onChange={(e) => handleAgencyChange("founderStat4Value", e.target.value)}
+                      placeholder="98%"
+                      className="w-full px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-white font-bold focus:outline-none focus:border-cyan-500"
+                    />
+                    <input
+                      type="text"
+                      value={agencyData.founderStat4Label}
+                      onChange={(e) => handleAgencyChange("founderStat4Label", e.target.value)}
+                      placeholder="Client Satisfaction"
+                      className="w-full px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-gray-300 focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 3: Strategy Meeting & Consultation */}
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#0e1320]/80 border border-white/10 space-y-6">
+              <div className="border-b border-white/5 pb-3">
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-emerald-400" />
+                  <h2 className="text-sm font-bold text-white tracking-tight">
+                    Strategy Meeting & Consultation Booking
+                  </h2>
+                </div>
+                <p className="text-xs text-gray-400">
+                  Configure the strategy meeting booking headlines, guarantees, and direct WhatsApp contact number.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-300">
+                    Booking Card Title
+                  </label>
+                  <input
+                    type="text"
+                    value={agencyData.consultationTitle}
+                    onChange={(e) => handleAgencyChange("consultationTitle", e.target.value)}
+                    placeholder="Book a Free Strategy Meeting"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-semibold"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-300">
+                    Direct WhatsApp Number for Meetings *
+                  </label>
+                  <input
+                    type="text"
+                    value={agencyData.consultationWhatsapp}
+                    onChange={(e) => handleAgencyChange("consultationWhatsapp", e.target.value)}
+                    placeholder="01326896947"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-cyan-500 font-bold"
+                  />
+                </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium text-gray-300">
-                  Section Headline
+                  Subtitle / Meeting Description
                 </label>
-                <input
-                  type="text"
-                  value={homeData.whatYouWillLearnTitle}
-                  onChange={(e) => handleHomeChange("whatYouWillLearnTitle", e.target.value)}
-                  placeholder="What You'll Learn"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white font-semibold focus:outline-none focus:border-cyan-500"
+                <textarea
+                  rows={2}
+                  value={agencyData.consultationSubtitle}
+                  onChange={(e) => handleAgencyChange("consultationSubtitle", e.target.value)}
+                  placeholder="Discuss your project, get expert advice, and find the best solution..."
+                  className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs text-gray-200 focus:outline-none focus:border-cyan-500 resize-none"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {homeData.whatYouWillLearnItems.map((item, idx) => (
-                  <div key={idx} className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-2.5">
-                    <span className="text-[10px] font-mono text-cyan-400 font-bold uppercase">
-                      Pillar #{idx + 1}
-                    </span>
-                    <input
-                      type="text"
-                      value={item.title}
-                      onChange={(e) => {
-                        const copy = [...homeData.whatYouWillLearnItems];
-                        copy[idx] = { ...copy[idx], title: e.target.value };
-                        handleHomeChange("whatYouWillLearnItems", copy);
-                      }}
-                      placeholder="Title"
-                      className="w-full px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-white font-bold focus:outline-none focus:border-cyan-500"
-                    />
-                    <textarea
-                      rows={2}
-                      value={item.description}
-                      onChange={(e) => {
-                        const copy = [...homeData.whatYouWillLearnItems];
-                        copy[idx] = { ...copy[idx], description: e.target.value };
-                        handleHomeChange("whatYouWillLearnItems", copy);
-                      }}
-                      placeholder="Description"
-                      className="w-full p-2 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-gray-300 focus:outline-none focus:border-cyan-500 resize-none"
-                    />
-                  </div>
-                ))}
+              {/* 3 Guarantees */}
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-gray-300">
+                  Booking Guarantee Badges (3 items)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <input
+                    type="text"
+                    value={agencyData.consultationCheck1}
+                    onChange={(e) => handleAgencyChange("consultationCheck1", e.target.value)}
+                    placeholder="Free Consultation"
+                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500"
+                  />
+                  <input
+                    type="text"
+                    value={agencyData.consultationCheck2}
+                    onChange={(e) => handleAgencyChange("consultationCheck2", e.target.value)}
+                    placeholder="Project Planning"
+                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500"
+                  />
+                  <input
+                    type="text"
+                    value={agencyData.consultationCheck3}
+                    onChange={(e) => handleAgencyChange("consultationCheck3", e.target.value)}
+                    placeholder="Custom Quote"
+                    className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -697,316 +847,6 @@ export default function AdminSettingsPage() {
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-blue-500"
                   />
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 5: About Page CMS */}
-        {activeTab === "about" && (
-          <div className="space-y-6 animate-in fade-in">
-            {/* Section 1: Hero & Mission */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#0e1320]/80 border border-white/10 space-y-6">
-              <div className="border-b border-white/5 pb-3">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold mb-1">
-                  <Sparkles className="w-3 h-3" />
-                  <span>About Page Header</span>
-                </div>
-                <h3 className="text-sm font-bold text-white tracking-tight">
-                  Hero & Mission Statement
-                </h3>
-                <p className="text-xs text-gray-400">
-                  Configure the primary headline, paragraphs, and hero banner image on /about.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-gray-300">
-                    Badge Pill Text
-                  </label>
-                  <input
-                    type="text"
-                    value={aboutData.missionBadge}
-                    onChange={(e) => handleAboutChange("missionBadge", e.target.value)}
-                    placeholder="Our Vision & Mission"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-gray-300">
-                    Main Hero Headline
-                  </label>
-                  <input
-                    type="text"
-                    value={aboutData.heroHeadline}
-                    onChange={(e) => handleAboutChange("heroHeadline", e.target.value)}
-                    placeholder="Empowering the Next Generation of Creative Editors"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-semibold"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-gray-300">
-                  Primary Paragraph
-                </label>
-                <textarea
-                  rows={3}
-                  value={aboutData.heroParagraph1}
-                  onChange={(e) => handleAboutChange("heroParagraph1", e.target.value)}
-                  placeholder="Sakil Hub was founded with a single mission..."
-                  className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs text-gray-200 focus:outline-none focus:border-cyan-500 resize-none"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-gray-300">
-                  Secondary Paragraph
-                </label>
-                <textarea
-                  rows={3}
-                  value={aboutData.heroParagraph2}
-                  onChange={(e) => handleAboutChange("heroParagraph2", e.target.value)}
-                  placeholder="Whether you are an aspiring YouTuber..."
-                  className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs text-gray-200 focus:outline-none focus:border-cyan-500 resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-gray-300">
-                    Hero CTA Button Label
-                  </label>
-                  <input
-                    type="text"
-                    value={aboutData.heroCtaText}
-                    onChange={(e) => handleAboutChange("heroCtaText", e.target.value)}
-                    placeholder="Explore Masterclasses"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-gray-300">
-                    Hero CTA Button Link
-                  </label>
-                  <input
-                    type="text"
-                    value={aboutData.heroCtaHref}
-                    onChange={(e) => handleAboutChange("heroCtaHref", e.target.value)}
-                    placeholder="/courses"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white font-mono focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-2 border-t border-white/5">
-                <ImageUploadField
-                  label="About Page Hero Showcase Image"
-                  value={aboutData.heroImageUrl}
-                  onChange={(url) => handleAboutChange("heroImageUrl", url)}
-                  variant="banner"
-                  placeholder="https://images.unsplash.com/... or upload banner"
-                  description="Primary showcase image banner displayed at the top of the /about page."
-                  buttonLabel="Upload Hero Banner"
-                  badgeText="About Hero Banner"
-                />
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-gray-300">
-                    Floating Image Badge Text
-                  </label>
-                  <input
-                    type="text"
-                    value={aboutData.heroImageBadge}
-                    onChange={(e) => handleAboutChange("heroImageBadge", e.target.value)}
-                    placeholder="Industry Standard Curriculum Tested on 500+ Projects"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Section 2: Milestones */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#0e1320]/80 border border-white/10 space-y-6">
-              <div className="border-b border-white/5 pb-3">
-                <h3 className="text-sm font-bold text-white tracking-tight">
-                  Key Milestones & Numbers
-                </h3>
-                <p className="text-xs text-gray-400">
-                  Update the 4 milestone counters shown on the About page.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {aboutData.milestones.map((m, idx) => (
-                  <div key={idx} className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-2">
-                    <span className="text-[10px] font-mono text-cyan-400 font-bold uppercase">
-                      Milestone #{idx + 1}
-                    </span>
-                    <input
-                      type="text"
-                      value={m.value}
-                      onChange={(e) => {
-                        const copy = [...aboutData.milestones];
-                        copy[idx] = { ...copy[idx], value: e.target.value };
-                        handleAboutChange("milestones", copy);
-                      }}
-                      placeholder="20,000+"
-                      className="w-full px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-white font-bold focus:outline-none focus:border-cyan-500"
-                    />
-                    <input
-                      type="text"
-                      value={m.label}
-                      onChange={(e) => {
-                        const copy = [...aboutData.milestones];
-                        copy[idx] = { ...copy[idx], label: e.target.value };
-                        handleAboutChange("milestones", copy);
-                      }}
-                      placeholder="Active Students"
-                      className="w-full px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-gray-300 focus:outline-none focus:border-cyan-500"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Section 3: Why Students Choose Sakil Hub (01, 02, 03) */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#0e1320]/80 border border-white/10 space-y-6">
-              <div className="border-b border-white/5 pb-3">
-                <h3 className="text-sm font-bold text-white tracking-tight">
-                  Value Pillars (01, 02, 03 Section)
-                </h3>
-                <p className="text-xs text-gray-400">
-                  Customise the "Why Students Choose Sakil Hub" section title and pillar cards.
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-gray-300">
-                  Section Title
-                </label>
-                <input
-                  type="text"
-                  value={aboutData.whyTitle}
-                  onChange={(e) => handleAboutChange("whyTitle", e.target.value)}
-                  placeholder="Why Students Choose Sakil Hub"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white font-semibold focus:outline-none focus:border-cyan-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {aboutData.values.map((v, idx) => (
-                  <div key={idx} className="p-4 rounded-xl bg-black/40 border border-white/10 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-mono font-extrabold text-cyan-400">
-                        {v.step || `0${idx + 1}`}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="block text-[11px] font-medium text-gray-400">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        value={v.title}
-                        onChange={(e) => {
-                          const copy = [...aboutData.values];
-                          copy[idx] = { ...copy[idx], title: e.target.value };
-                          handleAboutChange("values", copy);
-                        }}
-                        placeholder="100% Practical & Project-Based"
-                        className="w-full px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-white font-semibold focus:outline-none focus:border-cyan-500"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="block text-[11px] font-medium text-gray-400">
-                        Description
-                      </label>
-                      <textarea
-                        rows={3}
-                        value={v.description}
-                        onChange={(e) => {
-                          const copy = [...aboutData.values];
-                          copy[idx] = { ...copy[idx], description: e.target.value };
-                          handleAboutChange("values", copy);
-                        }}
-                        placeholder="No boring theory. We teach using real commercial footage..."
-                        className="w-full p-2.5 rounded-lg bg-white/[0.03] border border-white/10 text-xs text-gray-300 focus:outline-none focus:border-cyan-500 resize-none font-normal"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Section 4: Lead Instructor / Founder Quote */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#0e1320]/80 border border-white/10 space-y-6">
-              <div className="border-b border-white/5 pb-3">
-                <h3 className="text-sm font-bold text-white tracking-tight">
-                  Founder & Lead Instructor Quote
-                </h3>
-                <p className="text-xs text-gray-400">
-                  Configure the personal quote and portrait shown at the bottom of the About page.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-gray-300">
-                    Badge Title
-                  </label>
-                  <input
-                    type="text"
-                    value={aboutData.leadInstructorBadge}
-                    onChange={(e) => handleAboutChange("leadInstructorBadge", e.target.value)}
-                    placeholder="Founder & Master Instructor"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-gray-300">
-                    Instructor Name
-                  </label>
-                  <input
-                    type="text"
-                    value={aboutData.leadInstructorName}
-                    onChange={(e) => handleAboutChange("leadInstructorName", e.target.value)}
-                    placeholder="Sakil Ahmed"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white font-bold focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-gray-300">
-                  Quote Text
-                </label>
-                <textarea
-                  rows={3}
-                  value={aboutData.leadInstructorQuote}
-                  onChange={(e) => handleAboutChange("leadInstructorQuote", e.target.value)}
-                  placeholder="My goal with Sakil Hub is to ensure no creative editor..."
-                  className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs text-gray-200 focus:outline-none focus:border-cyan-500 resize-none font-normal"
-                />
-              </div>
-
-              <div className="pt-2 border-t border-white/5">
-                <ImageUploadField
-                  label="Founder & Lead Instructor Portrait Photo"
-                  value={aboutData.leadInstructorAvatar}
-                  onChange={(url) => handleAboutChange("leadInstructorAvatar", url)}
-                  variant="avatar"
-                  placeholder="https://images.unsplash.com/... or upload portrait photo"
-                  description="Square or circular portrait photo shown next to the founder quote on /about."
-                  buttonLabel="Upload Avatar"
-                  badgeText="1:1 Portrait"
-                />
               </div>
             </div>
           </div>

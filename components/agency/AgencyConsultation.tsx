@@ -8,16 +8,32 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-export default function AgencyConsultation() {
+import { AgencyCmsData } from "@/lib/data/agency-cms-types";
+
+export default function AgencyConsultation({ cmsData }: { cmsData?: AgencyCmsData }) {
   const [selectedDate, setSelectedDate] = useState("September 20, 2026");
   const [selectedTime, setSelectedTime] = useState("11:00 AM");
 
   const timeSlots = ["10:00 AM", "11:00 AM", "02:00 PM", "04:00 PM"];
 
+  const title = cmsData?.consultationTitle || "Book a Free Strategy Meeting";
+  const subtitle = cmsData?.consultationSubtitle || "Discuss your project, get expert advice, and find the best solution for your brand.";
+  const check1 = cmsData?.consultationCheck1 || "Free Consultation";
+  const check2 = cmsData?.consultationCheck2 || "Project Planning";
+  const check3 = cmsData?.consultationCheck3 || "Custom Quote";
+
   const handleBookMeeting = (e: React.FormEvent) => {
     e.preventDefault();
+    const rawNum = cmsData?.consultationWhatsapp || "01326896947";
+    const cleanNum = rawNum.replace(/\D/g, "");
+    const phoneWithCountry = cleanNum.startsWith("880")
+      ? cleanNum
+      : cleanNum.startsWith("0")
+      ? `88${cleanNum}`
+      : `880${cleanNum}`;
+
     const message = `Hello Sakil Hub! I would like to book a Free Strategy Meeting on ${selectedDate} at ${selectedTime}.`;
-    const url = `https://wa.me/8801326896947?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
 
@@ -37,11 +53,11 @@ export default function AgencyConsultation() {
             </div>
 
             <h2 className="text-3xl sm:text-4xl lg:text-[44px] font-black text-white tracking-tight leading-tight">
-              Book a Free Strategy Meeting
+              {title}
             </h2>
 
-            <p className="text-xs sm:text-sm text-zinc-400 max-w-md leading-relaxed">
-              Discuss your project, get expert advice, and find the best solution for your brand.
+            <p className="text-xs sm:text-sm text-zinc-400 max-w-md leading-relaxed font-normal">
+              {subtitle}
             </p>
 
             {/* Checklist items with 3D Calendar Graphic Tile */}
@@ -55,15 +71,15 @@ export default function AgencyConsultation() {
               <div className="space-y-2 text-xs sm:text-sm text-zinc-300">
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-[#00d2ff] shrink-0 stroke-[2.5]" />
-                  <span>Free Consultation</span>
+                  <span>{check1}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-[#00d2ff] shrink-0 stroke-[2.5]" />
-                  <span>Project Planning</span>
+                  <span>{check2}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-[#00d2ff] shrink-0 stroke-[2.5]" />
-                  <span>Custom Quote</span>
+                  <span>{check3}</span>
                 </div>
               </div>
             </div>

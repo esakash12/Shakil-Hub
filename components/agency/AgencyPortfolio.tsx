@@ -20,25 +20,23 @@ interface AgencyPortfolioProps {
 
 export default function AgencyPortfolio({ initialData }: AgencyPortfolioProps) {
   const [categories, setCategories] = useState<PortfolioCategoryMeta[]>(
-    initialData?.categories && initialData.categories.length > 0
-      ? initialData.categories
-      : PORTFOLIO_CATEGORIES
+    initialData?.categories !== undefined ? initialData.categories : PORTFOLIO_CATEGORIES
   );
   const [items, setItems] = useState<PortfolioItem[]>(
-    initialData?.items && initialData.items.length > 0
-      ? initialData.items
-      : PORTFOLIO_ITEMS
+    initialData?.items !== undefined ? initialData.items : []
   );
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [activeVideo, setActiveVideo] = useState<PortfolioItem | null>(null);
   const [showAll, setShowAll] = useState(false);
 
   React.useEffect(() => {
-    if (initialData?.categories && initialData.categories.length > 0) {
-      setCategories(initialData.categories);
-    }
-    if (initialData?.items && initialData.items.length > 0) {
-      setItems(initialData.items);
+    if (initialData) {
+      if (initialData.categories !== undefined) {
+        setCategories(initialData.categories);
+      }
+      if (initialData.items !== undefined) {
+        setItems(initialData.items);
+      }
     }
   }, [initialData]);
 
@@ -105,94 +103,108 @@ export default function AgencyPortfolio({ initialData }: AgencyPortfolioProps) {
           </div>
         </div>
 
-        {/* 3x2 Curated Portfolio Showcase Grid */}
-        <motion.div
-          layout
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"
-        >
-          <AnimatePresence>
-            {displayedItems.map((item, index) => (
-              <motion.div
-                key={item.id}
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.35, delay: index * 0.03 }}
-                onClick={() => setActiveVideo(item)}
-                className="group relative rounded-2xl overflow-hidden bg-[#070b16] border border-white/[0.08] hover:border-[#00d2ff]/40 transition-all duration-500 flex flex-col justify-between cursor-pointer hover:shadow-[0_15px_45px_rgba(0,0,0,0.8),0_0_30px_rgba(0,210,255,0.15)]"
-              >
-                {/* 16:10 Thumbnail Image Box */}
-                <div className="relative w-full aspect-[16/10] overflow-hidden bg-black">
-                  <Image
-                    src={item.thumbnail}
-                    alt={item.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-85 group-hover:opacity-100"
-                  />
-
-                  {/* Dark Cinematic Gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#070b16] via-transparent to-black/50" />
-
-                  {/* Top-Left: Category Tag Badge */}
-                  <div className="absolute top-3 left-3 z-10">
-                    <span className="px-2.5 py-0.8 rounded-full text-[10.5px] font-mono font-bold bg-black/80 backdrop-blur-md text-white border border-white/15">
-                      {item.categoryLabel}
-                    </span>
-                  </div>
-
-                  {/* Top-Right: Duration Pill */}
-                  {item.duration && (
-                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono text-zinc-300 bg-black/80 backdrop-blur-md border border-white/15">
-                      <Clock className="w-3 h-3 text-[#00d2ff]" />
-                      <span>{item.duration}</span>
-                    </div>
-                  )}
-
-                  {/* Central Play Button */}
-                  <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <div className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-md border border-white/20 group-hover:border-[#00d2ff] group-hover:bg-[#00d2ff] group-hover:text-black text-white flex items-center justify-center transition-all group-hover:scale-110 shadow-lg">
-                      <Play className="w-4 h-4 fill-current ml-0.5" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card Info Box */}
-                <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                  <div className="space-y-1.5">
-                    <h3 className="text-base font-bold text-white group-hover:text-[#00d2ff] transition-colors line-clamp-1">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed font-normal">
-                      {item.description}
-                    </p>
-                  </div>
-
-                  {/* Bottom Cyan Action Link */}
-                  <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
-                    <span className="text-xs font-mono font-semibold text-[#00d2ff] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                      <span>View Project</span>
-                      <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
-
-        {/* View All Works Centered Button (From Mockup) */}
-        <div className="text-center pt-2">
-          <button
-            type="button"
-            onClick={() => setShowAll(!showAll)}
-            className="px-6 py-3 rounded-full bg-white/[0.03] hover:bg-cyan-500/10 border border-[#00d2ff]/40 text-white font-mono text-xs font-bold inline-flex items-center gap-2 transition-all cursor-pointer shadow-sm hover:scale-105"
+        {/* 3x2 Curated Portfolio Showcase Grid / Clean Empty State */}
+        {displayedItems.length === 0 ? (
+          <div className="text-center py-16 px-4 rounded-3xl bg-white/[0.02] border border-white/5 space-y-3 max-w-md mx-auto">
+            <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-[#00d2ff]/20 flex items-center justify-center text-[#00d2ff] mx-auto shadow-[0_0_15px_rgba(0,210,255,0.15)]">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-white">No Projects Published Yet</h3>
+            <p className="text-xs text-zinc-400">
+              Projects uploaded in the Admin Console will appear here live in real-time.
+            </p>
+          </div>
+        ) : (
+          <motion.div
+            layout
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#00d2ff]" />
-            <span>{showAll ? "Show Curated Works" : "View All Projects ➔"}</span>
-          </button>
-        </div>
+            <AnimatePresence>
+              {displayedItems.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.35, delay: index * 0.03 }}
+                  onClick={() => setActiveVideo(item)}
+                  className="group relative rounded-2xl overflow-hidden bg-[#070b16] border border-white/[0.08] hover:border-[#00d2ff]/40 transition-all duration-500 flex flex-col justify-between cursor-pointer hover:shadow-[0_15px_45px_rgba(0,0,0,0.8),0_0_30px_rgba(0,210,255,0.15)]"
+                >
+                  {/* 16:10 Thumbnail Image Box */}
+                  <div className="relative w-full aspect-[16/10] overflow-hidden bg-black">
+                    <Image
+                      src={item.thumbnail}
+                      alt={item.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-85 group-hover:opacity-100"
+                    />
+
+                    {/* Dark Cinematic Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#070b16] via-transparent to-black/50" />
+
+                    {/* Top-Left: Category Tag Badge */}
+                    <div className="absolute top-3 left-3 z-10">
+                      <span className="px-2.5 py-0.8 rounded-full text-[10.5px] font-mono font-bold bg-black/80 backdrop-blur-md text-white border border-white/15">
+                        {item.categoryLabel}
+                      </span>
+                    </div>
+
+                    {/* Top-Right: Duration Pill */}
+                    {item.duration && (
+                      <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono text-zinc-300 bg-black/80 backdrop-blur-md border border-white/15">
+                        <Clock className="w-3 h-3 text-[#00d2ff]" />
+                        <span>{item.duration}</span>
+                      </div>
+                    )}
+
+                    {/* Central Play Button */}
+                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                      <div className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-md border border-white/20 group-hover:border-[#00d2ff] group-hover:bg-[#00d2ff] group-hover:text-black text-white flex items-center justify-center transition-all group-hover:scale-110 shadow-lg">
+                        <Play className="w-4 h-4 fill-current ml-0.5" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Info Box */}
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                    <div className="space-y-1.5">
+                      <h3 className="text-base font-bold text-white group-hover:text-[#00d2ff] transition-colors line-clamp-1">
+                        {item.title}
+                      </h3>
+                      <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed font-normal">
+                        {item.description}
+                      </p>
+                    </div>
+
+                    {/* Bottom Cyan Action Link */}
+                    <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
+                      <span className="text-xs font-mono font-semibold text-[#00d2ff] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                        <span>View Project</span>
+                        <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
+
+        {/* View All Works Centered Button (Only show if more than 6 items exist) */}
+        {filteredItems.length > 6 && (
+          <div className="text-center pt-2">
+            <button
+              type="button"
+              onClick={() => setShowAll(!showAll)}
+              className="px-6 py-3 rounded-full bg-white/[0.03] hover:bg-cyan-500/10 border border-[#00d2ff]/40 text-white font-mono text-xs font-bold inline-flex items-center gap-2 transition-all cursor-pointer shadow-sm hover:scale-105"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#00d2ff]" />
+              <span>{showAll ? "Show Curated Works" : "View All Projects ➔"}</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Global Interactive Video Modal */}
