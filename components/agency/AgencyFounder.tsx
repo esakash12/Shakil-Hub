@@ -21,6 +21,7 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
   const headline = cmsData?.founderHeadline || "Directed by MH Sakil";
   const subheading = cmsData?.founderSubheading || "Founder & CEO, Sakil Hub.";
   const bio = cmsData?.founderBio1 || "I'm a video content creator and creative director, passionate about turning ideas into powerful visual stories. With years of experience in video production, design and digital marketing, I help brands grow through creativity and strategy.";
+  const bio2 = cmsData?.founderBio2 || "Today, I lead Sakil Hub — creating high-impact visual narratives, AI-powered commercials, and digital branding assets for global clients and high-growth businesses.";
   const stat1Val = cmsData?.founderStat1Value || "5+";
   const stat1Lbl = cmsData?.founderStat1Label || "Years Experience";
   const stat2Val = cmsData?.founderStat2Value || "100+";
@@ -39,10 +40,10 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
           
           {/* Left Column: Founder Photo Card with Neon Signature */}
-          <div className="lg:col-span-5 space-y-4">
-            <div className="relative rounded-2xl overflow-hidden bg-[#070b16] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(0,210,255,0.1)]">
+          <div className="lg:col-span-5 flex flex-col items-center lg:items-start space-y-3">
+            <div className="w-full max-w-[320px] sm:max-w-[350px] relative rounded-2xl overflow-hidden bg-[#070b16] border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_30px_rgba(0,210,255,0.1)]">
               {/* Full Natural Color Portrait Container (Fit Without Crop) */}
-              <div className="relative w-full aspect-[4/5] sm:aspect-[4/5] min-h-[380px] max-h-[520px] overflow-hidden bg-[#050812] flex items-center justify-center">
+              <div className="relative w-full aspect-[4/5] max-h-[350px] sm:max-h-[380px] overflow-hidden bg-[#050812] flex items-center justify-center">
                 {/* Ambient Soft Blurred Glow Backdrop to gracefully fill any aspect ratio letterbox */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
                   <Image
@@ -64,14 +65,14 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
                     alt={name}
                     fill
                     unoptimized
-                    sizes="(max-width: 768px) 100vw, 450px"
+                    sizes="(max-width: 768px) 100vw, 350px"
                     className="object-contain object-center transition-transform duration-500 hover:scale-[1.02]"
                     priority
                   />
                 </div>
 
                 {/* Subtle Bottom Vignette */}
-                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#070b16] via-[#070b16]/60 to-transparent pointer-events-none z-[2]" />
+                <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#070b16] via-[#070b16]/60 to-transparent pointer-events-none z-[2]" />
 
                 {/* Floating Neon Cyan Signature (only if signature text is provided) */}
                 {signature && (
@@ -84,11 +85,11 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
               </div>
 
               {/* Founder Name Strip */}
-              <div className="p-4 bg-[#070b16] flex items-center justify-between border-t border-white/[0.06]">
-                <span className="text-sm sm:text-base font-bold text-white tracking-tight">
+              <div className="px-3.5 py-2.5 bg-[#070b16] flex items-center justify-between border-t border-white/[0.06]">
+                <span className="text-xs sm:text-sm font-bold text-white tracking-tight">
                   {name}
                 </span>
-                <span className="text-xs font-mono text-zinc-400">
+                <span className="text-[11px] font-mono text-zinc-400">
                   {subheading}
                 </span>
               </div>
@@ -149,9 +150,10 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
             </h2>
 
             {/* Bio Narrative */}
-            <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-normal whitespace-pre-line">
-              {bio}
-            </p>
+            <div className="space-y-2.5 text-xs sm:text-sm text-zinc-300 leading-relaxed font-normal">
+              <p className="whitespace-pre-line">{bio}</p>
+              {bio2 && <p className="text-zinc-400 whitespace-pre-line">{bio2}</p>}
+            </div>
 
             {/* Single Horizontal Stats Card with 4 Metrics */}
             <div className="p-4 sm:p-5 rounded-2xl bg-[#070b16] border border-white/[0.08] grid grid-cols-2 sm:grid-cols-4 gap-4 text-center divide-x-0 sm:divide-x divide-white/[0.06]">

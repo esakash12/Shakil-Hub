@@ -19,6 +19,10 @@ import {
   ExternalLink,
   Tag,
   Eye,
+  UploadCloud,
+  FileVideo,
+  Check,
+  Video,
 } from "lucide-react";
 import ImageUploadField from "@/components/admin/ImageUploadField";
 import {
@@ -29,6 +33,26 @@ import {
   deletePortfolioCategoryAction,
 } from "@/lib/actions/portfolio";
 import { PortfolioCategoryMeta, PortfolioItem } from "@/lib/data/portfolio-types";
+
+function formatVideoDuration(seconds: number): string {
+  if (isNaN(seconds) || seconds <= 0) return "01:00";
+  const totalSeconds = Math.round(seconds);
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+
+  if (hrs > 0) {
+    return `${hrs}:${mins < 10 ? "0" : ""}${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  }
+  return `${mins < 10 ? "0" : ""}${mins}:${secs < 10 ? "0" : ""}${secs}`;
+}
+
+function getYouTubeVideoId(url: string): string | null {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+}
 
 export default function AdminPortfolioPage() {
   const [categories, setCategories] = useState<PortfolioCategoryMeta[]>([]);
@@ -53,11 +77,19 @@ export default function AdminPortfolioPage() {
     duration: "1:00",
     thumbnail: "",
     videoUrl: "",
-    embedType: "youtube",
+    embedType: "mp4",
     tags: [],
     featured: false,
   });
   const [tagsInput, setTagsInput] = useState("");
+
+  // Video Upload State
+  const [videoMode, setVideoMode] = useState<"upload" | "link">("upload");
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [videoFileName, setVideoFileName] = useState("");
+  const [videoUploadError, setVideoUploadError] = useState("");
+  const videoInputRef = React.useRef<HTMLInputElement>(null);
 
   // Category Modal / Form State
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -124,11 +156,15 @@ export default function AdminPortfolioPage() {
       duration: "1:00",
       thumbnail: "",
       videoUrl: "",
-      embedType: "youtube",
+      embedType: "mp4",
       tags: [],
       featured: false,
     });
     setTagsInput("");
+    setVideoFileName("");
+    setVideoUploadError("");
+    setVideoProgress(0);
+    setVideoMode("upload");
     setIsProjectModalOpen(true);
   };
 
@@ -136,7 +172,118 @@ export default function AdminPortfolioPage() {
   const handleOpenEditProject = (item: PortfolioItem) => {
     setProjectForm({ ...item });
     setTagsInput(item.tags?.join(", ") || "");
+    setVideoFileName("");
+    setVideoUploadError("");
+    setVideoProgress(0);
+    const isEmbed = item.videoUrl && (item.videoUrl.includes("youtube") || item.videoUrl.includes("youtu.be") || item.videoUrl.includes("vimeo"));
+    setVideoMode(isEmbed ? "link" : "upload");
     setIsProjectModalOpen(true);
+  };
+
+  // Video File Upload Handler
+  const handleVideoFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // File validation
+    if (!file.type.startsWith("video/") && !file.name.match(/\.(mp4|mov|mkv|webm|m4v)$/i)) {
+      setVideoUploadError("Please select a valid video file (.mp4, .mov, .webm, .mkv)");
+      return;
+    }
+
+    setVideoUploadError("");
+    setVideoFileName(file.name);
+    setIsUploadingVideo(true);
+    setVideoProgress(0);
+
+    // 1. Extract Duration & Video Frame Thumbnail
+    try {
+      const tempVideo = document.createElement("video");
+      tempVideo.preload = "metadata";
+      tempVideo.muted = true;
+      tempVideo.playsInline = true;
+      const blobUrl = URL.createObjectURL(file);
+      tempVideo.src = blobUrl;
+
+      tempVideo.onloadedmetadata = () => {
+        const formatted = formatVideoDuration(tempVideo.duration);
+        setProjectForm((prev) => ({
+          ...prev,
+          duration: formatted,
+        }));
+        // Seek to 1s to grab a frame
+        tempVideo.currentTime = Math.min(1.0, tempVideo.duration / 2);
+      };
+
+      tempVideo.onseeked = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = tempVideo.videoWidth || 640;
+          canvas.height = tempVideo.videoHeight || 360;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+            const frameUrl = canvas.toDataURL("image/jpeg", 0.85);
+            setProjectForm((prev) => {
+              if (!prev.thumbnail) {
+                return { ...prev, thumbnail: frameUrl };
+              }
+              return prev;
+            });
+          }
+          URL.revokeObjectURL(blobUrl);
+        } catch {
+          URL.revokeObjectURL(blobUrl);
+        }
+      };
+    } catch (err) {
+      console.warn("Video metadata notice:", err);
+    }
+
+    // 2. Send via XHR to /api/upload/video
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.onprogress = (ev) => {
+        if (ev.lengthComputable) {
+          const pct = Math.round((ev.loaded / ev.total) * 100);
+          setVideoProgress(pct);
+        }
+      };
+
+      xhr.onload = () => {
+        setIsUploadingVideo(false);
+        try {
+          const res = JSON.parse(xhr.responseText);
+          if (res.success && res.url) {
+            setProjectForm((prev) => ({
+              ...prev,
+              videoUrl: res.url,
+              embedType: "mp4",
+            }));
+            showToast("Video file uploaded successfully!");
+          } else {
+            setVideoUploadError(res.error || "Video upload failed on server.");
+          }
+        } catch {
+          setVideoUploadError("Failed to parse server upload response.");
+        }
+      };
+
+      xhr.onerror = () => {
+        setIsUploadingVideo(false);
+        setVideoUploadError("Network connection error while uploading video.");
+      };
+
+      xhr.open("POST", "/api/upload/video", true);
+      xhr.send(formData);
+    } catch (err: any) {
+      setIsUploadingVideo(false);
+      setVideoUploadError(err.message || "An error occurred during video upload.");
+    }
   };
 
   // Save Project
@@ -146,8 +293,24 @@ export default function AdminPortfolioPage() {
       showToast("Please enter a project title.", "error");
       return;
     }
-    if (!projectForm.thumbnail.trim()) {
-      showToast("Please upload or enter a thumbnail image.", "error");
+
+    let finalThumbnail = projectForm.thumbnail.trim();
+    const vUrl = projectForm.videoUrl || "";
+
+    // Auto-derive thumbnail if user did not provide one
+    if (!finalThumbnail) {
+      if (vUrl) {
+        const ytId = getYouTubeVideoId(vUrl);
+        if (ytId) {
+          finalThumbnail = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+        } else {
+          finalThumbnail = "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80";
+        }
+      }
+    }
+
+    if (!finalThumbnail && !vUrl.trim()) {
+      showToast("Please upload a video or project thumbnail.", "error");
       return;
     }
 
@@ -159,8 +322,19 @@ export default function AdminPortfolioPage() {
         .map((t) => t.trim())
         .filter(Boolean);
 
+      const ytId = getYouTubeVideoId(vUrl);
+      const isVimeo = vUrl.includes("vimeo.com");
+      const detectedEmbedType: "youtube" | "vimeo" | "mp4" = ytId
+        ? "youtube"
+        : isVimeo
+        ? "vimeo"
+        : "mp4";
+
       const payload: PortfolioItem = {
         ...projectForm,
+        videoUrl: vUrl,
+        thumbnail: finalThumbnail,
+        embedType: detectedEmbedType,
         categoryLabel: selectedCat?.label || projectForm.category,
         tags: cleanedTags,
       };
@@ -744,35 +918,170 @@ export default function AdminPortfolioPage() {
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
                   />
                 </div>
+              </div>
 
-                {/* Video URL */}
-                <div className="space-y-1.5">
+              {/* Video Section: File Upload or Embed Link */}
+              <div className="pt-3 border-t border-white/5 space-y-3">
+                <div className="flex items-center justify-between">
                   <label className="block text-xs font-semibold text-zinc-300">
-                    Video Embed Link (YouTube, Vimeo, MP4)
+                    Project Video *
                   </label>
-                  <input
-                    type="text"
-                    value={projectForm.videoUrl || ""}
-                    onChange={(e) =>
-                      setProjectForm((prev) => ({ ...prev, videoUrl: e.target.value }))
-                    }
-                    placeholder="https://www.youtube.com/embed/... or direct link"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
-                  />
+                  <div className="flex items-center gap-1 p-0.5 rounded-lg bg-black/60 border border-white/10 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => setVideoMode("upload")}
+                      className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                        videoMode === "upload"
+                          ? "bg-[#00d2ff] text-black font-bold"
+                          : "text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      Upload Video File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVideoMode("link")}
+                      className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                        videoMode === "link"
+                          ? "bg-[#00d2ff] text-black font-bold"
+                          : "text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      Paste Video Link
+                    </button>
+                  </div>
                 </div>
+
+                {videoMode === "upload" ? (
+                  <div className="space-y-2">
+                    <input
+                      ref={videoInputRef}
+                      type="file"
+                      accept="video/*,.mp4,.mov,.webm,.mkv,.m4v"
+                      onChange={handleVideoFileSelect}
+                      className="hidden"
+                    />
+
+                    {/* Video Upload Button / Dropzone */}
+                    {isUploadingVideo ? (
+                      <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-2.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2 text-cyan-300 font-medium truncate">
+                            <Loader2 className="w-4 h-4 animate-spin shrink-0 text-[#00d2ff]" />
+                            <span className="truncate">Uploading {videoFileName || "video"}...</span>
+                          </div>
+                          <span className="font-mono font-bold text-white shrink-0">{videoProgress}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-[#00d2ff] to-blue-500 transition-all duration-200"
+                            style={{ width: `${videoProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                    ) : projectForm.videoUrl && !projectForm.videoUrl.includes("youtube") && !projectForm.videoUrl.includes("vimeo") ? (
+                      <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-[#00d2ff] shrink-0">
+                            <Video className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-xs font-semibold text-white truncate">
+                              {videoFileName || projectForm.videoUrl.split("/").pop()}
+                            </div>
+                            <div className="text-[10px] font-mono text-emerald-400 flex items-center gap-1 mt-0.5">
+                              <Check className="w-3 h-3" />
+                              <span>Video Ready • Duration: {projectForm.duration || "Auto"}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => videoInputRef.current?.click()}
+                            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-xs text-white font-medium transition-colors cursor-pointer"
+                          >
+                            Replace Video
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setProjectForm((prev) => ({ ...prev, videoUrl: "" }));
+                              setVideoFileName("");
+                            }}
+                            className="p-1.5 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                            title="Remove Video"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => videoInputRef.current?.click()}
+                        className="border-2 border-dashed border-white/15 hover:border-[#00d2ff]/50 rounded-2xl p-6 text-center cursor-pointer transition-colors bg-white/[0.01] hover:bg-cyan-500/[0.02] group"
+                      >
+                        <div className="w-12 h-12 rounded-2xl bg-white/5 group-hover:bg-cyan-500/10 flex items-center justify-center mx-auto text-zinc-400 group-hover:text-[#00d2ff] transition-colors mb-2">
+                          <UploadCloud className="w-6 h-6" />
+                        </div>
+                        <p className="text-xs font-bold text-white">Click or drag & drop to upload video</p>
+                        <p className="text-[11px] text-zinc-500 mt-0.5">MP4, MOV, WebM, MKV up to 100MB</p>
+                      </div>
+                    )}
+
+                    {videoUploadError && (
+                      <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <span>{videoUploadError}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setVideoUploadError("")}
+                          className="text-red-400 hover:text-white cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <input
+                      type="text"
+                      value={projectForm.videoUrl || ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setProjectForm((prev) => ({ ...prev, videoUrl: val }));
+                        const ytId = getYouTubeVideoId(val);
+                        if (ytId && !projectForm.thumbnail) {
+                          setProjectForm((prev) => ({
+                            ...prev,
+                            thumbnail: `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`,
+                          }));
+                        }
+                      }}
+                      placeholder="Paste YouTube link (https://youtube.com/watch?v=...), Vimeo, or MP4 URL"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
+                    />
+                    <p className="text-[11px] text-zinc-500">
+                      YouTube thumbnails are automatically extracted when a link is pasted.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Thumbnail Image with Upload Support */}
-              <div className="pt-2 border-t border-white/5">
+              <div className="pt-3 border-t border-white/5">
                 <ImageUploadField
-                  label="Project Thumbnail Image *"
+                  label="Project Thumbnail Image (Auto-captured from video or upload custom)"
                   value={projectForm.thumbnail}
                   onChange={(url) =>
                     setProjectForm((prev) => ({ ...prev, thumbnail: url }))
                   }
                   variant="banner"
-                  placeholder="https://images.unsplash.com/... or upload project thumbnail"
-                  description="Upload a 16:9 or 16:10 high-resolution thumbnail (JPG, PNG, WebP up to 10MB)."
+                  placeholder="https://images.unsplash.com/... or upload thumbnail"
+                  description="High-resolution 16:9 thumbnail. If left blank, automatically generated from your uploaded video or YouTube link."
                   buttonLabel="Upload Project Thumbnail"
                   badgeText="16:9 Showcase"
                 />

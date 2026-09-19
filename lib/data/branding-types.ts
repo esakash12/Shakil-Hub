@@ -24,7 +24,7 @@ export interface PlatformBrandingSettings {
 export const DEFAULT_BRANDING: PlatformBrandingSettings = {
   siteName: "Sakil Hub",
   siteTagline: "Professional Video Editing & Filmmaking Masterclasses",
-  logoUrl: "/images/logo.jpg",
+  logoUrl: "",
   faviconUrl: "",
   contactEmail: "support@sakilhub.com",
   contactPhone: "+880 1712-345678",

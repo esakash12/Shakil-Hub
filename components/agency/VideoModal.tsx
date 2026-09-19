@@ -26,7 +26,16 @@ export default function VideoModal({ item, onClose }: VideoModalProps) {
 
   if (!item) return null;
 
-  // Generate safe embed URL
+  // Generate safe embed URL or detect direct video
+  const isDirectVideo = (url?: string) => {
+    if (!url) return false;
+    return (
+      url.startsWith("/uploads/") ||
+      url.startsWith("/api/r2/") ||
+      url.match(/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i) !== null
+    );
+  };
+
   const getEmbedUrl = (url?: string) => {
     if (!url) return null;
     if (url.includes("youtube.com/watch?v=")) {
@@ -36,10 +45,15 @@ export default function VideoModal({ item, onClose }: VideoModalProps) {
       const id = url.split("youtu.be/")[1]?.split("?")[0];
       return `https://www.youtube.com/embed/${id}`;
     }
+    if (url.includes("vimeo.com/")) {
+      const id = url.split("vimeo.com/")[1]?.split("?")[0];
+      return `https://player.vimeo.com/video/${id}`;
+    }
     return url;
   };
 
-  const embedSrc = getEmbedUrl(item.videoUrl);
+  const isDirect = isDirectVideo(item.videoUrl);
+  const embedSrc = !isDirect ? getEmbedUrl(item.videoUrl) : null;
 
   return (
     <div
@@ -75,7 +89,16 @@ export default function VideoModal({ item, onClose }: VideoModalProps) {
 
         {/* Video Player Box */}
         <div className="relative w-full aspect-video bg-black flex items-center justify-center overflow-hidden">
-          {embedSrc ? (
+          {isDirect && item.videoUrl ? (
+            <video
+              src={item.videoUrl}
+              controls
+              autoPlay
+              playsInline
+              poster={item.thumbnail}
+              className="w-full h-full object-contain bg-black"
+            />
+          ) : embedSrc ? (
             <iframe
               src={`${embedSrc}?autoplay=1&rel=0`}
               title={item.title}
