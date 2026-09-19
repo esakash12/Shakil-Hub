@@ -246,14 +246,13 @@ export default function AdminPortfolioPage() {
 
         tempVideo.onseeked = () => {
           clearTimeout(timer);
-          try {
             const canvas = document.createElement("canvas");
-            canvas.width = tempVideo.videoWidth || 640;
-            canvas.height = tempVideo.videoHeight || 360;
+            canvas.width = 480;
+            canvas.height = 270;
             const ctx = canvas.getContext("2d");
             if (ctx) {
-              ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
-              const frameUrl = canvas.toDataURL("image/jpeg", 0.85);
+              ctx.drawImage(tempVideo, 0, 0, 480, 270);
+              const frameUrl = canvas.toDataURL("image/jpeg", 0.65);
               setProjectForm((prev) => {
                 if (!prev.thumbnail) {
                   return { ...prev, thumbnail: frameUrl };
@@ -261,7 +260,6 @@ export default function AdminPortfolioPage() {
                 return prev;
               });
             }
-          } catch {}
           try { URL.revokeObjectURL(blobUrl); } catch {}
         };
       } catch (err) {

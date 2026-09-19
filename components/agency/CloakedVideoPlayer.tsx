@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
@@ -56,6 +56,7 @@ export default function CloakedVideoPlayer({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isEnded, setIsEnded] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
 
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -255,7 +256,12 @@ export default function CloakedVideoPlayer({
           src={url}
           poster={poster}
           autoPlay={autoPlay}
+          preload="metadata"
           playsInline
+          onWaiting={() => setIsBuffering(true)}
+          onPlaying={() => setIsBuffering(false)}
+          onCanPlay={() => setIsBuffering(false)}
+          onSeeked={() => setIsBuffering(false)}
           onTimeUpdate={() => {
             if (videoRef.current) {
               setCurrentTime(videoRef.current.currentTime);
@@ -269,6 +275,7 @@ export default function CloakedVideoPlayer({
           onEnded={() => {
             setIsPlaying(false);
             setIsEnded(true);
+            setIsBuffering(false);
           }}
           onClick={togglePlay}
           className="w-full h-full object-contain cursor-pointer"
@@ -281,6 +288,13 @@ export default function CloakedVideoPlayer({
         className="absolute inset-0 z-20 cursor-pointer bg-transparent"
         title={isPlaying ? "Click to Pause" : "Click to Play"}
       />
+
+      {/* 2.5. BUFFERING SPINNER */}
+      {isBuffering && isPlaying && (
+        <div className="absolute inset-0 z-24 flex items-center justify-center pointer-events-none bg-black/20 backdrop-blur-[1px]">
+          <div className="w-12 h-12 rounded-full border-2 border-[#00d2ff]/30 border-t-[#00d2ff] animate-spin" />
+        </div>
+      )}
 
       {/* 3. CENTER PLAY / PAUSE / REPLAY SPLASH */}
       {(!isPlaying || isEnded) && (
