@@ -5,7 +5,6 @@ import AgencyPortfolio from "@/components/agency/AgencyPortfolio";
 import AgencyServices from "@/components/agency/AgencyServices";
 import AgencyFounder from "@/components/agency/AgencyFounder";
 import AgencyAcademyPreview from "@/components/agency/AgencyAcademyPreview";
-import ProjectCostEstimator from "@/components/agency/ProjectCostEstimator";
 import AgencyConsultation from "@/components/agency/AgencyConsultation";
 import { getPortfolioAction } from "@/lib/actions/portfolio";
 import { getAgencyCmsAction } from "@/lib/actions/agency-cms";
@@ -41,10 +40,7 @@ export default async function HomePage() {
       {/* 6. Sakil Hub Academy & Masterclasses Preview (Controlled via CMS) */}
       {agencyCms?.showAcademyPreview && <AgencyAcademyPreview />}
 
-      {/* 7. Interactive Project Budget & Turnaround Cost Estimator */}
-      <ProjectCostEstimator />
-
-      {/* 8. Free Strategy Meeting Consultation & Booking Terminal */}
+      {/* 7. Free Strategy Meeting Consultation & Booking Terminal */}
       <AgencyConsultation cmsData={agencyCms} />
     </div>
   );
