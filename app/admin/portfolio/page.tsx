@@ -33,6 +33,7 @@ import {
   deletePortfolioCategoryAction,
 } from "@/lib/actions/portfolio";
 import { PortfolioCategoryMeta, PortfolioItem } from "@/lib/data/portfolio-types";
+import { getPresignedUploadUrl } from "@/lib/actions/cloudflare-r2";
 
 function formatVideoDuration(seconds: number): string {
   if (isNaN(seconds) || seconds <= 0) return "01:00";
@@ -89,6 +90,7 @@ export default function AdminPortfolioPage() {
   const [videoProgress, setVideoProgress] = useState(0);
   const [videoFileName, setVideoFileName] = useState("");
   const [videoUploadError, setVideoUploadError] = useState("");
+  const [videoUploadStats, setVideoUploadStats] = useState("");
   const videoInputRef = React.useRef<HTMLInputElement>(null);
 
   // Category Modal / Form State
@@ -201,7 +203,7 @@ export default function AdminPortfolioPage() {
     setIsProjectModalOpen(true);
   };
 
-  // Video File Upload Handler
+  // Video File Upload Handler with Cloudflare R2 Direct Pre-Signed Support
   const handleVideoFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -212,56 +214,118 @@ export default function AdminPortfolioPage() {
       return;
     }
 
+    const totalMb = (file.size / (1024 * 1024)).toFixed(1);
     setVideoUploadError("");
     setVideoFileName(file.name);
     setIsUploadingVideo(true);
     setVideoProgress(0);
+    setVideoUploadStats(`0 MB / ${totalMb} MB (0%)`);
 
-    // 1. Extract Duration & Video Frame Thumbnail
+    // 1. Asynchronously Extract Duration & Thumbnail with Safety Timeout
+    (async () => {
+      try {
+        const tempVideo = document.createElement("video");
+        tempVideo.preload = "metadata";
+        tempVideo.muted = true;
+        tempVideo.playsInline = true;
+        const blobUrl = URL.createObjectURL(file);
+        tempVideo.src = blobUrl;
+
+        const timer = setTimeout(() => {
+          try { URL.revokeObjectURL(blobUrl); } catch {}
+        }, 5000);
+
+        tempVideo.onloadedmetadata = () => {
+          const formatted = formatVideoDuration(tempVideo.duration);
+          setProjectForm((prev) => ({
+            ...prev,
+            duration: formatted,
+          }));
+          tempVideo.currentTime = Math.min(1.0, tempVideo.duration / 2);
+        };
+
+        tempVideo.onseeked = () => {
+          clearTimeout(timer);
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = tempVideo.videoWidth || 640;
+            canvas.height = tempVideo.videoHeight || 360;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+              const frameUrl = canvas.toDataURL("image/jpeg", 0.85);
+              setProjectForm((prev) => {
+                if (!prev.thumbnail) {
+                  return { ...prev, thumbnail: frameUrl };
+                }
+                return prev;
+              });
+            }
+          } catch {}
+          try { URL.revokeObjectURL(blobUrl); } catch {}
+        };
+      } catch (err) {
+        console.warn("Video metadata notice:", err);
+      }
+    })();
+
+    // 2. High-Performance Direct Browser-to-Cloudflare R2 Upload
     try {
-      const tempVideo = document.createElement("video");
-      tempVideo.preload = "metadata";
-      tempVideo.muted = true;
-      tempVideo.playsInline = true;
-      const blobUrl = URL.createObjectURL(file);
-      tempVideo.src = blobUrl;
+      const presigned = await getPresignedUploadUrl(
+        file.name,
+        file.type || "video/mp4",
+        "portfolio"
+      );
 
-      tempVideo.onloadedmetadata = () => {
-        const formatted = formatVideoDuration(tempVideo.duration);
-        setProjectForm((prev) => ({
-          ...prev,
-          duration: formatted,
-        }));
-        // Seek to 1s to grab a frame
-        tempVideo.currentTime = Math.min(1.0, tempVideo.duration / 2);
-      };
+      if (presigned.success && presigned.uploadUrl) {
+        const xhr = new XMLHttpRequest();
 
-      tempVideo.onseeked = () => {
-        try {
-          const canvas = document.createElement("canvas");
-          canvas.width = tempVideo.videoWidth || 640;
-          canvas.height = tempVideo.videoHeight || 360;
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
-            const frameUrl = canvas.toDataURL("image/jpeg", 0.85);
-            setProjectForm((prev) => {
-              if (!prev.thumbnail) {
-                return { ...prev, thumbnail: frameUrl };
-              }
-              return prev;
-            });
+        xhr.upload.onprogress = (ev) => {
+          if (ev.lengthComputable) {
+            const pct = Math.round((ev.loaded / ev.total) * 100);
+            setVideoProgress(pct);
+            const loadedMb = (ev.loaded / (1024 * 1024)).toFixed(1);
+            setVideoUploadStats(`${loadedMb} MB / ${totalMb} MB (${pct}%)`);
           }
-          URL.revokeObjectURL(blobUrl);
-        } catch {
-          URL.revokeObjectURL(blobUrl);
-        }
-      };
-    } catch (err) {
-      console.warn("Video metadata notice:", err);
+        };
+
+        xhr.onload = () => {
+          setIsUploadingVideo(false);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            const targetUrl = presigned.publicUrl || `/api/r2/${presigned.objectKey}`;
+            setProjectForm((prev) => ({
+              ...prev,
+              videoUrl: targetUrl,
+              embedType: "mp4",
+            }));
+            setVideoProgress(100);
+            showToast("Video file uploaded successfully to Cloudflare R2!");
+          } else {
+            console.warn(`R2 direct PUT returned status ${xhr.status}, attempting fallback...`);
+            uploadViaServerFallback(file, totalMb);
+          }
+        };
+
+        xhr.onerror = () => {
+          console.warn("R2 direct upload network error, attempting server upload fallback...");
+          uploadViaServerFallback(file, totalMb);
+        };
+
+        xhr.open("PUT", presigned.uploadUrl, true);
+        xhr.setRequestHeader("Content-Type", file.type || "video/mp4");
+        xhr.send(file);
+        return;
+      }
+    } catch (presignErr) {
+      console.warn("Presigned URL generation failed, using server fallback:", presignErr);
     }
 
-    // 2. Send via XHR to /api/upload/video
+    // Fallback if R2 pre-sign is unavailable
+    uploadViaServerFallback(file, totalMb);
+  };
+
+  // Resilient Server Upload Fallback
+  const uploadViaServerFallback = (file: File, totalMb: string) => {
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -272,6 +336,8 @@ export default function AdminPortfolioPage() {
         if (ev.lengthComputable) {
           const pct = Math.round((ev.loaded / ev.total) * 100);
           setVideoProgress(pct);
+          const loadedMb = (ev.loaded / (1024 * 1024)).toFixed(1);
+          setVideoUploadStats(`${loadedMb} MB / ${totalMb} MB (${pct}%)`);
         }
       };
 
@@ -285,6 +351,7 @@ export default function AdminPortfolioPage() {
               videoUrl: res.url,
               embedType: "mp4",
             }));
+            setVideoProgress(100);
             showToast("Video file uploaded successfully!");
           } else {
             setVideoUploadError(res.error || "Video upload failed on server.");
@@ -296,7 +363,7 @@ export default function AdminPortfolioPage() {
 
       xhr.onerror = () => {
         setIsUploadingVideo(false);
-        setVideoUploadError("Network connection error while uploading video.");
+        setVideoUploadError("Network connection error. Check your connection or upload a smaller file.");
       };
 
       xhr.open("POST", "/api/upload/video", true);
@@ -1008,7 +1075,7 @@ export default function AdminPortfolioPage() {
                               : "Click or drag & drop to upload video"}
                           </p>
                           <p className="text-[10.5px] text-zinc-500 mt-0.5">
-                            MP4, MOV, WebM, MKV up to 100MB
+                            MP4, MOV, WebM, MKV (Large files & 4K supported)
                           </p>
                         </div>
                       </div>
@@ -1027,7 +1094,7 @@ export default function AdminPortfolioPage() {
                           <div className="flex items-center justify-between text-[11px] font-mono">
                             <span className="text-[#00d2ff] font-bold flex items-center gap-1.5">
                               <Loader2 className="w-3 h-3 animate-spin" />
-                              Uploading video file...
+                              <span>{videoUploadStats ? `Uploading: ${videoUploadStats}` : "Uploading video..."}</span>
                             </span>
                             <span className="text-zinc-300 font-bold">{videoProgress}%</span>
                           </div>

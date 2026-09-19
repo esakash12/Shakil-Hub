@@ -4,7 +4,7 @@ import path from "path";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 600;
 
 export async function POST(req: NextRequest) {
   try {

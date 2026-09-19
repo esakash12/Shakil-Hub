@@ -38,7 +38,8 @@ function getR2Client(): S3Client {
  */
 export async function getPresignedUploadUrl(
   fileName: string,
-  fileType: string = "video/mp4"
+  fileType: string = "video/mp4",
+  folder: string = "lessons"
 ): Promise<PresignedUploadResponse> {
   const bucketName = process.env.R2_BUCKET_NAME || "lms-videos";
   const accessKey = process.env.R2_ACCESS_KEY_ID;
@@ -54,7 +55,7 @@ export async function getPresignedUploadUrl(
 
   // Strict sanitized unique object key
   const sanitizedName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
-  const objectKey = `lessons/${Date.now()}-${sanitizedName}`;
+  const objectKey = `${folder}/${Date.now()}-${sanitizedName}`;
 
   // 1. If R2 credentials are configured
   if (accessKey && secretKey && endpoint) {
@@ -68,7 +69,7 @@ export async function getPresignedUploadUrl(
       });
 
       const uploadUrl = await getSignedUrl(s3Client, command, {
-        expiresIn: 3600, // 1 hour upload window
+        expiresIn: 7200, // 2 hour upload window for large files
       });
 
       return {
@@ -76,7 +77,7 @@ export async function getPresignedUploadUrl(
         uploadUrl,
         objectKey,
         fileKey: objectKey,
-        publicUrl: `${endpoint.replace(/\/$/, "")}/${bucketName}/${objectKey}`,
+        publicUrl: `/api/r2/${objectKey}`,
       };
     } catch (err: any) {
       console.error("Cloudflare R2 Presign Error:", err.message || err);
