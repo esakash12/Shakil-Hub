@@ -15,10 +15,18 @@ const DEFAULT_PORTFOLIO_DATA: PortfolioData = {
   updatedAt: new Date().toISOString(),
 };
 
+let portfolioCache: { data: PortfolioData; timestamp: number } | null = null;
+const PORTFOLIO_CACHE_TTL_MS = 60000; // 60 seconds memory cache
+
 /**
  * Retrieves all portfolio categories and items with Prisma and resilient JSON fallback
  */
 export async function getPersistentPortfolio(): Promise<PortfolioData> {
+  const now = Date.now();
+  if (portfolioCache && now - portfolioCache.timestamp < PORTFOLIO_CACHE_TTL_MS) {
+    return portfolioCache.data;
+  }
+
   // 1. Try Prisma platformSetting
   try {
     if (prisma && (await isPrismaReady())) {
@@ -28,11 +36,13 @@ export async function getPersistentPortfolio(): Promise<PortfolioData> {
       if (record && record.value && typeof record.value === "object") {
         const val = record.value as any;
         if (Array.isArray(val.categories) && Array.isArray(val.items)) {
-          return {
+          const data: PortfolioData = {
             categories: val.categories,
             items: val.items,
             updatedAt: val.updatedAt,
           };
+          portfolioCache = { data, timestamp: now };
+          return data;
         }
       }
     }
@@ -44,12 +54,14 @@ export async function getPersistentPortfolio(): Promise<PortfolioData> {
   try {
     const parsed = await readDataFile<PortfolioData>("portfolio.json", DEFAULT_PORTFOLIO_DATA);
     if (parsed && Array.isArray(parsed.categories) && Array.isArray(parsed.items)) {
+      portfolioCache = { data: parsed, timestamp: now };
       return parsed;
     }
   } catch (err: any) {
     console.error("Error reading persistent portfolio fallback:", err);
   }
 
+  portfolioCache = { data: DEFAULT_PORTFOLIO_DATA, timestamp: now };
   return DEFAULT_PORTFOLIO_DATA;
 }
 
@@ -80,6 +92,7 @@ export async function writePersistentPortfolio(data: PortfolioData): Promise<Por
     console.error("Failed to write portfolio.json fallback:", err);
   }
 
+  portfolioCache = { data: updatedData, timestamp: Date.now() };
   return updatedData;
 }
 

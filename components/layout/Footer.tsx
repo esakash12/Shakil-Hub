@@ -65,6 +65,7 @@ export default function Footer() {
                     src={branding.logoUrl}
                     alt={branding.siteName || "Sakil Hub"}
                     fill
+                    unoptimized
                     sizes="128px"
                     className="object-contain object-left group-hover:scale-105 transition-transform"
                   />

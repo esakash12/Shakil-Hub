@@ -8,20 +8,30 @@ import { prisma, isPrismaReady } from "../db/prisma";
 
 export * from "./branding-types";
 
+let brandingCache: { data: PlatformBrandingSettings; timestamp: number } | null = null;
+const BRANDING_CACHE_TTL_MS = 60000; // 60 seconds memory cache
+
 /**
  * Reads persistent platform branding directly from PostgreSQL with fallback to defaults
  */
 export async function getPersistentBranding(): Promise<PlatformBrandingSettings> {
+  const now = Date.now();
+  if (brandingCache && now - brandingCache.timestamp < BRANDING_CACHE_TTL_MS) {
+    return brandingCache.data;
+  }
+
   try {
     if (prisma && (await isPrismaReady())) {
       const record = await prisma.platformSetting.findUnique({
         where: { key: "branding" },
       });
       if (record && record.value) {
-        return {
+        const data = {
           ...DEFAULT_BRANDING,
           ...(record.value as any),
         };
+        brandingCache = { data, timestamp: now };
+        return data;
       }
     }
   } catch (err: any) {
@@ -31,15 +41,18 @@ export async function getPersistentBranding(): Promise<PlatformBrandingSettings>
   try {
     const parsed = await readDataFile<PlatformBrandingSettings>("branding.json", DEFAULT_BRANDING);
     if (parsed && typeof parsed === "object") {
-      return {
+      const data = {
         ...DEFAULT_BRANDING,
         ...parsed,
       };
+      brandingCache = { data, timestamp: now };
+      return data;
     }
   } catch (err: any) {
     console.error("Error reading persistent branding fallback:", err);
   }
 
+  brandingCache = { data: DEFAULT_BRANDING, timestamp: now };
   return DEFAULT_BRANDING;
 }
 
@@ -74,5 +87,6 @@ export async function updatePersistentBranding(
     console.error("Failed to write branding.json fallback:", err);
   }
 
+  brandingCache = { data: merged, timestamp: Date.now() };
   return merged;
 }

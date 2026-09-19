@@ -120,14 +120,14 @@ export default function AgencyPortfolio({ initialData }: AgencyPortfolioProps) {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"
           >
             <AnimatePresence>
-              {displayedItems.map((item, index) => (
+              {displayedItems.map((item) => (
                 <motion.div
                   key={item.id}
                   layout
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={false}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.35, delay: index * 0.03 }}
+                  transition={{ duration: 0.2 }}
                   onClick={() => setActiveVideo(item)}
                   className="group relative rounded-2xl overflow-hidden bg-[#070b16] border border-white/[0.08] hover:border-[#00d2ff]/40 transition-all duration-500 flex flex-col justify-between cursor-pointer hover:shadow-[0_15px_45px_rgba(0,0,0,0.8),0_0_30px_rgba(0,210,255,0.15)]"
                 >
@@ -137,6 +137,7 @@ export default function AgencyPortfolio({ initialData }: AgencyPortfolioProps) {
                       src={item.thumbnail}
                       alt={item.title}
                       fill
+                      unoptimized
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-85 group-hover:opacity-100"
                     />

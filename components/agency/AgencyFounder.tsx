@@ -67,7 +67,7 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
                     unoptimized
                     sizes="(max-width: 768px) 100vw, 350px"
                     className="object-contain object-center transition-transform duration-500 hover:scale-[1.02]"
-                    priority
+                    loading="lazy"
                   />
                 </div>
 

@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import {
   Play,
   ArrowRight,
@@ -55,10 +54,7 @@ export default function AgencyHero({ cmsData }: { cmsData?: AgencyCmsData }) {
           {/* LEFT COLUMN: Core Value Proposition */}
           <div className="lg:col-span-7 space-y-6 sm:space-y-7">
             {/* Pill Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
+            <div
               className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-950/40 border border-[#00d2ff]/30 backdrop-blur-xl text-xs font-mono text-zinc-300"
             >
               <div className="w-4 h-4 rounded-full bg-[#00d2ff]/20 flex items-center justify-center">
@@ -67,13 +63,10 @@ export default function AgencyHero({ cmsData }: { cmsData?: AgencyCmsData }) {
               <span className="font-semibold text-white tracking-wide">
                 {pillBadge}
               </span>
-            </motion.div>
+            </div>
 
             {/* Main Headline */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+            <div
               className="space-y-2 max-w-2xl"
             >
               <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-[40px] font-black text-white tracking-tight leading-[1.2]">
@@ -83,23 +76,17 @@ export default function AgencyHero({ cmsData }: { cmsData?: AgencyCmsData }) {
                 </span>
                 {headlineSuffix}
               </h1>
-            </motion.div>
+            </div>
 
             {/* Subtitle / Value Copy */}
-            <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
+            <p
               className="text-xs sm:text-sm lg:text-base text-zinc-400 max-w-lg leading-relaxed font-normal"
             >
               {subtext}
-            </motion.p>
+            </p>
 
             {/* CTAs Row */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+            <div
               className="flex flex-wrap items-center gap-3.5 pt-1"
             >
               {/* Primary Vibrant Cyan Button */}
@@ -122,13 +109,10 @@ export default function AgencyHero({ cmsData }: { cmsData?: AgencyCmsData }) {
                 </div>
                 <span>{showreelText}</span>
               </button>
-            </motion.div>
+            </div>
 
             {/* Feature / Trust Badges (Row of 3 items from mockup) */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.25 }}
+            <div
               className="grid grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-white/[0.08] max-w-lg"
             >
               {/* 1. High Quality */}
@@ -163,7 +147,7 @@ export default function AgencyHero({ cmsData }: { cmsData?: AgencyCmsData }) {
                   <div className="text-[11px] font-mono text-zinc-400 leading-tight">Experts in Visual Storytelling</div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* RIGHT COLUMN: 3D DaVinci Resolve Workstation Mockup */}
@@ -177,10 +161,7 @@ export default function AgencyHero({ cmsData }: { cmsData?: AgencyCmsData }) {
             </div>
 
             {/* 3D Tilted Timeline Workstation Mockup */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+            <div
               className="relative rounded-2xl p-2.5 sm:p-3 bg-[#080d1a] border border-white/[0.12] shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_50px_rgba(0,210,255,0.15)] group"
             >
               {/* Window Title Bar */}
@@ -225,6 +206,8 @@ export default function AgencyHero({ cmsData }: { cmsData?: AgencyCmsData }) {
                     src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80"
                     alt="Workstation Preview"
                     fill
+                    unoptimized
+                    priority
                     sizes="(max-width: 768px) 100vw, 500px"
                     className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
                   />
@@ -315,7 +298,7 @@ export default function AgencyHero({ cmsData }: { cmsData?: AgencyCmsData }) {
                   <span>AI Powered Creativity</span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
 
         </div>

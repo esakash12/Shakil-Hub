@@ -32,7 +32,10 @@ export async function isPrismaReady(): Promise<boolean> {
   }
 
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Database ping timeout")), 1200)
+    );
+    await Promise.race([prisma.$queryRaw`SELECT 1`, timeoutPromise]);
     prismaReadyCache = { status: true, checkedAt: now };
     return true;
   } catch (err: any) {

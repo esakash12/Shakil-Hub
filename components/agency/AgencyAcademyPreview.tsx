@@ -59,6 +59,7 @@ export default function AgencyAcademyPreview() {
                         src={src}
                         alt="Student Avatar"
                         fill
+                        unoptimized
                         className="object-cover"
                       />
                     </div>

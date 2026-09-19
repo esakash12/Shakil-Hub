@@ -63,6 +63,7 @@ export default function Navbar() {
                   src={branding.logoUrl}
                   alt={branding.siteName || "Sakil Hub"}
                   fill
+                  unoptimized
                   sizes="(max-width: 640px) 128px, 144px"
                   className="object-contain object-left group-hover:scale-105 transition-transform"
                   priority
