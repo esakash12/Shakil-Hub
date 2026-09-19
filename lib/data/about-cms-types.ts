@@ -68,9 +68,9 @@ export const DEFAULT_ABOUT_CMS: AboutCmsData = {
         "Direct community feedback and Q&A support to ensure you never get stuck while editing.",
     },
   ],
-  leadInstructorBadge: "Founder & Master Instructor",
-  leadInstructorName: "Sakil Ahmed",
+  leadInstructorBadge: "Founder & Creative Director",
+  leadInstructorName: "MH Sakil",
   leadInstructorQuote:
-    "My goal with Sakil Hub is to ensure no creative editor has to waste months watching disconnected YouTube tutorials. We provide the complete, step-by-step roadmap from day one.",
+    "My goal with Sakil Hub is to ensure no creator has to struggle with disconnected tutorials. We provide the complete, step-by-step roadmap from day one.",
   leadInstructorAvatar: "",
 };

@@ -11,7 +11,11 @@ import {
 import { AgencyCmsData } from "@/lib/data/agency-cms-types";
 
 export default function AgencyConsultation({ cmsData }: { cmsData?: AgencyCmsData }) {
-  const [selectedDate, setSelectedDate] = useState("September 20, 2026");
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  });
   const [selectedTime, setSelectedTime] = useState("11:00 AM");
 
   const timeSlots = ["10:00 AM", "11:00 AM", "02:00 PM", "04:00 PM"];
@@ -36,7 +40,24 @@ export default function AgencyConsultation({ cmsData }: { cmsData?: AgencyCmsDat
       ? `88${cleanNum}`
       : `880${cleanNum}`;
 
-    const message = `Hello MH Sakil! I would like to book a Strategy Meeting on ${selectedDate} at ${selectedTime}.`;
+    let formattedDate = selectedDate;
+    if (selectedDate && selectedDate.includes("-")) {
+      try {
+        const [y, m, d] = selectedDate.split("-").map(Number);
+        if (y && m && d) {
+          const dateObj = new Date(y, m - 1, d);
+          formattedDate = dateObj.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          });
+        }
+      } catch {
+        formattedDate = selectedDate;
+      }
+    }
+
+    const message = `Hello MH Sakil! I would like to book a Strategy Meeting on ${formattedDate} at ${selectedTime}.`;
     const url = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
@@ -100,12 +121,13 @@ export default function AgencyConsultation({ cmsData }: { cmsData?: AgencyCmsDat
                   </label>
                   <div className="relative">
                     <input
-                      type="text"
+                      type="date"
                       value={selectedDate}
+                      min={new Date().toISOString().split("T")[0]}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/[0.08] hover:border-white/20 focus:border-[#00d2ff] text-white text-xs font-mono transition-colors outline-none cursor-pointer"
+                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/[0.08] hover:border-white/20 focus:border-[#00d2ff] text-white text-xs font-mono transition-colors outline-none cursor-pointer [color-scheme:dark]"
                     />
-                    <Calendar className="w-4 h-4 text-zinc-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Calendar className="w-4 h-4 text-[#00d2ff] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
                 </div>
 

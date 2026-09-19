@@ -87,6 +87,27 @@ export default function AdminInstructorsPage() {
     loadData();
   }, []);
 
+  // Lock body scroll and listen for Escape key when modals are open
+  useEffect(() => {
+    const isAnyModalOpen = isModalOpen || isDeleteModalOpen;
+    if (isAnyModalOpen) {
+      document.body.style.overflow = "hidden";
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setIsModalOpen(false);
+          setIsDeleteModalOpen(false);
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.style.overflow = "unset";
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = "unset";
+    }
+  }, [isModalOpen, isDeleteModalOpen]);
+
   const openAddModal = () => {
     setEditingInstructor(null);
     setFormName("");
@@ -375,9 +396,10 @@ export default function AdminInstructorsPage() {
 
       {/* ADD / EDIT MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-[#0e1320] border border-white/10 rounded-2xl shadow-2xl p-6 space-y-6 my-8">
-            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/85 backdrop-blur-md overflow-hidden">
+          <div className="relative w-full max-w-2xl bg-[#080d1a] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95">
+            {/* Sticky Header */}
+            <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between shrink-0 bg-[#080d1a]">
               <div className="flex items-center gap-2.5">
                 <Award className="w-5 h-5 text-cyan-400" />
                 <h2 className="text-lg font-bold text-white">
@@ -392,21 +414,21 @@ export default function AdminInstructorsPage() {
               </button>
             </div>
 
-            {saveError && (
-              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-xs text-red-400">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{saveError}</span>
-              </div>
-            )}
+            <form onSubmit={handleSaveInstructor} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 overflow-y-auto flex-1 space-y-4 custom-scrollbar">
+                {saveError && (
+                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-xs text-red-400">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{saveError}</span>
+                  </div>
+                )}
 
-            {saveSuccess && (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2 text-xs text-emerald-400">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>{saveSuccess}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSaveInstructor} className="space-y-4">
+                {saveSuccess && (
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2 text-xs text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span>{saveSuccess}</span>
+                  </div>
+                )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1">
@@ -583,11 +605,12 @@ export default function AdminInstructorsPage() {
                       </div>
                     );
                   })}
+                  </div>
                 </div>
               </div>
 
-              {/* Modal Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+              {/* Modal Sticky Footer */}
+              <div className="px-6 py-3.5 border-t border-white/10 flex items-center justify-end gap-3 shrink-0 bg-[#080d1a]">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
@@ -598,7 +621,7 @@ export default function AdminInstructorsPage() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-extrabold text-xs shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all cursor-pointer disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#00d2ff] hover:bg-[#00b8e6] text-black font-extrabold text-xs shadow-[0_0_20px_rgba(0,210,255,0.3)] transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isSaving ? (
                     <>

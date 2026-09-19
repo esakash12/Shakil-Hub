@@ -131,6 +131,27 @@ export default function AdminPortfolioPage() {
     loadData();
   }, []);
 
+  // Lock body scroll and listen for Escape key when modals are open
+  useEffect(() => {
+    const isAnyModalOpen = isProjectModalOpen || isCategoryModalOpen;
+    if (isAnyModalOpen) {
+      document.body.style.overflow = "hidden";
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setIsProjectModalOpen(false);
+          setIsCategoryModalOpen(false);
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.style.overflow = "unset";
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = "unset";
+    }
+  }, [isProjectModalOpen, isCategoryModalOpen]);
+
   // Filtered items
   const filteredItems = items.filter((item) => {
     const matchesSearch =
@@ -816,94 +837,101 @@ export default function AdminPortfolioPage() {
 
       {/* ================= PROJECT MODAL ================= */}
       {isProjectModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-[#070b16] border border-white/10 rounded-3xl p-6 sm:p-8 space-y-5 my-8 shadow-2xl animate-in fade-in zoom-in-95">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/85 backdrop-blur-md overflow-hidden">
+          <div className="relative w-full max-w-2xl bg-[#080d1a] border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95">
+            {/* Modal Sticky Header */}
+            <div className="px-5 sm:px-6 py-4 border-b border-white/10 flex items-center justify-between shrink-0 bg-[#080d1a]">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-cyan-500/20 flex items-center justify-center text-[#00d2ff]">
                   <Film className="w-4 h-4" />
                 </div>
-                <h2 className="text-base sm:text-lg font-black text-white">
-                  {projectForm.id && items.some((i) => i.id === projectForm.id)
-                    ? "Edit Portfolio Project"
-                    : "Upload New Portfolio Project"}
-                </h2>
+                <div>
+                  <h2 className="text-base sm:text-lg font-black text-white">
+                    {projectForm.id && items.some((i) => i.id === projectForm.id)
+                      ? "Edit Portfolio Project"
+                      : "Upload New Portfolio Project"}
+                  </h2>
+                  <p className="text-[11px] text-zinc-400">
+                    High-impact showcase video & thumbnail configuration
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsProjectModalOpen(false)}
-                className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+                className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Form */}
-            <form onSubmit={handleSaveProject} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Project Title */}
-                <div className="space-y-1.5 sm:col-span-2">
-                  <label className="block text-xs font-semibold text-zinc-300">
-                    Project Title *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={projectForm.title}
-                    onChange={(e) =>
-                      setProjectForm((prev) => ({ ...prev, title: e.target.value }))
-                    }
-                    placeholder="e.g. Cyberpunk Commercial Reel"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
-                  />
+            {/* Modal Form with Scrollable Body & Sticky Footer */}
+            <form onSubmit={handleSaveProject} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4 custom-scrollbar">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Project Title */}
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <label className="block text-xs font-semibold text-zinc-300">
+                      Project Title *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={projectForm.title}
+                      onChange={(e) =>
+                        setProjectForm((prev) => ({ ...prev, title: e.target.value }))
+                      }
+                      placeholder="e.g. Cyberpunk Commercial Reel"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
+                    />
+                  </div>
+
+                  {/* Category Dropdown */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-zinc-300">
+                      Category *
+                    </label>
+                    <select
+                      value={projectForm.category}
+                      onChange={(e) => {
+                        const catId = e.target.value;
+                        const catMeta = categories.find((c) => c.id === catId);
+                        setProjectForm((prev) => ({
+                          ...prev,
+                          category: catId,
+                          categoryLabel: catMeta?.label || catId,
+                        }));
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff] cursor-pointer"
+                    >
+                      {categories
+                        .filter((c) => c.id !== "all")
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.label}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  {/* Client Name */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-zinc-300">
+                      Client Name (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={projectForm.client || ""}
+                      onChange={(e) =>
+                        setProjectForm((prev) => ({ ...prev, client: e.target.value }))
+                      }
+                      placeholder="e.g. Apex Gaming Inc."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
+                    />
+                  </div>
                 </div>
 
-                {/* Category Dropdown */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-zinc-300">
-                    Category *
-                  </label>
-                  <select
-                    value={projectForm.category}
-                    onChange={(e) => {
-                      const catId = e.target.value;
-                      const catMeta = categories.find((c) => c.id === catId);
-                      setProjectForm((prev) => ({
-                        ...prev,
-                        category: catId,
-                        categoryLabel: catMeta?.label || catId,
-                      }));
-                    }}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff] cursor-pointer"
-                  >
-                    {categories
-                      .filter((c) => c.id !== "all")
-                      .map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.label}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                {/* Client Name */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-zinc-300">
-                    Client Name
-                  </label>
-                  <input
-                    type="text"
-                    value={projectForm.client || ""}
-                    onChange={(e) =>
-                      setProjectForm((prev) => ({ ...prev, client: e.target.value }))
-                    }
-                    placeholder="e.g. Apex Gaming Inc."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
-                  />
-                </div>
-
-                {/* Duration */}
+                {/* Video Duration */}
                 <div className="space-y-1.5">
                   <label className="block text-xs font-semibold text-zinc-300">
                     Video Duration
@@ -914,235 +942,227 @@ export default function AdminPortfolioPage() {
                     onChange={(e) =>
                       setProjectForm((prev) => ({ ...prev, duration: e.target.value }))
                     }
-                    placeholder="e.g. 1:15"
+                    placeholder="e.g. 1:45"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
                   />
                 </div>
-              </div>
 
-              {/* Video Section: File Upload or Embed Link */}
-              <div className="pt-3 border-t border-white/5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-semibold text-zinc-300">
-                    Project Video *
-                  </label>
-                  <div className="flex items-center gap-1 p-0.5 rounded-lg bg-black/60 border border-white/10 text-[11px]">
-                    <button
-                      type="button"
-                      onClick={() => setVideoMode("upload")}
-                      className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
-                        videoMode === "upload"
-                          ? "bg-[#00d2ff] text-black font-bold"
-                          : "text-zinc-400 hover:text-white"
-                      }`}
-                    >
-                      Upload Video File
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setVideoMode("link")}
-                      className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
-                        videoMode === "link"
-                          ? "bg-[#00d2ff] text-black font-bold"
-                          : "text-zinc-400 hover:text-white"
-                      }`}
-                    >
-                      Paste Video Link
-                    </button>
+                {/* VIDEO UPLOADER / LINK TABBED BOX */}
+                <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-white flex items-center gap-1.5">
+                      <Film className="w-3.5 h-3.5 text-[#00d2ff]" />
+                      <span>Project Video *</span>
+                    </label>
+
+                    {/* Mode Selector Pill Buttons */}
+                    <div className="flex items-center p-0.5 rounded-lg bg-white/5 border border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => setVideoMode("upload")}
+                        className={`px-3 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                          videoMode === "upload"
+                            ? "bg-[#00d2ff] text-black shadow-sm"
+                            : "text-zinc-400 hover:text-white"
+                        }`}
+                      >
+                        Upload Video File
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVideoMode("link")}
+                        className={`px-3 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                          videoMode === "link"
+                            ? "bg-[#00d2ff] text-black shadow-sm"
+                            : "text-zinc-400 hover:text-white"
+                        }`}
+                      >
+                        Paste Video Link
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {videoMode === "upload" ? (
-                  <div className="space-y-2">
-                    <input
-                      ref={videoInputRef}
-                      type="file"
-                      accept="video/*,.mp4,.mov,.webm,.mkv,.m4v"
-                      onChange={handleVideoFileSelect}
-                      className="hidden"
-                    />
+                  {/* Mode 1: File Upload */}
+                  {videoMode === "upload" ? (
+                    <div className="space-y-3">
+                      <input
+                        ref={videoInputRef}
+                        type="file"
+                        accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/*"
+                        onChange={handleVideoFileSelect}
+                        className="hidden"
+                      />
 
-                    {/* Video Upload Button / Dropzone */}
-                    {isUploadingVideo ? (
-                      <div className="p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-2.5">
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2 text-cyan-300 font-medium truncate">
-                            <Loader2 className="w-4 h-4 animate-spin shrink-0 text-[#00d2ff]" />
-                            <span className="truncate">Uploading {videoFileName || "video"}...</span>
-                          </div>
-                          <span className="font-mono font-bold text-white shrink-0">{videoProgress}%</span>
+                      {/* Drop / Pick Zone */}
+                      <div
+                        onClick={() => videoInputRef.current?.click()}
+                        className="border-2 border-dashed border-white/15 hover:border-[#00d2ff]/50 rounded-2xl p-5 text-center cursor-pointer transition-colors bg-white/[0.01] hover:bg-[#00d2ff]/5 flex flex-col items-center justify-center gap-2 group"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-[#00d2ff] group-hover:scale-110 transition-transform">
+                          <UploadCloud className="w-5 h-5" />
                         </div>
-                        <div className="w-full h-1.5 bg-black/60 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-[#00d2ff] to-blue-500 transition-all duration-200"
-                            style={{ width: `${videoProgress}%` }}
-                          />
+                        <div>
+                          <p className="text-xs font-bold text-white group-hover:text-[#00d2ff] transition-colors">
+                            {videoFileName
+                              ? videoFileName
+                              : "Click or drag & drop to upload video"}
+                          </p>
+                          <p className="text-[10.5px] text-zinc-500 mt-0.5">
+                            MP4, MOV, WebM, MKV up to 100MB
+                          </p>
                         </div>
                       </div>
-                    ) : projectForm.videoUrl && !projectForm.videoUrl.includes("youtube") && !projectForm.videoUrl.includes("vimeo") ? (
-                      <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-[#00d2ff] shrink-0">
-                            <Video className="w-5 h-5" />
+
+                      {/* Upload Error */}
+                      {videoUploadError && (
+                        <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{videoUploadError}</span>
+                        </div>
+                      )}
+
+                      {/* Upload Progress Bar */}
+                      {isUploadingVideo && (
+                        <div className="p-3 rounded-xl bg-black/60 border border-white/10 space-y-1.5">
+                          <div className="flex items-center justify-between text-[11px] font-mono">
+                            <span className="text-[#00d2ff] font-bold flex items-center gap-1.5">
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              Uploading video file...
+                            </span>
+                            <span className="text-zinc-300 font-bold">{videoProgress}%</span>
                           </div>
-                          <div className="min-w-0">
-                            <div className="text-xs font-semibold text-white truncate">
-                              {videoFileName || projectForm.videoUrl.split("/").pop()}
-                            </div>
-                            <div className="text-[10px] font-mono text-emerald-400 flex items-center gap-1 mt-0.5">
-                              <Check className="w-3 h-3" />
-                              <span>Video Ready • Duration: {projectForm.duration || "Auto"}</span>
-                            </div>
+                          <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-[#00d2ff] to-blue-500 transition-all duration-300"
+                              style={{ width: `${videoProgress}%` }}
+                            />
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => videoInputRef.current?.click()}
-                            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-xs text-white font-medium transition-colors cursor-pointer"
-                          >
-                            Replace Video
-                          </button>
+                      )}
+
+                      {/* Currently Linked or Uploaded Video Confirmation */}
+                      {projectForm.videoUrl && (
+                        <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                            <span className="text-zinc-300 truncate font-mono text-[11px]">
+                              {projectForm.videoUrl}
+                            </span>
+                          </div>
                           <button
                             type="button"
                             onClick={() => {
                               setProjectForm((prev) => ({ ...prev, videoUrl: "" }));
                               setVideoFileName("");
                             }}
-                            className="p-1.5 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                            className="text-zinc-400 hover:text-red-400 p-1 transition-colors"
                             title="Remove Video"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                      </div>
-                    ) : (
-                      <div
-                        onClick={() => videoInputRef.current?.click()}
-                        className="border-2 border-dashed border-white/15 hover:border-[#00d2ff]/50 rounded-2xl p-6 text-center cursor-pointer transition-colors bg-white/[0.01] hover:bg-cyan-500/[0.02] group"
-                      >
-                        <div className="w-12 h-12 rounded-2xl bg-white/5 group-hover:bg-cyan-500/10 flex items-center justify-center mx-auto text-zinc-400 group-hover:text-[#00d2ff] transition-colors mb-2">
-                          <UploadCloud className="w-6 h-6" />
-                        </div>
-                        <p className="text-xs font-bold text-white">Click or drag & drop to upload video</p>
-                        <p className="text-[11px] text-zinc-500 mt-0.5">MP4, MOV, WebM, MKV up to 100MB</p>
-                      </div>
-                    )}
+                      )}
+                    </div>
+                  ) : (
+                    /* Mode 2: Paste External Video Link */
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={projectForm.videoUrl || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setProjectForm((prev) => ({ ...prev, videoUrl: val }));
+                          const ytId = getYouTubeVideoId(val);
+                          if (ytId && !projectForm.thumbnail) {
+                            setProjectForm((prev) => ({
+                              ...prev,
+                              thumbnail: `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`,
+                            }));
+                          }
+                        }}
+                        placeholder="Paste YouTube link (https://youtube.com/watch?v=...), Vimeo, or MP4 URL"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
+                      />
+                      <p className="text-[11px] text-zinc-500">
+                        YouTube thumbnails are automatically extracted when a link is pasted.
+                      </p>
+                    </div>
+                  )}
+                </div>
 
-                    {videoUploadError && (
-                      <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4 shrink-0" />
-                          <span>{videoUploadError}</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setVideoUploadError("")}
-                          className="text-red-400 hover:text-white cursor-pointer"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    <input
-                      type="text"
-                      value={projectForm.videoUrl || ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setProjectForm((prev) => ({ ...prev, videoUrl: val }));
-                        const ytId = getYouTubeVideoId(val);
-                        if (ytId && !projectForm.thumbnail) {
-                          setProjectForm((prev) => ({
-                            ...prev,
-                            thumbnail: `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`,
-                          }));
-                        }
-                      }}
-                      placeholder="Paste YouTube link (https://youtube.com/watch?v=...), Vimeo, or MP4 URL"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
-                    />
-                    <p className="text-[11px] text-zinc-500">
-                      YouTube thumbnails are automatically extracted when a link is pasted.
-                    </p>
-                  </div>
-                )}
+                {/* Thumbnail Image with Upload Support */}
+                <div className="pt-3 border-t border-white/5">
+                  <ImageUploadField
+                    label="Project Thumbnail Image (Auto-captured from video or upload custom)"
+                    value={projectForm.thumbnail}
+                    onChange={(url) =>
+                      setProjectForm((prev) => ({ ...prev, thumbnail: url }))
+                    }
+                    variant="banner"
+                    placeholder="https://images.unsplash.com/... or upload thumbnail"
+                    description="High-resolution 16:9 thumbnail. If left blank, automatically generated from your uploaded video or YouTube link."
+                    buttonLabel="Upload Project Thumbnail"
+                    badgeText="16:9 Showcase"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-zinc-300">
+                    Project Description
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={projectForm.description}
+                    onChange={(e) =>
+                      setProjectForm((prev) => ({ ...prev, description: e.target.value }))
+                    }
+                    placeholder="Describe the creative approach, production workflow, and results..."
+                    className="w-full p-3 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff] resize-none"
+                  />
+                </div>
+
+                {/* Tags */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-zinc-300">
+                    Tags (comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={tagsInput}
+                    onChange={(e) => setTagsInput(e.target.value)}
+                    placeholder="e.g. Cinema 4K, Color Grading, 3D VFX, After Effects"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
+                  />
+                </div>
+
+                {/* Featured Toggle */}
+                <div className="flex items-center gap-3 pt-2">
+                  <input
+                    type="checkbox"
+                    id="featuredProject"
+                    checked={!!projectForm.featured}
+                    onChange={(e) =>
+                      setProjectForm((prev) => ({ ...prev, featured: e.target.checked }))
+                    }
+                    className="w-4 h-4 rounded text-[#00d2ff] focus:ring-0 cursor-pointer accent-[#00d2ff]"
+                  />
+                  <label
+                    htmlFor="featuredProject"
+                    className="text-xs font-semibold text-zinc-200 cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Feature on Landing Page showcase</span>
+                  </label>
+                </div>
               </div>
 
-              {/* Thumbnail Image with Upload Support */}
-              <div className="pt-3 border-t border-white/5">
-                <ImageUploadField
-                  label="Project Thumbnail Image (Auto-captured from video or upload custom)"
-                  value={projectForm.thumbnail}
-                  onChange={(url) =>
-                    setProjectForm((prev) => ({ ...prev, thumbnail: url }))
-                  }
-                  variant="banner"
-                  placeholder="https://images.unsplash.com/... or upload thumbnail"
-                  description="High-resolution 16:9 thumbnail. If left blank, automatically generated from your uploaded video or YouTube link."
-                  buttonLabel="Upload Project Thumbnail"
-                  badgeText="16:9 Showcase"
-                />
-              </div>
-
-              {/* Description */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-zinc-300">
-                  Project Description
-                </label>
-                <textarea
-                  rows={3}
-                  value={projectForm.description}
-                  onChange={(e) =>
-                    setProjectForm((prev) => ({ ...prev, description: e.target.value }))
-                  }
-                  placeholder="Describe the creative approach, production workflow, and results..."
-                  className="w-full p-3 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff] resize-none"
-                />
-              </div>
-
-              {/* Tags */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-zinc-300">
-                  Tags (comma separated)
-                </label>
-                <input
-                  type="text"
-                  value={tagsInput}
-                  onChange={(e) => setTagsInput(e.target.value)}
-                  placeholder="e.g. Cinema 4K, Color Grading, 3D VFX, After Effects"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
-                />
-              </div>
-
-              {/* Featured Toggle */}
-              <div className="flex items-center gap-3 pt-2">
-                <input
-                  type="checkbox"
-                  id="featuredProject"
-                  checked={!!projectForm.featured}
-                  onChange={(e) =>
-                    setProjectForm((prev) => ({ ...prev, featured: e.target.checked }))
-                  }
-                  className="w-4 h-4 rounded text-[#00d2ff] focus:ring-0 cursor-pointer accent-[#00d2ff]"
-                />
-                <label
-                  htmlFor="featuredProject"
-                  className="text-xs font-semibold text-zinc-200 cursor-pointer flex items-center gap-1.5"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Feature on Landing Page showcase</span>
-                </label>
-              </div>
-
-              {/* Modal Actions */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/5">
+              {/* Modal Sticky Footer */}
+              <div className="px-5 sm:px-6 py-3.5 border-t border-white/10 flex items-center justify-end gap-3 shrink-0 bg-[#080d1a]">
                 <button
                   type="button"
                   onClick={() => setIsProjectModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold transition-colors"
+                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1171,9 +1191,9 @@ export default function AdminPortfolioPage() {
 
       {/* ================= CATEGORY MODAL ================= */}
       {isCategoryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-md bg-[#070b16] border border-white/10 rounded-3xl p-6 sm:p-7 space-y-5 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-hidden">
+          <div className="relative w-full max-w-md bg-[#080d1a] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-in fade-in zoom-in-95">
+            <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between shrink-0 bg-[#080d1a]">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-cyan-500/20 flex items-center justify-center text-[#00d2ff]">
                   <Layers className="w-4 h-4" />
@@ -1183,85 +1203,87 @@ export default function AdminPortfolioPage() {
               <button
                 type="button"
                 onClick={() => setIsCategoryModalOpen(false)}
-                className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+                className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveCategory} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-zinc-300">
-                  Category Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={categoryForm.label}
-                  onChange={(e) => {
-                    const label = e.target.value;
-                    const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-                    setCategoryForm((prev) => ({ ...prev, label, id: slug }));
-                  }}
-                  placeholder="e.g. Music Videos"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
-                />
+            <form onSubmit={handleSaveCategory} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-5 overflow-y-auto flex-1 space-y-4 custom-scrollbar">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-zinc-300">
+                    Category Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={categoryForm.label}
+                    onChange={(e) => {
+                      const label = e.target.value;
+                      const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                      setCategoryForm((prev) => ({ ...prev, label, id: slug }));
+                    }}
+                    placeholder="e.g. Music Videos"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-zinc-300">
+                    Slug / ID
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={categoryForm.id}
+                    onChange={(e) =>
+                      setCategoryForm((prev) => ({
+                        ...prev,
+                        id: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+                      }))
+                    }
+                    placeholder="e.g. music-videos"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff] font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-zinc-300">
+                    Badge Label (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={categoryForm.badge || ""}
+                    onChange={(e) =>
+                      setCategoryForm((prev) => ({ ...prev, badge: e.target.value }))
+                    }
+                    placeholder="e.g. Viral, 3D, High-ROI"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-zinc-300">
+                    Short Description
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={categoryForm.description || ""}
+                    onChange={(e) =>
+                      setCategoryForm((prev) => ({ ...prev, description: e.target.value }))
+                    }
+                    placeholder="Brief description of this portfolio category..."
+                    className="w-full p-3 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff] resize-none"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-zinc-300">
-                  Slug / ID
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={categoryForm.id}
-                  onChange={(e) =>
-                    setCategoryForm((prev) => ({
-                      ...prev,
-                      id: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
-                    }))
-                  }
-                  placeholder="e.g. music-videos"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff] font-mono"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-zinc-300">
-                  Badge Label (optional)
-                </label>
-                <input
-                  type="text"
-                  value={categoryForm.badge || ""}
-                  onChange={(e) =>
-                    setCategoryForm((prev) => ({ ...prev, badge: e.target.value }))
-                  }
-                  placeholder="e.g. Viral, 3D, High-ROI"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-zinc-300">
-                  Short Description
-                </label>
-                <textarea
-                  rows={2}
-                  value={categoryForm.description || ""}
-                  onChange={(e) =>
-                    setCategoryForm((prev) => ({ ...prev, description: e.target.value }))
-                  }
-                  placeholder="Brief description of this portfolio category..."
-                  className="w-full p-3 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff] resize-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/5">
+              <div className="px-5 py-3.5 border-t border-white/10 flex items-center justify-end gap-3 shrink-0 bg-[#080d1a]">
                 <button
                   type="button"
                   onClick={() => setIsCategoryModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold transition-colors"
+                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>

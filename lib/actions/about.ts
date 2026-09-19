@@ -27,10 +27,10 @@ export async function getAboutCmsAction(): Promise<AboutCmsData> {
     const instructors = await getPersistentInstructors();
     if (instructors.length > 0) {
       const primary = instructors[0];
-      if (!data.leadInstructorName || data.leadInstructorName === "Rashedul Hasan") {
+      if (!data.leadInstructorName) {
         data.leadInstructorName = primary.name;
       }
-      if (!data.leadInstructorAvatar || data.leadInstructorAvatar.includes("unsplash")) {
+      if (!data.leadInstructorAvatar) {
         data.leadInstructorAvatar = primary.avatar || "";
       }
     }

@@ -20,15 +20,15 @@ export interface LMSSettingsPayload {
 }
 
 const DEFAULT_SETTINGS: LMSSettingsPayload = {
-  bkashNumber: "01754511619",
-  nagadNumber: "01812345678",
-  rocketNumber: "01912345678",
+  bkashNumber: "01326896947",
+  nagadNumber: "01326896947",
+  rocketNumber: "01326896947",
   welcomeMessage:
-    "Welcome to Sakil Hub! Level up your video editing and filmmaking skills today.",
+    "Welcome to Sakil Hub! Turn your ideas into powerful visual stories.",
   announcement:
-    "Welcome to Sakil Hub! Level up your video editing and filmmaking skills today.",
+    "Welcome to Sakil Hub! Turn your ideas into powerful visual stories.",
   supportEmail: "support@sakilhub.com",
-  supportPhone: "+880 1712-345678",
+  supportPhone: "+880 1326-896947",
 };
 
 /**
