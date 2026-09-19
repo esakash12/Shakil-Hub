@@ -40,7 +40,7 @@ export default function AgencyHero({ cmsData }: { cmsData?: AgencyCmsData }) {
   const showreelText = cmsData?.heroShowreelText || "Watch Showreel";
 
   return (
-    <section className="relative overflow-hidden bg-[#02050e] pt-10 sm:pt-14 pb-12 sm:pb-16 select-none">
+    <section className="relative overflow-hidden bg-[#02050e] min-h-[calc(100vh-70px)] flex flex-col justify-between pt-8 sm:pt-12 lg:pt-14 pb-4 select-none">
       {/* Radiant Electric Blue Atmosphere from Top-Right (Matching Mockup) */}
       <div className="absolute -top-32 -right-32 w-[650px] h-[650px] bg-gradient-to-br from-[#00d2ff]/18 via-[#0066ff]/14 to-transparent blur-[140px] rounded-full pointer-events-none -z-0" />
       <div className="absolute top-1/2 -left-48 w-[500px] h-[500px] bg-[#0055ff]/10 blur-[150px] rounded-full pointer-events-none -z-0" />
@@ -70,7 +70,7 @@ export default function AgencyHero({ cmsData }: { cmsData?: AgencyCmsData }) {
               className="space-y-2 max-w-2xl"
             >
               <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-[40px] font-black text-white tracking-tight leading-[1.2]">
-                {headlinePrefix}
+                {headlinePrefix.trimEnd()}{" "}
                 <span className="text-[#00d2ff] drop-shadow-[0_0_35px_rgba(0,210,255,0.4)]">
                   {headlineHighlight}
                 </span>
@@ -302,6 +302,25 @@ export default function AgencyHero({ cmsData }: { cmsData?: AgencyCmsData }) {
           </div>
 
         </div>
+      </div>
+
+      {/* Smooth Bottom Gradient Blend */}
+      <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-[#02050e] via-[#02050e]/60 to-transparent pointer-events-none z-10" />
+
+      {/* Animated Scroll to Explore Indicator */}
+      <div className="relative z-20 flex justify-center pt-4 pb-2">
+        <a
+          href="#portfolio"
+          aria-label="Scroll down to portfolio"
+          className="inline-flex flex-col items-center gap-1.5 text-zinc-500 hover:text-[#00d2ff] transition-all group cursor-pointer"
+        >
+          <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-500 group-hover:text-[#00d2ff] transition-colors">
+            Scroll to Explore
+          </span>
+          <div className="w-5 h-8 rounded-full border border-white/15 group-hover:border-[#00d2ff]/50 flex items-start justify-center p-1 transition-colors">
+            <div className="w-1 h-2 rounded-full bg-[#00d2ff] animate-bounce" />
+          </div>
+        </a>
       </div>
 
       {/* Global Interactive Video Modal */}

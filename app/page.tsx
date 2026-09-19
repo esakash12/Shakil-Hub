@@ -1,9 +1,11 @@
 import React from "react";
 import AgencyHero from "@/components/agency/AgencyHero";
+import TechStackMarquee from "@/components/agency/TechStackMarquee";
 import AgencyPortfolio from "@/components/agency/AgencyPortfolio";
 import AgencyServices from "@/components/agency/AgencyServices";
 import AgencyFounder from "@/components/agency/AgencyFounder";
 import AgencyAcademyPreview from "@/components/agency/AgencyAcademyPreview";
+import ProjectCostEstimator from "@/components/agency/ProjectCostEstimator";
 import AgencyConsultation from "@/components/agency/AgencyConsultation";
 import { getPortfolioAction } from "@/lib/actions/portfolio";
 import { getAgencyCmsAction } from "@/lib/actions/agency-cms";
@@ -24,19 +26,25 @@ export default async function HomePage() {
       {/* 1. Agency Hero Section with 2-Column Workstation Mockup */}
       <AgencyHero cmsData={agencyCms} />
 
-      {/* 2. Featured Portfolio Showcase — 6 Curated Cards & Filter Pills */}
+      {/* 2. Infinite Creative Tech Stack & Industry Tools Marquee */}
+      <TechStackMarquee />
+
+      {/* 3. Featured Portfolio Showcase — 6 Curated Cards & Filter Pills */}
       <AgencyPortfolio initialData={portfolioData} />
 
-      {/* 3. Specialized Creative Agency Services — 2x2 Bento Grid */}
+      {/* 4. Specialized Creative Agency Services — 2x2 Bento Grid */}
       <AgencyServices />
 
-      {/* 4. Director & Founder — MH Sakil Spotlight */}
+      {/* 5. Director & Founder — MH Sakil Spotlight */}
       <AgencyFounder cmsData={agencyCms} />
 
-      {/* 5. Sakil Hub Academy & Masterclasses Preview (Controlled via CMS) */}
+      {/* 6. Sakil Hub Academy & Masterclasses Preview (Controlled via CMS) */}
       {agencyCms?.showAcademyPreview && <AgencyAcademyPreview />}
 
-      {/* 6. Free Strategy Meeting Consultation & Booking Terminal */}
+      {/* 7. Interactive Project Budget & Turnaround Cost Estimator */}
+      <ProjectCostEstimator />
+
+      {/* 8. Free Strategy Meeting Consultation & Booking Terminal */}
       <AgencyConsultation cmsData={agencyCms} />
     </div>
   );

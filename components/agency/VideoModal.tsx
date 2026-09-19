@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { X, ExternalLink, Play, Sparkles } from "lucide-react";
 import { PortfolioItem } from "@/lib/data/portfolio-types";
+import CloakedVideoPlayer from "./CloakedVideoPlayer";
 
 interface VideoModalProps {
   item: PortfolioItem | null;
@@ -26,35 +27,6 @@ export default function VideoModal({ item, onClose }: VideoModalProps) {
 
   if (!item) return null;
 
-  // Generate safe embed URL or detect direct video
-  const isDirectVideo = (url?: string) => {
-    if (!url) return false;
-    return (
-      url.startsWith("/uploads/") ||
-      url.startsWith("/api/r2/") ||
-      url.match(/\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i) !== null
-    );
-  };
-
-  const getEmbedUrl = (url?: string) => {
-    if (!url) return null;
-    if (url.includes("youtube.com/watch?v=")) {
-      return url.replace("watch?v=", "embed/");
-    }
-    if (url.includes("youtu.be/")) {
-      const id = url.split("youtu.be/")[1]?.split("?")[0];
-      return `https://www.youtube.com/embed/${id}`;
-    }
-    if (url.includes("vimeo.com/")) {
-      const id = url.split("vimeo.com/")[1]?.split("?")[0];
-      return `https://player.vimeo.com/video/${id}`;
-    }
-    return url;
-  };
-
-  const isDirect = isDirectVideo(item.videoUrl);
-  const embedSrc = !isDirect ? getEmbedUrl(item.videoUrl) : null;
-
   return (
     <div
       role="dialog"
@@ -66,6 +38,9 @@ export default function VideoModal({ item, onClose }: VideoModalProps) {
         className="relative w-full max-w-4xl bg-[#0a0d14] border border-white/10 rounded-2xl sm:rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Cinema Ambient Lighting Glow */}
+        <div className="absolute -inset-2 bg-gradient-to-r from-[#00d2ff]/20 via-[#0066ff]/20 to-[#00d2ff]/20 rounded-3xl blur-2xl pointer-events-none -z-10" />
+
         {/* Modal Top Bar */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-white/10 bg-[#0c101a]/80">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -89,22 +64,12 @@ export default function VideoModal({ item, onClose }: VideoModalProps) {
 
         {/* Video Player Box */}
         <div className="relative w-full aspect-video bg-black flex items-center justify-center overflow-hidden">
-          {isDirect && item.videoUrl ? (
-            <video
-              src={item.videoUrl}
-              controls
-              autoPlay
-              playsInline
+          {item.videoUrl ? (
+            <CloakedVideoPlayer
+              url={item.videoUrl}
               poster={item.thumbnail}
-              className="w-full h-full object-contain bg-black"
-            />
-          ) : embedSrc ? (
-            <iframe
-              src={`${embedSrc}?autoplay=1&rel=0`}
               title={item.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="w-full h-full border-0"
+              autoPlay={true}
             />
           ) : (
             <div className="p-8 text-center space-y-3">
