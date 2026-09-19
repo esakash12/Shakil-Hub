@@ -9,6 +9,7 @@ export interface AgencyCmsData {
   heroShowreelText: string;
 
   // Founder Section
+  founderName: string;
   founderHeadline: string;
   founderSubheading: string;
   founderSignatureText: string;
@@ -25,12 +26,17 @@ export interface AgencyCmsData {
   founderStat4Label: string;
 
   // Consultation / Booking Section
+  consultationBadge?: string;
   consultationTitle: string;
   consultationSubtitle: string;
   consultationWhatsapp: string;
   consultationCheck1: string;
   consultationCheck2: string;
   consultationCheck3: string;
+  consultationBtnText?: string;
+
+  // Optional Section Controls
+  showAcademyPreview?: boolean;
 
   updatedAt?: string;
 }
@@ -47,9 +53,10 @@ export const DEFAULT_AGENCY_CMS: AgencyCmsData = {
   heroShowreelText: "Watch Showreel",
 
   // Founder Section
-  founderHeadline: "Directed by Mehedi Hasan Sakil",
-  founderSubheading: "Director & Founder",
-  founderSignatureText: "Sakil",
+  founderName: "MH Sakil",
+  founderHeadline: "Directed by MH Sakil",
+  founderSubheading: "Founder & CEO, Sakil Hub.",
+  founderSignatureText: "",
   founderPhotoUrl: "",
   founderBio1:
     "I started working in the digital industry in 2018. Over the past several years, I have honed advanced video editing, cinema color grading, and commercial visual storytelling.",
@@ -65,13 +72,17 @@ export const DEFAULT_AGENCY_CMS: AgencyCmsData = {
   founderStat4Label: "Client Satisfaction",
 
   // Consultation Section
-  consultationTitle: "Book a Free Strategy Meeting",
+  consultationBadge: "LET’S WORK TOGETHER",
+  consultationTitle: "Let’s Build Something Great Together.",
   consultationSubtitle:
-    "Schedule a 30-minute discovery session with Sakil. We will review your brand goals, outline custom video strategies, and provide an actionable roadmap.",
+    "Have a project in mind?\nSchedule a 30-minute strategy session with MH Sakil, Founder & CEO of Sakil Hub. Let’s discuss your goals, explore creative solutions, and build a clear roadmap for your project.",
   consultationWhatsapp: "01326896947",
   consultationCheck1: "Free Consultation",
   consultationCheck2: "Project Planning",
   consultationCheck3: "Custom Quote",
+  consultationBtnText: "Book a Strategy Meeting",
+
+  showAcademyPreview: false,
 
   updatedAt: new Date().toISOString(),
 };

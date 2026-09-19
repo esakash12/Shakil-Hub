@@ -30,11 +30,11 @@ export default async function HomePage() {
       {/* 3. Specialized Creative Agency Services — 2x2 Bento Grid */}
       <AgencyServices />
 
-      {/* 4. Director & Founder — Mehedi Hasan Sakil Spotlight */}
+      {/* 4. Director & Founder — MH Sakil Spotlight */}
       <AgencyFounder cmsData={agencyCms} />
 
-      {/* 5. Sakil Hub Academy & Masterclasses Preview */}
-      <AgencyAcademyPreview />
+      {/* 5. Sakil Hub Academy & Masterclasses Preview (Controlled via CMS) */}
+      {agencyCms?.showAcademyPreview && <AgencyAcademyPreview />}
 
       {/* 6. Free Strategy Meeting Consultation & Booking Terminal */}
       <AgencyConsultation cmsData={agencyCms} />

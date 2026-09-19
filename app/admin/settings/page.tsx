@@ -385,15 +385,15 @@ export default function AdminSettingsPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-1.5 sm:col-span-2">
+                <div className="space-y-1.5">
                   <label className="block text-xs font-medium text-gray-300">
-                    Founder Main Headline
+                    Founder Name (Photo Card)
                   </label>
                   <input
                     type="text"
-                    value={agencyData.founderHeadline}
-                    onChange={(e) => handleAgencyChange("founderHeadline", e.target.value)}
-                    placeholder="Directed by Mehedi Hasan Sakil"
+                    value={agencyData.founderName || ""}
+                    onChange={(e) => handleAgencyChange("founderName", e.target.value)}
+                    placeholder="MH Sakil"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-semibold"
                   />
                 </div>
@@ -406,8 +406,21 @@ export default function AdminSettingsPage() {
                     type="text"
                     value={agencyData.founderSubheading}
                     onChange={(e) => handleAgencyChange("founderSubheading", e.target.value)}
-                    placeholder="Director & Founder"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500"
+                    placeholder="Founder & CEO, Sakil Hub."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-300">
+                    Founder Main Headline
+                  </label>
+                  <input
+                    type="text"
+                    value={agencyData.founderHeadline}
+                    onChange={(e) => handleAgencyChange("founderHeadline", e.target.value)}
+                    placeholder="Directed by MH Sakil"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-semibold"
                   />
                 </div>
               </div>
@@ -564,7 +577,20 @@ export default function AdminSettingsPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-300">
+                    Pill Badge Text
+                  </label>
+                  <input
+                    type="text"
+                    value={agencyData.consultationBadge || ""}
+                    onChange={(e) => handleAgencyChange("consultationBadge", e.target.value)}
+                    placeholder="LET’S WORK TOGETHER"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium"
+                  />
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="block text-xs font-medium text-gray-300">
                     Booking Card Title
@@ -573,7 +599,7 @@ export default function AdminSettingsPage() {
                     type="text"
                     value={agencyData.consultationTitle}
                     onChange={(e) => handleAgencyChange("consultationTitle", e.target.value)}
-                    placeholder="Book a Free Strategy Meeting"
+                    placeholder="Let’s Build Something Great Together."
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-semibold"
                   />
                 </div>
@@ -597,12 +623,41 @@ export default function AdminSettingsPage() {
                   Subtitle / Meeting Description
                 </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={agencyData.consultationSubtitle}
                   onChange={(e) => handleAgencyChange("consultationSubtitle", e.target.value)}
-                  placeholder="Discuss your project, get expert advice, and find the best solution..."
-                  className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs text-gray-200 focus:outline-none focus:border-cyan-500 resize-none"
+                  placeholder="Have a project in mind?&#10;Schedule a 30-minute strategy session with MH Sakil..."
+                  className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs text-gray-200 focus:outline-none focus:border-cyan-500 resize-none font-normal leading-relaxed"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-300">
+                    Booking Button Label
+                  </label>
+                  <input
+                    type="text"
+                    value={agencyData.consultationBtnText || ""}
+                    onChange={(e) => handleAgencyChange("consultationBtnText", e.target.value)}
+                    placeholder="Book a Strategy Meeting"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1.5 flex flex-col justify-end">
+                  <label className="flex items-center gap-2.5 cursor-pointer p-2.5 rounded-xl bg-black/40 border border-white/10 hover:border-white/20 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={!!agencyData.showAcademyPreview}
+                      onChange={(e) => handleAgencyChange("showAcademyPreview", e.target.checked)}
+                      className="w-4 h-4 rounded text-cyan-500 focus:ring-cyan-500 cursor-pointer"
+                    />
+                    <span className="text-xs text-gray-300 font-medium">
+                      Display Academy & Courses preview banner on Landing Page
+                    </span>
+                  </label>
+                </div>
               </div>
 
               {/* 3 Guarantees */}

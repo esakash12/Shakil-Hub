@@ -16,11 +16,15 @@ export default function AgencyConsultation({ cmsData }: { cmsData?: AgencyCmsDat
 
   const timeSlots = ["10:00 AM", "11:00 AM", "02:00 PM", "04:00 PM"];
 
-  const title = cmsData?.consultationTitle || "Book a Free Strategy Meeting";
-  const subtitle = cmsData?.consultationSubtitle || "Discuss your project, get expert advice, and find the best solution for your brand.";
+  const badge = cmsData?.consultationBadge || "LET’S WORK TOGETHER";
+  const title = cmsData?.consultationTitle || "Let’s Build Something Great Together.";
+  const subtitle =
+    cmsData?.consultationSubtitle ||
+    "Have a project in mind?\nSchedule a 30-minute strategy session with MH Sakil, Founder & CEO of Sakil Hub. Let’s discuss your goals, explore creative solutions, and build a clear roadmap for your project.";
   const check1 = cmsData?.consultationCheck1 || "Free Consultation";
   const check2 = cmsData?.consultationCheck2 || "Project Planning";
   const check3 = cmsData?.consultationCheck3 || "Custom Quote";
+  const btnText = cmsData?.consultationBtnText || "Book a Strategy Meeting";
 
   const handleBookMeeting = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +36,7 @@ export default function AgencyConsultation({ cmsData }: { cmsData?: AgencyCmsDat
       ? `88${cleanNum}`
       : `880${cleanNum}`;
 
-    const message = `Hello Sakil Hub! I would like to book a Free Strategy Meeting on ${selectedDate} at ${selectedTime}.`;
+    const message = `Hello MH Sakil! I would like to book a Strategy Meeting on ${selectedDate} at ${selectedTime}.`;
     const url = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
@@ -49,14 +53,14 @@ export default function AgencyConsultation({ cmsData }: { cmsData?: AgencyCmsDat
           <div className="lg:col-span-6 space-y-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-950/40 border border-[#00d2ff]/30 text-[#00d2ff] text-xs font-mono font-medium tracking-wider">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>✦ LET&apos;S WORK TOGETHER</span>
+              <span>✦ {badge}</span>
             </div>
 
             <h2 className="text-3xl sm:text-4xl lg:text-[44px] font-black text-white tracking-tight leading-tight">
               {title}
             </h2>
 
-            <p className="text-xs sm:text-sm text-zinc-400 max-w-md leading-relaxed font-normal">
+            <p className="text-xs sm:text-sm text-zinc-300 max-w-md leading-relaxed font-normal whitespace-pre-line">
               {subtitle}
             </p>
 
@@ -137,7 +141,7 @@ export default function AgencyConsultation({ cmsData }: { cmsData?: AgencyCmsDat
                     type="submit"
                     className="w-full py-3.5 px-6 rounded-full bg-[#00d2ff] hover:bg-[#00b8e6] text-black font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(0,210,255,0.4)] hover:scale-[1.02] active:scale-[0.99] transition-all cursor-pointer"
                   >
-                    <span>Book a Meeting</span>
+                    <span>{btnText}</span>
                     <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                   </button>
                 </div>

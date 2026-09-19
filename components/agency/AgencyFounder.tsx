@@ -16,9 +16,10 @@ import { AgencyCmsData } from "@/lib/data/agency-cms-types";
 
 export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) {
   const photoUrl = cmsData?.founderPhotoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80";
-  const signature = cmsData?.founderSignatureText || "Sakil";
-  const headline = cmsData?.founderHeadline || "Directed by Mehedi Hasan Sakil";
-  const subheading = cmsData?.founderSubheading || "Director & Founder";
+  const name = cmsData?.founderName || "MH Sakil";
+  const signature = cmsData?.founderSignatureText || "";
+  const headline = cmsData?.founderHeadline || "Directed by MH Sakil";
+  const subheading = cmsData?.founderSubheading || "Founder & CEO, Sakil Hub.";
   const bio = cmsData?.founderBio1 || "I'm a video content creator and creative director, passionate about turning ideas into powerful visual stories. With years of experience in video production, design and digital marketing, I help brands grow through creativity and strategy.";
   const stat1Val = cmsData?.founderStat1Value || "5+";
   const stat1Lbl = cmsData?.founderStat1Label || "Years Experience";
@@ -60,7 +61,7 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
                 <div className="relative w-full h-full p-2 sm:p-3 flex items-center justify-center z-[1]">
                   <Image
                     src={photoUrl}
-                    alt="Mehedi Hasan Sakil"
+                    alt={name}
                     fill
                     unoptimized
                     sizes="(max-width: 768px) 100vw, 450px"
@@ -72,18 +73,20 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
                 {/* Subtle Bottom Vignette */}
                 <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#070b16] via-[#070b16]/60 to-transparent pointer-events-none z-[2]" />
 
-                {/* Floating Neon Cyan Signature: Sakil */}
-                <div className="absolute bottom-3 right-4 select-none pointer-events-none z-[3]">
-                  <span className="font-serif italic font-normal text-2xl text-[#00d2ff] opacity-90 drop-shadow-[0_0_12px_rgba(0,210,255,0.8)] tracking-wider">
-                    {signature}
-                  </span>
-                </div>
+                {/* Floating Neon Cyan Signature (only if signature text is provided) */}
+                {signature && (
+                  <div className="absolute bottom-3 right-4 select-none pointer-events-none z-[3]">
+                    <span className="font-serif italic font-normal text-2xl text-[#00d2ff] opacity-90 drop-shadow-[0_0_12px_rgba(0,210,255,0.8)] tracking-wider">
+                      {signature}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Founder Name Strip */}
               <div className="p-4 bg-[#070b16] flex items-center justify-between border-t border-white/[0.06]">
                 <span className="text-sm sm:text-base font-bold text-white tracking-tight">
-                  Mehedi Hasan Sakil
+                  {name}
                 </span>
                 <span className="text-xs font-mono text-zinc-400">
                   {subheading}
