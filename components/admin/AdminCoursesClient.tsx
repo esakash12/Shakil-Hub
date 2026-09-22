@@ -15,7 +15,7 @@ import {
   AlertTriangle,
   Loader2,
 } from "lucide-react";
-import { CourseDetail } from "@/lib/data/courses";
+import { CourseDetail, resolveMediaUrl } from "@/lib/data/courses";
 import { deleteMasterclassAction } from "@/lib/actions/admin-courses";
 
 interface AdminCoursesClientProps {
@@ -95,9 +95,10 @@ export default function AdminCoursesClient({
                 <div className="relative aspect-video w-full bg-neutral-950 overflow-hidden flex items-center justify-center">
                   {course.image ? (
                     <Image
-                      src={course.image}
+                      src={resolveMediaUrl(course.image) || course.image}
                       alt={course.title}
                       fill
+                      unoptimized
                       sizes="(max-width: 768px) 100vw, 33vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />

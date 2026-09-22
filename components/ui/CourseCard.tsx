@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Star, Play } from "lucide-react";
+import { resolveMediaUrl } from "@/lib/data/courses";
 
 export interface CourseProps {
   id: string;
@@ -21,18 +22,22 @@ export default function CourseCard({
   course: CourseProps;
   index?: number;
 }) {
+  const [imageError, setImageError] = useState(false);
+  const resolvedSrc = resolveMediaUrl(course.image) || course.image;
+
   return (
     <div className="group rounded-2xl bg-[#0e1320]/90 hover:bg-[#121929] border border-white/10 hover:border-cyan-500/50 p-4 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_30px_rgba(6,182,212,0.15)] flex flex-col justify-between backdrop-blur-xl cursor-pointer">
       <Link href={`/courses/${course.id}`} className="block">
         {/* Thumbnail */}
         <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden bg-neutral-900 border border-white/10 mb-3.5 flex items-center justify-center">
-          {course.image ? (
+          {resolvedSrc && !imageError ? (
             <Image
-              src={course.image}
+              src={resolvedSrc}
               alt={course.title}
               fill
+              unoptimized
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 384px"
-              quality={80}
+              onError={() => setImageError(true)}
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (

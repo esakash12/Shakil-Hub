@@ -21,9 +21,8 @@ export default function FloatingWhatsApp({
 
   return (
     <div
-      className={`fixed right-4 sm:right-6 z-40 transition-all duration-300 select-none ${
-        hasBottomNav ? "bottom-18 sm:bottom-6" : "bottom-5 sm:bottom-6"
-      }`}
+      style={{ bottom: hasBottomNav ? "80px" : "20px" }}
+      className="fixed right-4 sm:right-6 sm:!bottom-6 z-40 transition-all duration-300 select-none"
     >
       <div className="relative flex items-center group">
         {/* Floating Tooltip / Banner */}

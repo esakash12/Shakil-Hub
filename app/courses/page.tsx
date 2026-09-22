@@ -20,7 +20,7 @@ export default async function CoursesCatalogPage() {
     title: c.title,
     category: c.category,
     description: c.subtitle || c.description,
-    image: c.image,
+    image: c.image || c.thumbnail || c.trailerImage || "",
     price: c.price,
     originalPrice: c.originalPrice,
     rating: c.rating,
