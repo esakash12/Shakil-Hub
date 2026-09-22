@@ -61,7 +61,7 @@ export default function StickyBottomCTA({
   return (
     <div
       aria-label="Mobile Sticky Checkout Bar"
-      className="fixed bottom-14 md:bottom-0 left-0 right-0 z-40 lg:hidden bg-[#07090e]/95 backdrop-blur-2xl border-t border-cyan-500/25 py-2.5 px-4 sm:px-6 shadow-[0_-10px_35px_rgba(0,0,0,0.95)] select-none"
+      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-[#07090e]/95 backdrop-blur-2xl border-t border-cyan-500/25 py-2.5 px-4 sm:px-6 shadow-[0_-10px_35px_rgba(0,0,0,0.95)] select-none"
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         {/* Left Side: Price & Discount or Enrolled/Pending Badge */}

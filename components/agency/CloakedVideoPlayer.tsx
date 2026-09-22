@@ -215,6 +215,19 @@ export default function CloakedVideoPlayer({
     }
   };
 
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
+  const [isSpeedMenuOpen, setIsSpeedMenuOpen] = useState(false);
+
+  const handleSpeedChange = (speed: number) => {
+    setPlaybackSpeed(speed);
+    setIsSpeedMenuOpen(false);
+    if (isYouTube) {
+      sendYtCommand("setPlaybackRate", [speed]);
+    } else if (videoRef.current) {
+      videoRef.current.playbackRate = speed;
+    }
+  };
+
   useEffect(() => {
     const handleFsChange = () => {
       setIsFullscreen(Boolean(document.fullscreenElement));
@@ -222,6 +235,68 @@ export default function CloakedVideoPlayer({
     document.addEventListener("fullscreenchange", handleFsChange);
     return () => document.removeEventListener("fullscreenchange", handleFsChange);
   }, []);
+
+  // Keyboard Shortcuts (Space/K, M, F, Arrow Keys)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea" || tag === "select") return;
+
+      if (e.code === "Space" || e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.key.toLowerCase() === "m") {
+        e.preventDefault();
+        toggleMute();
+      } else if (e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        toggleFullscreen();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        const targetTime = Math.max(0, currentTime - 5);
+        setCurrentTime(targetTime);
+        if (isYouTube) sendYtCommand("seekTo", [targetTime, true]);
+        else if (videoRef.current) videoRef.current.currentTime = targetTime;
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        const maxDur = duration || 1000;
+        const targetTime = Math.min(maxDur, currentTime + 5);
+        setCurrentTime(targetTime);
+        if (isYouTube) sendYtCommand("seekTo", [targetTime, true]);
+        else if (videoRef.current) videoRef.current.currentTime = targetTime;
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        const newVol = Math.min(1, volume + 0.1);
+        setVolume(newVol);
+        setIsMuted(false);
+        if (isYouTube) {
+          sendYtCommand("unMute");
+          sendYtCommand("setVolume", [newVol * 100]);
+        } else if (videoRef.current) {
+          videoRef.current.muted = false;
+          videoRef.current.volume = newVol;
+        }
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        const newVol = Math.max(0, volume - 0.1);
+        setVolume(newVol);
+        setIsMuted(newVol === 0);
+        if (isYouTube) {
+          if (newVol === 0) sendYtCommand("mute");
+          else {
+            sendYtCommand("unMute");
+            sendYtCommand("setVolume", [newVol * 100]);
+          }
+        } else if (videoRef.current) {
+          videoRef.current.volume = newVol;
+          videoRef.current.muted = newVol === 0;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentTime, duration, isYouTube, isPlaying, isMuted, volume, togglePlay, toggleMute, toggleFullscreen, sendYtCommand]);
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const ytOrigin = typeof window !== "undefined" ? window.location.origin : "";
@@ -389,6 +464,36 @@ export default function CloakedVideoPlayer({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Playback Speed Menu */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsSpeedMenuOpen(!isSpeedMenuOpen)}
+                className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-mono font-bold text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                title="Playback Speed"
+              >
+                {playbackSpeed}x
+              </button>
+              {isSpeedMenuOpen && (
+                <div className="absolute bottom-full mb-2 right-0 bg-[#080d1a] border border-white/10 rounded-xl p-1 shadow-2xl flex flex-col gap-0.5 z-50 min-w-[70px]">
+                  {[0.75, 1, 1.25, 1.5, 2].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => handleSpeedChange(s)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-mono text-left transition-colors cursor-pointer ${
+                        playbackSpeed === s
+                          ? "bg-[#00d2ff] text-black font-bold"
+                          : "text-zinc-300 hover:bg-white/5"
+                      }`}
+                    >
+                      {s}x
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-cyan-950/60 border border-[#00d2ff]/40 text-[10px] font-mono font-bold text-[#00d2ff] shadow-[0_0_10px_rgba(0,210,255,0.2)]">
               <Sparkles className="w-3 h-3" />
               <span>4K CINEMA</span>

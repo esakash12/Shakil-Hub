@@ -34,6 +34,7 @@ import {
 } from "@/lib/actions/portfolio";
 import { PortfolioCategoryMeta, PortfolioItem } from "@/lib/data/portfolio-types";
 import { getPresignedUploadUrl } from "@/lib/actions/cloudflare-r2";
+import { resolveMediaUrl } from "@/lib/data/courses";
 
 function formatVideoDuration(seconds: number): string {
   if (isNaN(seconds) || seconds <= 0) return "01:00";
@@ -714,9 +715,10 @@ export default function AdminPortfolioPage() {
                   <div className="relative aspect-[16/10] bg-black overflow-hidden">
                     {item.thumbnail ? (
                       <Image
-                        src={item.thumbnail}
+                        src={resolveMediaUrl(item.thumbnail) || item.thumbnail}
                         alt={item.title}
                         fill
+                        unoptimized
                         sizes="(max-width: 768px) 100vw, 33vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
@@ -900,24 +902,24 @@ export default function AdminPortfolioPage() {
         </div>
       )}
 
-      {/* ================= PROJECT MODAL ================= */}
+      {/* ================= PROJECT MODAL (2-COLUMN STUDIO LAYOUT) ================= */}
       {isProjectModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/85 backdrop-blur-md overflow-hidden">
-          <div className="relative w-full max-w-2xl bg-[#080d1a] border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95">
+          <div className="relative w-full max-w-5xl bg-[#080d1a] border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[90vh] overflow-hidden animate-in fade-in duration-200">
             {/* Modal Sticky Header */}
             <div className="px-5 sm:px-6 py-4 border-b border-white/10 flex items-center justify-between shrink-0 bg-[#080d1a]">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-cyan-500/20 flex items-center justify-center text-[#00d2ff]">
-                  <Film className="w-4 h-4" />
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-[#00d2ff] shadow-sm">
+                  <Film className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base sm:text-lg font-black text-white">
+                  <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
                     {projectForm.id && items.some((i) => i.id === projectForm.id)
                       ? "Edit Portfolio Project"
-                      : "Upload New Portfolio Project"}
+                      : "Studio Project Builder"}
                   </h2>
                   <p className="text-[11px] text-zinc-400">
-                    High-impact showcase video & thumbnail configuration
+                    Configure project details, video streaming source & 16:9 cinematic thumbnail
                   </p>
                 </div>
               </div>
@@ -925,329 +927,397 @@ export default function AdminPortfolioPage() {
                 type="button"
                 onClick={() => setIsProjectModalOpen(false)}
                 className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                title="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Form with Scrollable Body & Sticky Footer */}
+            {/* Modal Form with Scrollable 2-Column Body & Sticky Footer */}
             <form onSubmit={handleSaveProject} className="flex flex-col flex-1 overflow-hidden">
-              <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4 custom-scrollbar">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Project Title */}
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <label className="block text-xs font-semibold text-zinc-300">
-                      Project Title *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={projectForm.title}
-                      onChange={(e) =>
-                        setProjectForm((prev) => ({ ...prev, title: e.target.value }))
-                      }
-                      placeholder="e.g. Cyberpunk Commercial Reel"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
-                    />
-                  </div>
+              <div className="p-5 sm:p-6 overflow-y-auto flex-1 custom-scrollbar">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                  
+                  {/* LEFT COLUMN: Metadata & Project Information (6 cols) */}
+                  <div className="lg:col-span-6 space-y-4">
+                    <div className="flex items-center gap-2 pb-1 border-b border-white/5 text-xs font-bold text-[#00d2ff] uppercase tracking-wider font-mono">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Project Information</span>
+                    </div>
 
-                  {/* Category Dropdown */}
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-zinc-300">
-                      Category *
-                    </label>
-                    <select
-                      value={projectForm.category}
-                      onChange={(e) => {
-                        const catId = e.target.value;
-                        const catMeta = categories.find((c) => c.id === catId);
-                        setProjectForm((prev) => ({
-                          ...prev,
-                          category: catId,
-                          categoryLabel: catMeta?.label || catId,
-                        }));
-                      }}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff] cursor-pointer"
-                    >
-                      {categories
-                        .filter((c) => c.id !== "all")
-                        .map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.label}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                    {/* Project Title */}
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-semibold text-zinc-300">
+                        Project Title *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={projectForm.title}
+                        onChange={(e) =>
+                          setProjectForm((prev) => ({ ...prev, title: e.target.value }))
+                        }
+                        placeholder="e.g. Cyberpunk Commercial Reel"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#00d2ff]"
+                      />
+                    </div>
 
-                  {/* Client Name */}
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-zinc-300">
-                      Client Name (optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={projectForm.client || ""}
-                      onChange={(e) =>
-                        setProjectForm((prev) => ({ ...prev, client: e.target.value }))
-                      }
-                      placeholder="e.g. Apex Gaming Inc."
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
-                    />
-                  </div>
-                </div>
+                    {/* Category & Client Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {/* Category Dropdown */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold text-zinc-300">
+                          Category *
+                        </label>
+                        <select
+                          value={projectForm.category}
+                          onChange={(e) => {
+                            const catId = e.target.value;
+                            const catMeta = categories.find((c) => c.id === catId);
+                            setProjectForm((prev) => ({
+                              ...prev,
+                              category: catId,
+                              categoryLabel: catMeta?.label || catId,
+                            }));
+                          }}
+                          className="w-full px-3 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff] cursor-pointer"
+                        >
+                          {categories
+                            .filter((c) => c.id !== "all")
+                            .map((c) => (
+                              <option key={c.id} value={c.id}>
+                                {c.label}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
 
-                {/* Video Duration */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-zinc-300">
-                    Video Duration
-                  </label>
-                  <input
-                    type="text"
-                    value={projectForm.duration || ""}
-                    onChange={(e) =>
-                      setProjectForm((prev) => ({ ...prev, duration: e.target.value }))
-                    }
-                    placeholder="e.g. 1:45"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
-                  />
-                </div>
+                      {/* Client Name */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold text-zinc-300">
+                          Client Name (optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={projectForm.client || ""}
+                          onChange={(e) =>
+                            setProjectForm((prev) => ({ ...prev, client: e.target.value }))
+                          }
+                          placeholder="e.g. RedBull, Nike, Apex"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#00d2ff]"
+                        />
+                      </div>
+                    </div>
 
-                {/* VIDEO UPLOADER / LINK TABBED BOX */}
-                <div className="p-4 rounded-2xl bg-black/40 border border-white/10 space-y-3.5">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold text-white flex items-center gap-1.5">
-                      <Film className="w-3.5 h-3.5 text-[#00d2ff]" />
-                      <span>Project Video *</span>
-                    </label>
+                    {/* Duration & Tags */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {/* Video Duration */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold text-zinc-300">
+                          Video Duration
+                        </label>
+                        <input
+                          type="text"
+                          value={projectForm.duration || ""}
+                          onChange={(e) =>
+                            setProjectForm((prev) => ({ ...prev, duration: e.target.value }))
+                          }
+                          placeholder="e.g. 1:45"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#00d2ff]"
+                        />
+                      </div>
 
-                    {/* Mode Selector Pill Buttons */}
-                    <div className="flex items-center p-0.5 rounded-lg bg-white/5 border border-white/10">
-                      <button
-                        type="button"
-                        onClick={() => setVideoMode("upload")}
-                        className={`px-3 py-1 rounded-md text-[11px] font-semibold transition-all ${
-                          videoMode === "upload"
-                            ? "bg-[#00d2ff] text-black shadow-sm"
-                            : "text-zinc-400 hover:text-white"
-                        }`}
-                      >
-                        Upload Video File
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setVideoMode("link")}
-                        className={`px-3 py-1 rounded-md text-[11px] font-semibold transition-all ${
-                          videoMode === "link"
-                            ? "bg-[#00d2ff] text-black shadow-sm"
-                            : "text-zinc-400 hover:text-white"
-                        }`}
-                      >
-                        Paste Video Link
-                      </button>
+                      {/* Tags */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold text-zinc-300">
+                          Tags (comma separated)
+                        </label>
+                        <input
+                          type="text"
+                          value={tagsInput}
+                          onChange={(e) => setTagsInput(e.target.value)}
+                          placeholder="e.g. 4K, Color Grade, VFX"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#00d2ff]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-semibold text-zinc-300">
+                        Project Description
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={projectForm.description}
+                        onChange={(e) =>
+                          setProjectForm((prev) => ({ ...prev, description: e.target.value }))
+                        }
+                        placeholder="Describe the creative direction, camera workflow, sound design, and impact of this reel..."
+                        className="w-full p-3 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#00d2ff] resize-none"
+                      />
+                    </div>
+
+                    {/* Featured Toggle */}
+                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                        <div>
+                          <p className="text-xs font-bold text-white">Featured Project</p>
+                          <p className="text-[10.5px] text-zinc-400">Showcase this reel on the hero & top portfolio slots</p>
+                        </div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        id="featuredProject"
+                        checked={!!projectForm.featured}
+                        onChange={(e) =>
+                          setProjectForm((prev) => ({ ...prev, featured: e.target.checked }))
+                        }
+                        className="w-4 h-4 rounded text-[#00d2ff] focus:ring-0 cursor-pointer accent-[#00d2ff]"
+                      />
                     </div>
                   </div>
 
-                  {/* Mode 1: File Upload */}
-                  {videoMode === "upload" ? (
-                    <div className="space-y-3">
-                      <input
-                        ref={videoInputRef}
-                        type="file"
-                        accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/*"
-                        onChange={handleVideoFileSelect}
-                        className="hidden"
-                      />
+                  {/* RIGHT COLUMN: Media Studio & Video Player (6 cols) */}
+                  <div className="lg:col-span-6 space-y-4">
+                    <div className="flex items-center gap-2 pb-1 border-b border-white/5 text-xs font-bold text-[#00d2ff] uppercase tracking-wider font-mono">
+                      <Film className="w-3.5 h-3.5" />
+                      <span>Media Studio & Stream Source</span>
+                    </div>
 
-                      {/* Drop / Pick Zone */}
-                      <div
-                        onClick={() => videoInputRef.current?.click()}
-                        className="border-2 border-dashed border-white/15 hover:border-[#00d2ff]/50 rounded-2xl p-5 text-center cursor-pointer transition-colors bg-white/[0.01] hover:bg-[#00d2ff]/5 flex flex-col items-center justify-center gap-2 group"
-                      >
-                        <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-[#00d2ff] group-hover:scale-110 transition-transform">
-                          <UploadCloud className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-white group-hover:text-[#00d2ff] transition-colors">
-                            {videoFileName
-                              ? videoFileName
-                              : "Click or drag & drop to upload video"}
-                          </p>
-                          <p className="text-[10.5px] text-zinc-500 mt-0.5">
-                            MP4, MOV, WebM, MKV (Large files & 4K supported)
-                          </p>
+                    {/* VIDEO UPLOADER / LINK TABBED BOX */}
+                    <div className="p-4 rounded-2xl bg-black/50 border border-white/10 space-y-3.5">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-bold text-white flex items-center gap-1.5">
+                          <Film className="w-3.5 h-3.5 text-[#00d2ff]" />
+                          <span>Video Source *</span>
+                        </label>
+
+                        {/* Mode Selector Pill Buttons */}
+                        <div className="flex items-center p-0.5 rounded-lg bg-white/5 border border-white/10">
+                          <button
+                            type="button"
+                            onClick={() => setVideoMode("upload")}
+                            className={`px-3 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                              videoMode === "upload"
+                                ? "bg-[#00d2ff] text-black shadow-sm"
+                                : "text-zinc-400 hover:text-white"
+                            }`}
+                          >
+                            Upload File
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setVideoMode("link")}
+                            className={`px-3 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                              videoMode === "link"
+                                ? "bg-[#00d2ff] text-black shadow-sm"
+                                : "text-zinc-400 hover:text-white"
+                            }`}
+                          >
+                            Paste Link
+                          </button>
                         </div>
                       </div>
 
-                      {/* Upload Error */}
-                      {videoUploadError && (
-                        <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
-                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                          <span>{videoUploadError}</span>
-                        </div>
-                      )}
+                      {/* Mode 1: File Upload */}
+                      {videoMode === "upload" ? (
+                        <div className="space-y-3">
+                          <input
+                            ref={videoInputRef}
+                            type="file"
+                            accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/*"
+                            onChange={handleVideoFileSelect}
+                            className="hidden"
+                          />
 
-                      {/* Upload Progress Bar */}
-                      {isUploadingVideo && (
-                        <div className="p-3 rounded-xl bg-black/60 border border-white/10 space-y-1.5">
-                          <div className="flex items-center justify-between text-[11px] font-mono">
-                            <span className="text-[#00d2ff] font-bold flex items-center gap-1.5">
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                              <span>{videoUploadStats ? `Uploading: ${videoUploadStats}` : "Uploading video..."}</span>
-                            </span>
-                            <span className="text-zinc-300 font-bold">{videoProgress}%</span>
-                          </div>
-                          <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-gradient-to-r from-[#00d2ff] to-blue-500 transition-all duration-300"
-                              style={{ width: `${videoProgress}%` }}
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Currently Linked or Uploaded Video Confirmation */}
-                      {projectForm.videoUrl && (
-                        <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2 overflow-hidden">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                            <span className="text-zinc-300 truncate font-mono text-[11px]">
-                              {projectForm.videoUrl}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setProjectForm((prev) => ({ ...prev, videoUrl: "" }));
-                              setVideoFileName("");
-                            }}
-                            className="text-zinc-400 hover:text-red-400 p-1 transition-colors"
-                            title="Remove Video"
+                          {/* Drop / Pick Zone */}
+                          <div
+                            onClick={() => videoInputRef.current?.click()}
+                            className="border-2 border-dashed border-white/15 hover:border-[#00d2ff]/50 rounded-2xl p-4 text-center cursor-pointer transition-colors bg-white/[0.01] hover:bg-[#00d2ff]/5 flex flex-col items-center justify-center gap-1.5 group"
                           >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
+                            <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-[#00d2ff] group-hover:scale-110 transition-transform">
+                              <UploadCloud className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-white group-hover:text-[#00d2ff] transition-colors">
+                                {videoFileName
+                                  ? videoFileName
+                                  : "Click or drag & drop video file"}
+                              </p>
+                              <p className="text-[10px] text-zinc-500 mt-0.5">
+                                MP4, MOV, WebM (Cloudflare R2 Direct Streaming)
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Upload Error */}
+                          {videoUploadError && (
+                            <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+                              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                              <span>{videoUploadError}</span>
+                            </div>
+                          )}
+
+                          {/* Upload Progress Bar */}
+                          {isUploadingVideo && (
+                            <div className="p-3 rounded-xl bg-black/60 border border-white/10 space-y-1.5">
+                              <div className="flex items-center justify-between text-[11px] font-mono">
+                                <span className="text-[#00d2ff] font-bold flex items-center gap-1.5">
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                  <span>{videoUploadStats ? `Uploading: ${videoUploadStats}` : "Uploading video..."}</span>
+                                </span>
+                                <span className="text-zinc-300 font-bold">{videoProgress}%</span>
+                              </div>
+                              <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-gradient-to-r from-[#00d2ff] to-blue-500 transition-all duration-300"
+                                  style={{ width: `${videoProgress}%` }}
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Currently Linked or Uploaded Video Confirmation */}
+                          {projectForm.videoUrl && (
+                            <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-2 overflow-hidden">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                <span className="text-zinc-300 truncate font-mono text-[11px]">
+                                  {projectForm.videoUrl}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setProjectForm((prev) => ({ ...prev, videoUrl: "" }));
+                                  setVideoFileName("");
+                                }}
+                                className="text-zinc-400 hover:text-red-400 p-1 transition-colors"
+                                title="Remove Video"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        /* Mode 2: Paste External Video Link */
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={projectForm.videoUrl || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setProjectForm((prev) => ({ ...prev, videoUrl: val }));
+                              const ytId = getYouTubeVideoId(val);
+                              if (ytId && !projectForm.thumbnail) {
+                                setProjectForm((prev) => ({
+                                  ...prev,
+                                  thumbnail: `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`,
+                                }));
+                              }
+                            }}
+                            placeholder="Paste YouTube (unlisted/public), Vimeo, or direct MP4 URL"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#00d2ff]"
+                          />
+                          <p className="text-[10.5px] text-zinc-500">
+                            ✦ Unlisted YouTube links stream in 4K with 0 buffer and our cloaked player automatically hides all YouTube branding.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Live Video Preview Box (If URL is Present) */}
+                      {projectForm.videoUrl && (
+                        <div className="mt-3 pt-3 border-t border-white/5 space-y-1.5">
+                          <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                            <span className="font-mono text-zinc-400 flex items-center gap-1.5">
+                              <Eye className="w-3 h-3 text-[#00d2ff]" />
+                              <span>Live Stream Preview:</span>
+                            </span>
+                            <span className="text-[10px] text-emerald-400 font-mono">Ready to Stream</span>
+                          </div>
+                          <div className="relative w-full aspect-video rounded-xl bg-black overflow-hidden border border-white/10 shadow-inner">
+                            {getYouTubeVideoId(projectForm.videoUrl) ? (
+                              <iframe
+                                src={`https://www.youtube.com/embed/${getYouTubeVideoId(projectForm.videoUrl)}?controls=1&modestbranding=1`}
+                                title="Video Preview"
+                                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                                className="w-full h-full border-0"
+                              />
+                            ) : (
+                              <video
+                                src={resolveMediaUrl(projectForm.videoUrl) || projectForm.videoUrl}
+                                controls
+                                preload="metadata"
+                                className="w-full h-full object-contain"
+                              />
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
-                  ) : (
-                    /* Mode 2: Paste External Video Link */
-                    <div className="space-y-2">
-                      <input
-                        type="text"
-                        value={projectForm.videoUrl || ""}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setProjectForm((prev) => ({ ...prev, videoUrl: val }));
-                          const ytId = getYouTubeVideoId(val);
-                          if (ytId && !projectForm.thumbnail) {
-                            setProjectForm((prev) => ({
-                              ...prev,
-                              thumbnail: `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`,
-                            }));
-                          }
-                        }}
-                        placeholder="Paste YouTube link (https://youtube.com/watch?v=...), Vimeo, or MP4 URL"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
+
+                    {/* Thumbnail Image with Upload Support */}
+                    <div>
+                      <ImageUploadField
+                        label="Project Thumbnail Image (16:9 Showcase)"
+                        value={projectForm.thumbnail}
+                        onChange={(url) =>
+                          setProjectForm((prev) => ({ ...prev, thumbnail: url }))
+                        }
+                        variant="banner"
+                        placeholder="https://images.unsplash.com/... or upload thumbnail"
+                        description="High-resolution 16:9 thumbnail. If left blank with a YouTube link, automatically fetched."
+                        buttonLabel="Upload Project Thumbnail"
+                        badgeText="16:9 Showcase"
                       />
-                      <p className="text-[11px] text-zinc-500">
-                        YouTube thumbnails are automatically extracted when a link is pasted.
-                      </p>
                     </div>
-                  )}
-                </div>
 
-                {/* Thumbnail Image with Upload Support */}
-                <div className="pt-3 border-t border-white/5">
-                  <ImageUploadField
-                    label="Project Thumbnail Image (Auto-captured from video or upload custom)"
-                    value={projectForm.thumbnail}
-                    onChange={(url) =>
-                      setProjectForm((prev) => ({ ...prev, thumbnail: url }))
-                    }
-                    variant="banner"
-                    placeholder="https://images.unsplash.com/... or upload thumbnail"
-                    description="High-resolution 16:9 thumbnail. If left blank, automatically generated from your uploaded video or YouTube link."
-                    buttonLabel="Upload Project Thumbnail"
-                    badgeText="16:9 Showcase"
-                  />
-                </div>
+                    {/* Pro Optimization Tip Notice */}
+                    <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/20 text-cyan-300 text-[11px] leading-relaxed flex items-start gap-2">
+                      <Sparkles className="w-4 h-4 text-[#00d2ff] shrink-0 mt-0.5" />
+                      <span>
+                        <strong className="text-white">Pro Streaming Tip:</strong> For zero-lag mobile playback, keep direct MP4s under 30MB (H.264/WebM). Or paste an <em>Unlisted YouTube link</em> to get unlimited 4K 60FPS bandwidth with zero buffer!
+                      </span>
+                    </div>
 
-                {/* Description */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-zinc-300">
-                    Project Description
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={projectForm.description}
-                    onChange={(e) =>
-                      setProjectForm((prev) => ({ ...prev, description: e.target.value }))
-                    }
-                    placeholder="Describe the creative approach, production workflow, and results..."
-                    className="w-full p-3 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff] resize-none"
-                  />
-                </div>
-
-                {/* Tags */}
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-zinc-300">
-                    Tags (comma separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={tagsInput}
-                    onChange={(e) => setTagsInput(e.target.value)}
-                    placeholder="e.g. Cinema 4K, Color Grading, 3D VFX, After Effects"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-[#00d2ff]"
-                  />
-                </div>
-
-                {/* Featured Toggle */}
-                <div className="flex items-center gap-3 pt-2">
-                  <input
-                    type="checkbox"
-                    id="featuredProject"
-                    checked={!!projectForm.featured}
-                    onChange={(e) =>
-                      setProjectForm((prev) => ({ ...prev, featured: e.target.checked }))
-                    }
-                    className="w-4 h-4 rounded text-[#00d2ff] focus:ring-0 cursor-pointer accent-[#00d2ff]"
-                  />
-                  <label
-                    htmlFor="featuredProject"
-                    className="text-xs font-semibold text-zinc-200 cursor-pointer flex items-center gap-1.5"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Feature on Landing Page showcase</span>
-                  </label>
+                  </div>
                 </div>
               </div>
 
               {/* Modal Sticky Footer */}
-              <div className="px-5 sm:px-6 py-3.5 border-t border-white/10 flex items-center justify-end gap-3 shrink-0 bg-[#080d1a]">
-                <button
-                  type="button"
-                  onClick={() => setIsProjectModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSavingProject}
-                  className="px-5 py-2.5 rounded-xl bg-[#00d2ff] hover:bg-[#00b8e6] text-black font-extrabold text-xs flex items-center gap-2 shadow-[0_0_20px_rgba(0,210,255,0.4)] disabled:opacity-50 cursor-pointer"
-                >
-                  {isSavingProject ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
-                      <span>Save Project</span>
-                    </>
-                  )}
-                </button>
+              <div className="px-5 sm:px-6 py-3.5 border-t border-white/10 flex items-center justify-between shrink-0 bg-[#080d1a]">
+                <span className="hidden sm:inline-block text-[11px] text-zinc-500 font-mono">
+                  All updates sync in real-time to the landing page showcase.
+                </span>
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsProjectModalOpen(false)}
+                    className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingProject}
+                    className="px-6 py-2.5 rounded-xl bg-[#00d2ff] hover:bg-[#00b8e6] text-black font-extrabold text-xs flex items-center gap-2 shadow-[0_0_20px_rgba(0,210,255,0.4)] disabled:opacity-50 cursor-pointer"
+                  >
+                    {isSavingProject ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Save Project</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
