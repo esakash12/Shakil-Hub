@@ -139,24 +139,27 @@ export default function Footer() {
             <ul className="space-y-2 text-xs">
               <li className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-[#00d2ff] shrink-0" />
-                <a href="mailto:sakilhub@gmail.com" className="text-zinc-300 hover:text-[#00d2ff] transition-colors truncate">
-                  sakilhub@gmail.com
+                <a
+                  href={`mailto:${branding.contactEmail || "support@sakilhub.com"}`}
+                  className="text-zinc-300 hover:text-[#00d2ff] transition-colors truncate"
+                >
+                  {branding.contactEmail || "support@sakilhub.com"}
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-[#00d2ff] shrink-0" />
                 <a
-                  href="https://wa.me/8801326896947"
+                  href={`https://wa.me/${(branding.whatsappNumber || "8801326896947").replace(/\D/g, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-zinc-300 hover:text-[#00d2ff] transition-colors whitespace-nowrap"
                 >
-                  +880 1326 896947
+                  {branding.contactPhone || branding.whatsappNumber || "+880 1326 896947"}
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <MapPin className="w-3.5 h-3.5 text-[#00d2ff] shrink-0" />
-                <span className="text-zinc-300">Dhaka, Bangladesh</span>
+                <span className="text-zinc-300">{branding.address || "Dhaka, Bangladesh"}</span>
               </li>
             </ul>
           </div>
@@ -164,7 +167,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500 font-mono">
-          <p>© 2026 Sakil Hub. All rights reserved.</p>
+          <p>{branding.footerCopyright || "© 2026 Sakil Hub. All rights reserved."}</p>
           <div className="flex items-center gap-4">
             <Link href="/privacy" className="hover:text-[#00d2ff] transition-colors">
               Privacy Policy

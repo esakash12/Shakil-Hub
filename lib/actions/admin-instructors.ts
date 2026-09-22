@@ -10,16 +10,13 @@ import {
   deleteInstructor,
   InstructorItem,
 } from "@/lib/data/instructors";
+import { requireAdminSession } from "@/lib/actions/admin-auth";
 
 /**
  * Validates admin authentication session
  */
 async function verifyAdminAuth(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get("sakil_admin_token")?.value ||
-    cookieStore.get("medusa_admin_token")?.value;
-  return Boolean(token);
+  return await requireAdminSession();
 }
 
 /**

@@ -17,8 +17,7 @@ import {
   deduplicateNotices,
 } from "@/lib/data/customers";
 import { getPersistentOrders, OrderItem } from "@/lib/data/orders";
-
-
+import { requireAdminSession } from "@/lib/actions/admin-auth";
 
 export interface AdminStudentItem {
   id: string;
@@ -44,6 +43,11 @@ export async function fetchAdminStudentsAction(): Promise<{
   success: boolean;
   students: AdminStudentItem[];
 }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, students: [] };
+  }
+
   try {
     // 1. Fetch registered customer accounts directly from PostgreSQL
     const registeredCustomers: CustomerRecord[] = await getPersistentCustomers();
@@ -170,6 +174,11 @@ export async function updateStudentStatusAction(
   banReason?: string,
   tempBanDays?: number
 ): Promise<{ success: boolean; error?: string }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   if (!email) return { success: false, error: "Email is required" };
 
   try {
@@ -203,6 +212,11 @@ export async function sendStudentNoticeAction(
     type: "info" | "warning" | "alert" | "success";
   }
 ): Promise<{ success: boolean; notice?: CustomerNotice; error?: string }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   if (!email || !notice.title || !notice.message) {
     return { success: false, error: "Email, title, and message are required" };
   }
@@ -225,6 +239,11 @@ export async function deleteStudentNoticeAction(
   email: string,
   noticeId: string
 ): Promise<{ success: boolean; error?: string }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   if (!email || !noticeId) {
     return { success: false, error: "Email and noticeId are required" };
   }
@@ -247,6 +266,11 @@ export async function grantStudentCourseAccessAction(
   email: string,
   courseSlug: string
 ): Promise<{ success: boolean; error?: string }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   if (!email || !courseSlug) {
     return { success: false, error: "Email and courseSlug are required" };
   }
@@ -270,6 +294,11 @@ export async function revokeStudentCourseAccessAction(
   email: string,
   courseSlug: string
 ): Promise<{ success: boolean; error?: string }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   if (!email || !courseSlug) {
     return { success: false, error: "Email and courseSlug are required" };
   }
@@ -292,6 +321,11 @@ export async function revokeStudentCourseAccessAction(
 export async function deleteStudentAccountAction(
   email: string
 ): Promise<{ success: boolean; error?: string }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   if (!email) return { success: false, error: "Email is required" };
 
   try {

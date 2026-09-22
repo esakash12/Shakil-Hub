@@ -7,6 +7,7 @@ import {
   hashPassword,
   getPersistentCustomers,
 } from "@/lib/data/customers";
+import crypto from "crypto";
 import { getSessionCookieOptions } from "@/lib/security/cookies";
 
 export interface AuthResponse {
@@ -21,6 +22,61 @@ export interface CustomerProfile {
   first_name?: string;
   last_name?: string;
   phone?: string;
+}
+
+const STUDENT_SECRET =
+  process.env.STUDENT_SESSION_SECRET ||
+  process.env.ADMIN_SESSION_SECRET ||
+  process.env.COOKIE_SECRET ||
+  "sakilhub_student_session_secret_2026";
+
+function signStudentToken(email: string): string {
+  const timestamp = Date.now();
+  const payload = `${email.toLowerCase().trim()}:${timestamp}`;
+  const signature = crypto
+    .createHmac("sha256", STUDENT_SECRET)
+    .update(payload)
+    .digest("hex");
+  return `std_v2_${Buffer.from(payload).toString("base64url")}.${signature}`;
+}
+
+function verifyStudentToken(token: string): string | null {
+  if (!token) return null;
+  if (token.startsWith("std_v2_")) {
+    const raw = token.slice("std_v2_".length);
+    const [payloadB64, sig] = raw.split(".");
+    if (!payloadB64 || !sig) return null;
+    try {
+      const payload = Buffer.from(payloadB64, "base64url").toString("utf-8");
+      const expectedSig = crypto
+        .createHmac("sha256", STUDENT_SECRET)
+        .update(payload)
+        .digest("hex");
+      if (crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig))) {
+        const parts = payload.split(":");
+        const email = parts[0]?.toLowerCase().trim();
+        const timestamp = Number(parts[1]);
+        if (email && timestamp && Date.now() - timestamp < 30 * 24 * 60 * 60 * 1000) {
+          return email;
+        }
+      }
+    } catch {
+      return null;
+    }
+  }
+  // Backwards compatibility for previously active std_tok_ sessions
+  if (token.startsWith("std_tok_")) {
+    try {
+      const parts = token.split("_");
+      if (parts[2]) {
+        const decodedEmail = Buffer.from(parts[2], "base64").toString("utf8")?.toLowerCase().trim();
+        if (decodedEmail && decodedEmail.includes("@")) {
+          return decodedEmail;
+        }
+      }
+    } catch {}
+  }
+  return null;
 }
 
 const SESSION_COOKIE_KEYS = [
@@ -104,7 +160,7 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
         await purgeAllSessionCookies();
 
         const cookieStore = await cookies();
-        const token = `std_tok_${Buffer.from(email).toString("base64")}_${Date.now()}`;
+        const token = signStudentToken(email);
         cookieStore.set("sakil_customer_token", token, getSessionCookieOptions());
         cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
 
@@ -166,7 +222,7 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
     // Purge any stale cookies before establishing brand new student session
     await purgeAllSessionCookies();
 
-    const token = `std_tok_${Buffer.from(email).toString("base64")}_${Date.now()}`;
+    const token = signStudentToken(email);
     const cookieStore = await cookies();
     cookieStore.set("sakil_customer_token", token, getSessionCookieOptions());
 
@@ -218,16 +274,22 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
       return null;
     }
 
+    // 1. Strict Cryptographic Token Verification
+    const verifiedEmail = token ? verifyStudentToken(token) : null;
+    if (!verifiedEmail) {
+      return null;
+    }
+
     let candidateProfile: CustomerProfile | null = null;
 
-    // 1. Read stored customer profile cookie
+    // 2. Read stored customer profile cookie if matching verified email
     if (infoCookie) {
       try {
         const parsed = JSON.parse(infoCookie);
-        if (parsed.email) {
+        if (parsed.email && parsed.email.toLowerCase().trim() === verifiedEmail) {
           candidateProfile = {
             id: parsed.id,
-            email: parsed.email,
+            email: verifiedEmail,
             first_name: parsed.first_name || "Student",
             last_name: parsed.last_name || "",
             phone: parsed.phone,
@@ -236,54 +298,12 @@ export async function getCustomerProfile(): Promise<CustomerProfile | null> {
       } catch {}
     }
 
-    // 2. Decode email from token if needed
-    if (!candidateProfile && token) {
-      if (token.startsWith("std_tok_")) {
-        try {
-          const parts = token.split("_");
-          if (parts[2]) {
-            const decodedEmail = Buffer.from(parts[2], "base64").toString("utf8");
-            if (decodedEmail && decodedEmail.includes("@")) {
-              candidateProfile = {
-                email: decodedEmail,
-                first_name: "Student",
-                last_name: "",
-              };
-            }
-          }
-        } catch {}
-      } else if (token.includes("@")) {
-        candidateProfile = {
-          email: token,
-          first_name: "Student",
-          last_name: "",
-        };
-      }
-    }
-
-    // 3. Fallback: Lookup persistent directory by token or ID
-    if (!candidateProfile && token) {
-      try {
-        const allCusts = await getPersistentCustomers();
-        const matched = allCusts.find(
-          (c) =>
-            c.id === token ||
-            (c.email && c.email.toLowerCase() === token.toLowerCase())
-        );
-        if (matched) {
-          candidateProfile = {
-            id: matched.id,
-            email: matched.email,
-            first_name: matched.firstName || "Student",
-            last_name: matched.lastName || "",
-            phone: matched.phone,
-          };
-        }
-      } catch {}
-    }
-
-    if (!candidateProfile || !candidateProfile.email) {
-      return null;
+    if (!candidateProfile) {
+      candidateProfile = {
+        email: verifiedEmail,
+        first_name: "Student",
+        last_name: "",
+      };
     }
 
     // Strict Administrative Ban Check & Authoritative Profile Reconciliation

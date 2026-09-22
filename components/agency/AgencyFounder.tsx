@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Sparkles,
@@ -13,8 +13,27 @@ import {
 } from "lucide-react";
 import { FOUNDER_DATA } from "@/lib/data/founder-data";
 import { AgencyCmsData } from "@/lib/data/agency-cms-types";
+import { getPlatformBrandingAction } from "@/lib/actions/branding";
+import { PlatformBrandingSettings, DEFAULT_BRANDING } from "@/lib/data/branding-types";
 
 export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) {
+  const [branding, setBranding] = useState<PlatformBrandingSettings>(DEFAULT_BRANDING);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadBrand() {
+      try {
+        const data = await getPlatformBrandingAction();
+        if (isMounted && data) {
+          setBranding(data);
+        }
+      } catch {}
+    }
+    loadBrand();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
   const photoUrl = cmsData?.founderPhotoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80";
   const name = cmsData?.founderName || "MH Sakil";
   const signature = cmsData?.founderSignatureText || "";
@@ -98,7 +117,7 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
             {/* Social Media Circular Links Row */}
             <div className="flex items-center gap-2.5">
               <a
-                href="https://facebook.com"
+                href={branding.facebookUrl || "https://facebook.com/sakilhub"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-8 h-8 rounded-full bg-white/[0.03] border border-white/[0.08] hover:border-[#00d2ff] text-zinc-400 hover:text-[#00d2ff] flex items-center justify-center transition-all cursor-pointer hover:scale-105"
@@ -107,7 +126,7 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
                 <span className="text-xs font-bold font-mono">f</span>
               </a>
               <a
-                href="https://instagram.com"
+                href={branding.instagramUrl || "https://instagram.com/sakilhub"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-8 h-8 rounded-full bg-white/[0.03] border border-white/[0.08] hover:border-[#00d2ff] text-zinc-400 hover:text-[#00d2ff] flex items-center justify-center transition-all cursor-pointer hover:scale-105"
@@ -116,7 +135,7 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
                 <span className="text-xs font-bold font-mono">ig</span>
               </a>
               <a
-                href="https://youtube.com"
+                href={branding.youtubeUrl || "https://youtube.com/@sakilhub"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-8 h-8 rounded-full bg-white/[0.03] border border-white/[0.08] hover:border-[#00d2ff] text-zinc-400 hover:text-[#00d2ff] flex items-center justify-center transition-all cursor-pointer hover:scale-105"
@@ -125,7 +144,7 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
                 <span className="text-xs font-bold font-mono">yt</span>
               </a>
               <a
-                href="https://linkedin.com"
+                href={branding.linkedinUrl || "https://linkedin.com/company/sakilhub"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-8 h-8 rounded-full bg-white/[0.03] border border-white/[0.08] hover:border-[#00d2ff] text-zinc-400 hover:text-[#00d2ff] flex items-center justify-center transition-all cursor-pointer hover:scale-105"

@@ -344,7 +344,7 @@ export async function completeEnrollmentAction(
 ): Promise<{ success: boolean; orderId?: string; courseSlug?: string; error?: string }> {
   return processManualCheckout({
     courseSlug,
-    senderNumber: paymentDetails?.senderNumber || "01700000000",
+    senderNumber: paymentDetails?.senderNumber || "01326896947",
     trxId: paymentDetails?.trxId || "TRX-MANUAL",
     paymentMethod: (paymentDetails?.method as any) || "bkash",
     fullName: paymentDetails?.fullName,

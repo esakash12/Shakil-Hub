@@ -5,11 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Play, Sparkles, Star } from "lucide-react";
 import VideoModal from "./VideoModal";
-import { PORTFOLIO_ITEMS } from "@/lib/data/portfolio";
+import { PortfolioItem } from "@/lib/data/portfolio-types";
 
-export default function AgencyAcademyPreview() {
+export default function AgencyAcademyPreview({
+  previewItem,
+}: {
+  previewItem?: PortfolioItem;
+}) {
   const [demoOpen, setDemoOpen] = useState(false);
-  const demoItem = PORTFOLIO_ITEMS[4] || PORTFOLIO_ITEMS[0];
+  const demoItem = previewItem || null;
 
   const studentAvatars = [
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
@@ -91,14 +95,16 @@ export default function AgencyAcademyPreview() {
                   <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                 </Link>
 
-                <button
-                  type="button"
-                  onClick={() => setDemoOpen(true)}
-                  className="px-5 py-2.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-cyan-500/30 hover:border-cyan-400 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                >
-                  <Play className="w-3 h-3 fill-current" />
-                  <span>Watch Demo</span>
-                </button>
+                {demoItem?.videoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setDemoOpen(true)}
+                    className="px-5 py-2.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-cyan-500/30 hover:border-cyan-400 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  >
+                    <Play className="w-3 h-3 fill-current" />
+                    <span>Watch Demo</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -107,7 +113,7 @@ export default function AgencyAcademyPreview() {
       </div>
 
       {/* Video Modal for Demo */}
-      {demoOpen && (
+      {demoOpen && demoItem && (
         <VideoModal item={demoItem} onClose={() => setDemoOpen(false)} />
       )}
     </section>

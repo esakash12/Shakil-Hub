@@ -228,12 +228,6 @@ export default function AdminLoginPage() {
               </button>
             </div>
           </form>
-
-          {/* Quick Demo Credentials Reminder */}
-          <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/10 text-[11px] text-gray-400 flex items-center justify-between">
-            <span>Demo: <strong className="text-gray-300 font-mono">admin@sakilhub.com</strong></span>
-            <span>Key: <strong className="text-gray-300 font-mono">admin123456</strong></span>
-          </div>
         </div>
 
         {/* Security Assurance Footer */}

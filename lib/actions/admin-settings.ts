@@ -7,6 +7,7 @@ import {
   updatePersistentBranding,
   DEFAULT_BRANDING,
 } from "@/lib/data/branding";
+import { requireAdminSession } from "@/lib/actions/admin-auth";
 
 export interface LMSSettingsPayload {
   bkashNumber: string;
@@ -58,6 +59,11 @@ export async function getLMSSettingsAction(): Promise<LMSSettingsPayload> {
 export async function updateLMSSettingsAction(
   payload: Partial<LMSSettingsPayload>
 ): Promise<{ success: boolean; error?: string; settings?: LMSSettingsPayload }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   try {
     const brandingUpdates: any = {};
     if (payload.bkashNumber !== undefined) brandingUpdates.bkashNumber = payload.bkashNumber;
@@ -85,7 +91,7 @@ export async function updateLMSSettingsAction(
       settings: {
         bkashNumber: updatedBranding.bkashNumber,
         nagadNumber: updatedBranding.nagadNumber,
-        rocketNumber: (updatedBranding as any).rocketNumber || "01912345678",
+        rocketNumber: (updatedBranding as any).rocketNumber || DEFAULT_SETTINGS.rocketNumber,
         welcomeMessage: updatedBranding.announcement,
         announcement: updatedBranding.announcement,
         supportEmail: updatedBranding.contactEmail,

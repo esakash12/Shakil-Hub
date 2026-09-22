@@ -13,17 +13,23 @@ import {
   Volume2,
 } from "lucide-react";
 import VideoModal from "./VideoModal";
-import { PORTFOLIO_ITEMS } from "@/lib/data/portfolio";
+import { PortfolioItem } from "@/lib/data/portfolio-types";
 import { AgencyCmsData } from "@/lib/data/agency-cms-types";
 
-export default function AgencyHero({ cmsData }: { cmsData?: AgencyCmsData }) {
+export default function AgencyHero({
+  cmsData,
+  featuredItem,
+}: {
+  cmsData?: AgencyCmsData;
+  featuredItem?: PortfolioItem;
+}) {
   const [showreelOpen, setShowreelOpen] = useState(false);
-  const showreelItem = PORTFOLIO_ITEMS && PORTFOLIO_ITEMS.length > 0 ? PORTFOLIO_ITEMS[0] : {
+  const showreelItem: PortfolioItem = featuredItem || {
     id: "showreel-default",
     title: "Sakil Hub — Agency Showreel",
-    category: "all",
+    category: "commercials",
     categoryLabel: "Agency Reel",
-    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    videoUrl: "",
     thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80",
     description: "Official agency showreel showcasing commercial edits, visual storytelling, and high-impact digital experiences.",
     client: "Sakil Hub Original",

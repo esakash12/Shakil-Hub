@@ -24,11 +24,11 @@ function PayGatewayInner() {
   const [itemType, setItemType] = useState<"course" | "product">("course");
   const [course, setCourse] = useState<CourseDetail>(() => getCourseBySlug(slug));
   const [settings, setSettings] = useState<LMSSettingsPayload>({
-    bkashNumber: "01754511619",
-    nagadNumber: "01812345678",
-    rocketNumber: "01912345678",
+    bkashNumber: "01326896947",
+    nagadNumber: "01326896947",
+    rocketNumber: "01326896947",
     supportEmail: "support@sakilhub.com",
-    supportPhone: "+880 1712-345678",
+    supportPhone: "+880 1326-896947",
   });
 
   const [step, setStep] = useState<2 | 3>(2);
@@ -188,12 +188,12 @@ function PayGatewayInner() {
   const getMerchantNumber = (gw: PaymentGatewayType): string => {
     switch (gw) {
       case "nagad":
-        return settings.nagadNumber || "01812345678";
+        return settings.nagadNumber || "01326896947";
       case "rocket":
-        return settings.rocketNumber || "01912345678";
+        return settings.rocketNumber || "01326896947";
       case "bkash":
       default:
-        return settings.bkashNumber || "01754511619";
+        return settings.bkashNumber || "01326896947";
     }
   };
 

@@ -152,12 +152,14 @@ export default async function CheckoutSuccessPage({
               <span>Questions or delayed verification? Contact WhatsApp support 24/7.</span>
             </div>
             <a
-              href="https://wa.me/8801876543210"
+              href={`https://wa.me/8801326896947?text=${encodeURIComponent(
+                `Hi Sakil Hub, I have a question regarding my order #${order?.orderNumber || displayOrderId}.`
+              )}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-400 hover:text-white font-semibold underline shrink-0"
             >
-              Chat on WhatsApp (01876-543210)
+              Chat on WhatsApp (+880 1326-896947)
             </a>
           </div>
         </div>

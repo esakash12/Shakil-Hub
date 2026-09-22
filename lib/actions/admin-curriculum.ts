@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { saveCourseCmsOverride } from "@/lib/data/courses-cms";
 import { prisma, isPrismaReady } from "@/lib/db/prisma";
+import { requireAdminSession } from "@/lib/actions/admin-auth";
 
 export interface LessonItemState {
   id: string;
@@ -33,6 +34,11 @@ export async function updateCourseCurriculumAction(
   courseId: string,
   curriculumData: ModuleItemState[]
 ) {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   if (!courseId) {
     return {
       success: false,

@@ -7,6 +7,7 @@ import {
   getPersistentAgencyCms,
   updatePersistentAgencyCms,
 } from "@/lib/data/agency-cms";
+import { requireAdminSession } from "@/lib/actions/admin-auth";
 
 /**
  * Server Action: Get Live Agency Landing Page CMS Data
@@ -26,6 +27,11 @@ export async function getAgencyCmsAction(): Promise<AgencyCmsData> {
 export async function updateAgencyCmsAction(
   payload: Partial<AgencyCmsData>
 ): Promise<{ success: boolean; data?: AgencyCmsData; error?: string }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   try {
     const updated = await updatePersistentAgencyCms(payload);
 

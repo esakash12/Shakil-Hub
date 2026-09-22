@@ -10,6 +10,7 @@ import {
   deletePersistentPortfolioCategory,
 } from "@/lib/data/portfolio-store";
 import { PortfolioCategoryMeta, PortfolioItem } from "@/lib/data/portfolio-types";
+import { requireAdminSession } from "@/lib/actions/admin-auth";
 
 /**
  * Server Action: Retrieve full portfolio data (categories & items)
@@ -32,6 +33,11 @@ export async function getPortfolioAction(): Promise<PortfolioData> {
 export async function savePortfolioItemAction(
   item: PortfolioItem
 ): Promise<{ success: boolean; item?: PortfolioItem; error?: string }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   try {
     if (!item.id || !item.title.trim()) {
       return { success: false, error: "Project Title and ID are required." };
@@ -60,6 +66,11 @@ export async function savePortfolioItemAction(
 export async function deletePortfolioItemAction(
   itemId: string
 ): Promise<{ success: boolean; error?: string }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   try {
     if (!itemId) {
       return { success: false, error: "Project ID is required." };
@@ -88,6 +99,11 @@ export async function deletePortfolioItemAction(
 export async function savePortfolioCategoryAction(
   category: PortfolioCategoryMeta
 ): Promise<{ success: boolean; category?: PortfolioCategoryMeta; error?: string }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   try {
     if (!category.id || !category.label.trim()) {
       return { success: false, error: "Category Label and Slug are required." };
@@ -122,6 +138,11 @@ export async function savePortfolioCategoryAction(
 export async function deletePortfolioCategoryAction(
   categoryId: string
 ): Promise<{ success: boolean; error?: string }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   try {
     if (!categoryId || categoryId === "all") {
       return { success: false, error: "Cannot delete default 'all' category." };

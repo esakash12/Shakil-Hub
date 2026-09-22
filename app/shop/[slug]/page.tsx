@@ -411,7 +411,9 @@ export default async function ShopProductPage({ params }: ShopProductPageProps) 
                 <span>Need help with this product?</span>
               </div>
               <a
-                href="https://wa.me/8801712345678"
+                href={`https://wa.me/8801326896947?text=${encodeURIComponent(
+                  `Hi Sakil Hub, I have a question about "${product.title}".`
+                )}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-cyan-400 hover:text-cyan-300 font-bold"

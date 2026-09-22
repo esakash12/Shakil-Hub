@@ -8,6 +8,7 @@ import {
   getPersistentBranding,
   updatePersistentBranding,
 } from "@/lib/data/branding";
+import { requireAdminSession } from "@/lib/actions/admin-auth";
 
 /**
  * Server Action: Get Global Platform Branding & CMS Configuration
@@ -32,6 +33,11 @@ export async function updatePlatformBrandingAction(
   error?: string;
   settings?: PlatformBrandingSettings;
 }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   try {
     const updated = await updatePersistentBranding(payload);
 

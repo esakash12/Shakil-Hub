@@ -11,16 +11,13 @@ import {
   deleteShopProduct,
 } from "@/lib/data/shop";
 import { DigitalProduct, ShopProductPayload } from "@/lib/data/shop-types";
+import { requireAdminSession } from "@/lib/actions/admin-auth";
 
 /**
  * Checks whether the current request is from an authenticated admin
  */
 async function verifyAdminAuth(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get("sakil_admin_token")?.value ||
-    cookieStore.get("medusa_admin_token")?.value;
-  return Boolean(token && token.length > 5);
+  return await requireAdminSession();
 }
 
 /**

@@ -321,7 +321,9 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                       </div>
 
                       <a
-                        href={`https://wa.me/8801700000000?text=Hi%20Sakil%20Hub,%20I%20have%20submitted%20order%20%23${order.orderNumber}%20with%20TrxID%20${order.trxId}.%20Please%20verify.`}
+                        href={`https://wa.me/8801326896947?text=${encodeURIComponent(
+                          `Hi Sakil Hub, I have submitted order #${order.orderNumber} with TrxID ${order.trxId}. Please verify.`
+                        )}`}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold transition-colors self-start sm:self-auto shrink-0"
@@ -336,15 +338,28 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                 {isApproved && (
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                     <p className="text-xs text-emerald-400/90 font-medium">
-                      ✓ Your payment was successfully verified and course access is fully unlocked!
+                      ✓ Your payment was successfully verified and your access is fully unlocked!
                     </p>
-                    <Link
-                      href={order.courseSlug ? `/dashboard/courses/${order.courseSlug}/learn` : "/dashboard/courses"}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/30 transition-all self-start sm:self-auto shrink-0"
-                    >
-                      <Play className="w-3.5 h-3.5 fill-current" />
-                      <span>Start Learning Now</span>
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={order.courseSlug ? `/dashboard/courses/${order.courseSlug}/learn` : "/dashboard/courses"}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/30 transition-all self-start sm:self-auto shrink-0"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span>Access Content</span>
+                      </Link>
+                      <a
+                        href={`https://wa.me/8801326896947?text=${encodeURIComponent(
+                          `Hi Sakil Hub, my order #${order.orderNumber} is approved. I would like assistance with downloading my digital assets / course materials.`
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-semibold transition-colors self-start sm:self-auto shrink-0"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>WhatsApp Support</span>
+                      </a>
+                    </div>
                   </div>
                 )}
 
@@ -354,7 +369,9 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                       ✕ Reason: {order.rejectionReason || "Invalid or unverifiable Transaction ID."}
                     </p>
                     <a
-                      href="https://wa.me/8801700000000?text=Hi%20Sakil%20Hub,%20my%20payment%20verification%20was%20rejected.%20Please%20help."
+                      href={`https://wa.me/8801326896947?text=${encodeURIComponent(
+                        `Hi Sakil Hub, my payment verification for order #${order.orderNumber} was rejected. Please help.`
+                      )}`}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-semibold transition-colors self-start sm:self-auto shrink-0"

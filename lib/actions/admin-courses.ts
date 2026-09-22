@@ -6,6 +6,7 @@ import path from "path";
 
 import { saveCourseCmsOverride, getCourseCmsOverride, CourseFaqItem } from "@/lib/data/courses-cms";
 import { prisma, isPrismaReady } from "@/lib/db/prisma";
+import { requireAdminSession } from "@/lib/actions/admin-auth";
 
 async function persistBase64Image(dataUri?: string): Promise<string> {
   if (!dataUri || !dataUri.startsWith("data:")) return dataUri || "";
@@ -74,6 +75,11 @@ function slugify(text: string): string {
  * Enterprise Course Creation Action (Direct PostgreSQL via Prisma)
  */
 export async function createAdminCourseAction(payload: CoursePayload) {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   try {
     const {
       title,
@@ -333,6 +339,11 @@ export async function updateAdminCourseAction(
   id: string,
   payload: Partial<CoursePayload>
 ) {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   try {
     if (!id) {
       return { success: false, error: "Course ID is required." };
@@ -474,6 +485,11 @@ export async function deleteAdminCourseAction(idOrSlug: string): Promise<{
   id?: string;
   error?: string;
 }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   if (!idOrSlug) {
     return { success: false, error: "Course ID or Slug is required." };
   }

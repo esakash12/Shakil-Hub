@@ -23,7 +23,7 @@ export default async function HomePage() {
       <div className="fixed bottom-1/3 -left-48 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(0,102,255,0.06)_0%,transparent_70%)] blur-[140px] pointer-events-none -z-10" />
 
       {/* 1. Agency Hero Section with 2-Column Workstation Mockup */}
-      <AgencyHero cmsData={agencyCms} />
+      <AgencyHero cmsData={agencyCms} featuredItem={portfolioData.items?.[0]} />
 
       {/* 2. Infinite Creative Tech Stack & Industry Tools Marquee */}
       <TechStackMarquee />
@@ -38,7 +38,9 @@ export default async function HomePage() {
       <AgencyFounder cmsData={agencyCms} />
 
       {/* 6. Sakil Hub Academy & Masterclasses Preview (Controlled via CMS) */}
-      {agencyCms?.showAcademyPreview && <AgencyAcademyPreview />}
+      {agencyCms?.showAcademyPreview && (
+        <AgencyAcademyPreview previewItem={portfolioData.items?.[1] || portfolioData.items?.[0]} />
+      )}
 
       {/* 7. Free Strategy Meeting Consultation & Booking Terminal */}
       <AgencyConsultation cmsData={agencyCms} />

@@ -6,6 +6,7 @@ import {
   updatePersistentOrderStatus,
   deletePersistentOrder,
 } from "@/lib/data/orders";
+import { requireAdminSession } from "@/lib/actions/admin-auth";
 
 export interface AdminOrderRecord {
   id: string;
@@ -32,6 +33,11 @@ export async function getAdminOrdersAction(): Promise<{
   orders: AdminOrderRecord[];
   error?: string;
 }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, orders: [], error: "Unauthorized. Admin session required." };
+  }
+
   try {
     const persistentOrders = await getPersistentOrders();
 
@@ -109,6 +115,11 @@ export async function verifyAdminOrderAction(orderId: string): Promise<{
   message?: string;
   error?: string;
 }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   if (!orderId) {
     return { success: false, error: "Order ID is required." };
   }
@@ -163,6 +174,11 @@ export async function rejectOrderAction(
   message?: string;
   error?: string;
 }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   if (!orderId) {
     return { success: false, error: "Order ID is required." };
   }
@@ -200,6 +216,11 @@ export async function deleteAdminOrderAction(orderId: string): Promise<{
   message?: string;
   error?: string;
 }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
   if (!orderId) {
     return { success: false, error: "Order ID is required." };
   }

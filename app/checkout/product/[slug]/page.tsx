@@ -37,11 +37,11 @@ export default function ProductCheckoutPage() {
 
   const [product, setProduct] = useState<DigitalProduct | null>(null);
   const [settings, setSettings] = useState<LMSSettingsPayload>({
-    bkashNumber: "01754511619",
-    nagadNumber: "01812345678",
-    rocketNumber: "01912345678",
+    bkashNumber: "01326896947",
+    nagadNumber: "01326896947",
+    rocketNumber: "01326896947",
     supportEmail: "support@sakilhub.com",
-    supportPhone: "+880 1712-345678",
+    supportPhone: "+880 1326-896947",
   });
 
   const [isLoading, setIsLoading] = useState(true);

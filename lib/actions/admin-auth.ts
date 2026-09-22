@@ -27,7 +27,7 @@ function signAdminToken(email: string): string {
   return `adm_v2_${Buffer.from(payload).toString("base64url")}.${signature}`;
 }
 
-function verifyAdminToken(token: string): boolean {
+export async function verifyAdminToken(token: string): Promise<boolean> {
   if (!token) return false;
   // If it's a Medusa JWT token (starts with eyJ...)
   if (token.startsWith("eyJ")) return true;
@@ -130,5 +130,9 @@ export async function getAdminSessionAction(): Promise<boolean> {
   const cookieStore = await cookies();
   const token = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
   if (!token) return false;
-  return verifyAdminToken(token);
+  return await verifyAdminToken(token);
+}
+
+export async function requireAdminSession(): Promise<boolean> {
+  return await getAdminSessionAction();
 }
