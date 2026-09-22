@@ -19,7 +19,7 @@ import { getStorefrontShopProductBySlugAction } from "@/lib/actions/shop";
 import { getLMSSettingsAction, LMSSettingsPayload } from "@/lib/actions/admin-settings";
 import { getCustomerProfile } from "@/lib/actions/auth";
 import { getEnrolledCoursesAction, getPendingOrdersAction } from "@/lib/actions/student";
-import { getCourseBySlug, getFirstLessonId, CourseDetail } from "@/lib/data/courses";
+import { getCourseBySlug, getFirstLessonId, CourseDetail, resolveMediaUrl } from "@/lib/data/courses";
 import DynamicCheckoutForm, { CustomerFormData } from "@/components/checkout/DynamicCheckoutForm";
 
 export default function CheckoutSlugPage() {
@@ -259,9 +259,10 @@ export default function CheckoutSlugPage() {
                 <div className="relative w-24 h-16 rounded-xl overflow-hidden bg-black/70 border border-white/10 shrink-0 flex items-center justify-center shadow-md">
                   {course.thumbnail || course.image ? (
                     <Image
-                      src={course.thumbnail || course.image}
+                      src={resolveMediaUrl(course.thumbnail || course.image) || (course.thumbnail || course.image)}
                       alt={course.title}
                       fill
+                      unoptimized
                       sizes="100px"
                       className="object-cover"
                     />

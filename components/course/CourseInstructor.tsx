@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
+import { resolveMediaUrl } from "@/lib/data/courses";
 import {
   Youtube,
   Facebook,
@@ -64,10 +65,11 @@ export default function CourseInstructor({ initialCourse }: CourseInstructorProp
         {course.instructor?.avatar ? (
           <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden bg-[#0c1017] border border-cyan-500/30 shrink-0 shadow-[0_0_20px_rgba(6,182,212,0.15)] group-hover:border-cyan-400/50 transition-colors">
             <Image
-              src={course.instructor.avatar}
+              src={resolveMediaUrl(course.instructor.avatar) || course.instructor.avatar}
               alt={course.instructor.name}
               fill
               priority
+              unoptimized
               sizes="(max-width: 768px) 112px, 144px"
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />

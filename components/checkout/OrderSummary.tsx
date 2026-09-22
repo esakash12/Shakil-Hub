@@ -13,6 +13,7 @@ import {
   ArrowRight,
   Check,
 } from "lucide-react";
+import { resolveMediaUrl } from "@/lib/data/courses";
 
 export default function OrderSummary({
   courseTitle = "Premiere Pro Masterclass",
@@ -37,6 +38,7 @@ export default function OrderSummary({
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponError, setCouponError] = useState("");
+  const [imageError, setImageError] = useState(false);
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,13 +66,15 @@ export default function OrderSummary({
       {/* Course Item Card */}
       <div className="flex items-center gap-3.5">
         <div className="relative w-20 h-14 rounded-xl overflow-hidden bg-neutral-950 border border-white/10 shrink-0 flex items-center justify-center">
-          {image ? (
+          {image && !imageError ? (
             <Image
-              src={image}
+              src={resolveMediaUrl(image) || image}
               alt={courseTitle}
               fill
+              unoptimized
               sizes="80px"
               className="object-cover"
+              onError={() => setImageError(true)}
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-gradient-to-br from-neutral-900 via-neutral-950 to-black">

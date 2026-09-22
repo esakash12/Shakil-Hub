@@ -36,6 +36,7 @@ import {
   DeliveryMethodType,
 } from "@/lib/data/shop-types";
 import ImageUploader from "@/components/admin/ImageUploader";
+import { resolveMediaUrl } from "@/lib/data/courses";
 
 const CATEGORY_PRESETS = [
   "Software",
@@ -444,9 +445,10 @@ export default function AdminShopPage() {
                 {/* Thumbnail & Badges */}
                 <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-black/60 border border-white/10">
                   <Image
-                    src={product.thumbnail || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"}
+                    src={resolveMediaUrl(product.thumbnail) || product.thumbnail || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"}
                     alt={product.title}
                     fill
+                    unoptimized
                     sizes="(max-width: 768px) 100vw, 33vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />

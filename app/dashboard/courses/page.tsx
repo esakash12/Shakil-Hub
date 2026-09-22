@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { getCustomerProfile } from "@/lib/actions/auth";
 import { getEnrolledCoursesAction, EnrolledCourseItem } from "@/lib/actions/student";
+import { resolveMediaUrl } from "@/lib/data/courses";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -118,9 +119,10 @@ export default async function MyCoursesPage({
               <div className="relative aspect-video w-full overflow-hidden bg-neutral-950 flex items-center justify-center">
                 {(course.thumbnail || course.image) ? (
                   <Image
-                    src={course.thumbnail || course.image}
+                    src={resolveMediaUrl(course.thumbnail || course.image) || (course.thumbnail || course.image)}
                     alt={course.title}
                     fill
+                    unoptimized
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />

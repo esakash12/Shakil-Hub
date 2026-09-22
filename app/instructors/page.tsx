@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { getStorefrontInstructorsAction } from "@/lib/actions/instructors";
+import { resolveMediaUrl } from "@/lib/data/courses";
 
 export const metadata: Metadata = {
   title: "Instructors | Sakil Hub",
@@ -74,9 +75,10 @@ export default async function InstructorsPage() {
                     {instructor.avatar ? (
                       <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-black/50 border border-cyan-500/30 shrink-0 shadow-lg group-hover:border-cyan-400/60 transition-colors">
                         <Image
-                          src={instructor.avatar}
+                          src={resolveMediaUrl(instructor.avatar) || instructor.avatar}
                           alt={instructor.name}
                           fill
+                          unoptimized
                           sizes="80px"
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />

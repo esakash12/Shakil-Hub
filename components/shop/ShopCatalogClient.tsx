@@ -21,6 +21,8 @@ import {
   Zap,
 } from "lucide-react";
 import { DigitalProduct, DeliveryMethodType } from "@/lib/data/shop-types";
+import { resolveMediaUrl } from "@/lib/data/courses";
+import ProductCoverImage from "@/components/shop/ProductCoverImage";
 
 interface ShopCatalogClientProps {
   initialProducts: DigitalProduct[];
@@ -216,14 +218,14 @@ export default function ShopCatalogClient({
               <div className="space-y-2.5">
                 {/* Compact Thumbnail Image */}
                 <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-black/60 border border-white/10 shadow-md">
-                  <Image
+                  <ProductCoverImage
                     src={product.thumbnail}
                     alt={product.title}
-                    fill
+                    title={product.title}
+                    category={product.category}
                     sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none" />
 
                   {/* Top Badges */}
                   <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none">

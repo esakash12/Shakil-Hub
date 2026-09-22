@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { getStorefrontShopProductBySlugAction } from "@/lib/actions/shop";
 import { DeliveryMethodType } from "@/lib/data/shop-types";
+import ProductCoverImage from "@/components/shop/ProductCoverImage";
 
 interface ShopProductPageProps {
   params: Promise<{
@@ -102,15 +103,13 @@ export default async function ShopProductPage({ params }: ShopProductPageProps) 
           <div className="lg:col-span-7 xl:col-span-8 space-y-8 text-left">
             {/* Cover Image Showcase */}
             <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-black/80 border border-white/15 shadow-[0_10px_40px_rgba(0,0,0,0.8)] group">
-              <Image
+              <ProductCoverImage
                 src={product.thumbnail}
                 alt={product.title}
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 65vw"
-                className="object-cover group-hover:scale-105 transition-transform duration-700"
+                title={product.title}
+                category={product.category}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none" />
 
               {/* Badges Overlay */}
               <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none">

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Star, ThumbsUp, CheckCircle, MessageSquare } from "lucide-react";
 
-import { CourseDetail } from "@/lib/data/courses";
+import { CourseDetail, resolveMediaUrl } from "@/lib/data/courses";
 
 interface CourseReviewsProps {
   initialCourse?: CourseDetail;
@@ -45,9 +45,10 @@ export default function CourseReviews({ initialCourse }: CourseReviewsProps = {}
                   <div className="flex items-center gap-3">
                     <div className="relative w-10 h-10 rounded-full overflow-hidden bg-white/10 shrink-0 border border-cyan-500/20">
                       <Image
-                        src={rev.avatar}
+                        src={resolveMediaUrl(rev.avatar) || rev.avatar}
                         alt={rev.author}
                         fill
+                        unoptimized
                         sizes="40px"
                         className="object-cover"
                       />

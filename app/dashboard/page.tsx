@@ -14,6 +14,7 @@ import RecentCertificates from "@/components/dashboard/RecentCertificates";
 import QuickLinks from "@/components/dashboard/QuickLinks";
 import StudentNoticeBanner from "@/components/dashboard/StudentNoticeBanner";
 import { GraduationCap, ArrowRight, Sparkles, Play, Clock } from "lucide-react";
+import { resolveMediaUrl } from "@/lib/data/courses";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -96,9 +97,10 @@ export default async function DashboardPage() {
                   <div className="relative aspect-video w-full overflow-hidden bg-neutral-950 flex items-center justify-center">
                     {(course.thumbnail || course.image) ? (
                       <Image
-                        src={course.thumbnail || course.image}
+                        src={resolveMediaUrl(course.thumbnail || course.image) || (course.thumbnail || course.image)}
                         alt={course.title}
                         fill
+                        unoptimized
                         sizes="(max-width: 768px) 100vw, 50vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />

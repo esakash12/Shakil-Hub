@@ -17,6 +17,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { PendingStudentOrder } from "@/lib/actions/student";
+import { resolveMediaUrl } from "@/lib/data/courses";
 
 interface StudentOrdersListProps {
   orders: PendingStudentOrder[];
@@ -176,9 +177,10 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                     <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-neutral-900 border border-white/10 shrink-0">
                       {order.courseThumbnail ? (
                         <Image
-                          src={order.courseThumbnail}
+                          src={resolveMediaUrl(order.courseThumbnail) || order.courseThumbnail}
                           alt={order.courseTitle}
                           fill
+                          unoptimized
                           sizes="64px"
                           className="object-cover"
                         />

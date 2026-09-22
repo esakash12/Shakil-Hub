@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Clock, CheckCircle2, Play, AlertCircle } from "lucide-react";
 import { PendingStudentOrder } from "@/lib/actions/student";
+import { resolveMediaUrl } from "@/lib/data/courses";
 
 interface PendingOrdersSectionProps {
   orders: PendingStudentOrder[];
@@ -55,9 +56,10 @@ export default function PendingOrdersSection({ orders }: PendingOrdersSectionPro
                   <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-neutral-900 border border-white/10 shrink-0">
                     {order.courseThumbnail ? (
                       <Image
-                        src={order.courseThumbnail}
+                        src={resolveMediaUrl(order.courseThumbnail) || order.courseThumbnail}
                         alt={order.courseTitle}
                         fill
+                        unoptimized
                         sizes="56px"
                         className="object-cover"
                       />

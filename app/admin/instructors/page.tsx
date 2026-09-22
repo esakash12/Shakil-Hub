@@ -26,7 +26,7 @@ import {
 } from "@/lib/actions/admin-instructors";
 import { getLiveStorefrontCoursesAction } from "@/lib/actions/storefront-courses";
 import { InstructorItem } from "@/lib/data/instructor-types";
-import { CourseDetail } from "@/lib/data/courses";
+import { CourseDetail, resolveMediaUrl } from "@/lib/data/courses";
 import ImageUploadField from "@/components/admin/ImageUploadField";
 
 export default function AdminInstructorsPage() {
@@ -308,9 +308,10 @@ export default function AdminInstructorsPage() {
                 <div className="flex items-start gap-3.5">
                   <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-black border border-white/10 shrink-0">
                     <Image
-                      src={inst.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
+                      src={resolveMediaUrl(inst.avatar) || inst.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
                       alt={inst.name}
                       fill
+                      unoptimized
                       className="object-cover"
                     />
                   </div>

@@ -23,6 +23,7 @@ import { getStorefrontShopProductBySlugAction } from "@/lib/actions/shop";
 import { getLMSSettingsAction, LMSSettingsPayload } from "@/lib/actions/admin-settings";
 import { getCustomerProfile } from "@/lib/actions/auth";
 import { DigitalProduct } from "@/lib/data/shop-types";
+import { resolveMediaUrl } from "@/lib/data/courses";
 import {
   nameSchema,
   emailSchema,
@@ -294,9 +295,10 @@ export default function ProductCheckoutPage() {
                 <div className="relative w-16 h-14 sm:w-20 sm:h-16 rounded-xl overflow-hidden bg-black/70 border border-white/10 shrink-0 flex items-center justify-center shadow-md">
                   {product?.thumbnail ? (
                     <Image
-                      src={product.thumbnail}
+                      src={resolveMediaUrl(product.thumbnail) || product.thumbnail}
                       alt={product.title}
                       fill
+                      unoptimized
                       sizes="80px"
                       className="object-cover"
                     />
