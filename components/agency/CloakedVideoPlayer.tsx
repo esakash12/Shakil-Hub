@@ -316,7 +316,7 @@ export default function CloakedVideoPlayer({
     >
       {/* 1. MEDIA LAYER */}
       {isYouTube ? (
-        <div className="relative w-full h-full pointer-events-none scale-[1.03] origin-center">
+        <div className="relative w-full h-full pointer-events-none scale-[1.24] origin-center overflow-hidden">
           <iframe
             ref={iframeRef}
             src={ytEmbedSrc}

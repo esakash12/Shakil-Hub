@@ -403,15 +403,17 @@ export default function CustomVideoPlayer({
   if (ytEmbed || vimeoEmbed) {
     return (
       <div
-        className={`relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-cyan-500/20 shadow-2xl ${className}`}
+        className={`relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-cyan-500/20 shadow-2xl flex items-center justify-center ${className}`}
       >
-        <iframe
-          src={ytEmbed || vimeoEmbed || ""}
-          title={title}
-          className="w-full h-full border-0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
+        <div className="relative w-full h-full overflow-hidden flex items-center justify-center pointer-events-auto">
+          <iframe
+            src={ytEmbed || vimeoEmbed || ""}
+            title={title}
+            className={`w-full h-full border-0 ${ytEmbed ? "scale-[1.24] origin-center" : ""}`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
       </div>
     );
   }

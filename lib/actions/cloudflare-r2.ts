@@ -1,6 +1,6 @@
 "use server";
 
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 interface PresignedUploadResponse {
@@ -185,4 +185,71 @@ export async function getPresignedViewUrl(
     success: false,
     error: "Video streaming service is temporarily unavailable. Cloudflare R2 credentials are not configured.",
   };
+}
+
+/**
+ * Permanently deletes a file from Cloudflare R2 bucket.
+ * Accepts full storage URL, /api/r2/ URL, or raw object key.
+ */
+export async function deleteR2Object(
+  urlOrKey?: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!urlOrKey || typeof urlOrKey !== "string" || !urlOrKey.trim()) {
+    return { success: true };
+  }
+
+  const clean = urlOrKey.trim();
+
+  // If it's an external URL (e.g. YouTube, Vimeo, Unsplash, Google Storage Sample), do nothing
+  if (
+    clean.includes("youtube.com") ||
+    clean.includes("youtu.be") ||
+    clean.includes("vimeo.com") ||
+    clean.includes("unsplash.com") ||
+    clean.includes("googleapis.com") ||
+    clean.startsWith("data:") ||
+    clean.startsWith("blob:")
+  ) {
+    return { success: true };
+  }
+
+  const bucketName = process.env.R2_BUCKET_NAME || "lms-videos";
+  const accessKey = process.env.R2_ACCESS_KEY_ID;
+  const secretKey = process.env.R2_SECRET_ACCESS_KEY;
+  const endpoint = process.env.R2_ENDPOINT;
+
+  if (!accessKey || !secretKey || !endpoint) {
+    return { success: false, error: "Cloudflare R2 credentials not configured." };
+  }
+
+  let objectKey = clean;
+
+  if (objectKey.includes("/api/r2/")) {
+    objectKey = objectKey.split("/api/r2/")[1];
+  } else if (objectKey.includes(`/${bucketName}/`)) {
+    objectKey = objectKey.split(`/${bucketName}/`)[1];
+  }
+
+  try {
+    objectKey = decodeURIComponent(objectKey);
+  } catch {}
+  objectKey = objectKey.replace(/^\/+/, "");
+
+  // If it's not a key in this bucket, do nothing
+  if (!objectKey) {
+    return { success: true };
+  }
+
+  try {
+    const s3Client = getR2Client();
+    const command = new DeleteObjectCommand({
+      Bucket: bucketName,
+      Key: objectKey,
+    });
+    await s3Client.send(command);
+    return { success: true };
+  } catch (err: any) {
+    console.error(`Failed to delete object "${objectKey}" from R2:`, err.message || err);
+    return { success: false, error: err.message || "Delete failed" };
+  }
 }

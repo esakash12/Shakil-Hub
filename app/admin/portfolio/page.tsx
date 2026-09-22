@@ -1240,12 +1240,14 @@ export default function AdminPortfolioPage() {
                           </div>
                           <div className="relative w-full aspect-video rounded-xl bg-black overflow-hidden border border-white/10 shadow-inner">
                             {getYouTubeVideoId(projectForm.videoUrl) ? (
-                              <iframe
-                                src={`https://www.youtube.com/embed/${getYouTubeVideoId(projectForm.videoUrl)}?controls=1&modestbranding=1`}
-                                title="Video Preview"
-                                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                                className="w-full h-full border-0"
-                              />
+                              <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
+                                <iframe
+                                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(projectForm.videoUrl)}?controls=1&modestbranding=1&rel=0`}
+                                  title="Video Preview"
+                                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                                  className="w-full h-full border-0 scale-[1.24] origin-center"
+                                />
+                              </div>
                             ) : (
                               <video
                                 src={resolveMediaUrl(projectForm.videoUrl) || projectForm.videoUrl}

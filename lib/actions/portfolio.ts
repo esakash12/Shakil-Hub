@@ -11,6 +11,7 @@ import {
 } from "@/lib/data/portfolio-store";
 import { PortfolioCategoryMeta, PortfolioItem } from "@/lib/data/portfolio-types";
 import { requireAdminSession } from "@/lib/actions/admin-auth";
+import { deleteR2Object } from "@/lib/actions/cloudflare-r2";
 
 /**
  * Server Action: Retrieve full portfolio data (categories & items)
@@ -42,6 +43,24 @@ export async function savePortfolioItemAction(
     if (!item.id || !item.title.trim()) {
       return { success: false, error: "Project Title and ID are required." };
     }
+
+    // Automatically clean up replaced R2 video/thumbnail if changed
+    try {
+      const { items } = await getPersistentPortfolio();
+      const existing = items.find((i) => i.id === item.id);
+      if (existing) {
+        if (existing.videoUrl && existing.videoUrl !== item.videoUrl) {
+          deleteR2Object(existing.videoUrl).catch((e) =>
+            console.warn("Failed to delete replaced R2 video:", e)
+          );
+        }
+        if (existing.thumbnail && existing.thumbnail !== item.thumbnail) {
+          deleteR2Object(existing.thumbnail).catch((e) =>
+            console.warn("Failed to delete replaced R2 thumbnail:", e)
+          );
+        }
+      }
+    } catch {}
 
     const saved = await savePersistentPortfolioItem(item);
 
@@ -75,6 +94,24 @@ export async function deletePortfolioItemAction(
     if (!itemId) {
       return { success: false, error: "Project ID is required." };
     }
+
+    // Clean up R2 video and thumbnail when item is deleted
+    try {
+      const { items } = await getPersistentPortfolio();
+      const existing = items.find((i) => i.id === itemId);
+      if (existing) {
+        if (existing.videoUrl) {
+          deleteR2Object(existing.videoUrl).catch((e) =>
+            console.warn("Failed to delete R2 video on item deletion:", e)
+          );
+        }
+        if (existing.thumbnail) {
+          deleteR2Object(existing.thumbnail).catch((e) =>
+            console.warn("Failed to delete R2 thumbnail on item deletion:", e)
+          );
+        }
+      }
+    } catch {}
 
     await deletePersistentPortfolioItem(itemId);
 
