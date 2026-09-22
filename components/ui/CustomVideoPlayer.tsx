@@ -62,6 +62,16 @@ function getVimeoEmbedUrl(url: string): string | null {
     : null;
 }
 
+function getGoogleDriveEmbedUrl(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(
+    /(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)|docs\.google\.com\/file\/d\/)([a-zA-Z0-9_-]{20,})/
+  );
+  return match
+    ? `https://drive.google.com/file/d/${match[1]}/preview`
+    : null;
+}
+
 export default function CustomVideoPlayer({
   src,
   poster,
@@ -86,6 +96,7 @@ export default function CustomVideoPlayer({
 
   const ytEmbed = getYouTubeEmbedUrl(resolvedVideoSrc);
   const vimeoEmbed = getVimeoEmbedUrl(resolvedVideoSrc);
+  const driveEmbed = getGoogleDriveEmbedUrl(resolvedVideoSrc);
 
   // Player State
   const [hasStarted, setHasStarted] = useState(autoPlay);
@@ -399,20 +410,34 @@ export default function CustomVideoPlayer({
     };
   }, [isScrubbing, duration, seekTo]);
 
-  // If iframe embed (YouTube/Vimeo)
-  if (ytEmbed || vimeoEmbed) {
+  // If iframe embed (YouTube/Vimeo/Google Drive)
+  if (ytEmbed || vimeoEmbed || driveEmbed) {
     return (
       <div
         className={`relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-cyan-500/20 shadow-2xl flex items-center justify-center ${className}`}
       >
         <div className="relative w-full h-full overflow-hidden flex items-center justify-center pointer-events-auto">
-          <iframe
-            src={ytEmbed || vimeoEmbed || ""}
-            title={title}
-            className={`w-full h-full border-0 ${ytEmbed ? "scale-[1.24] origin-center" : ""}`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+          {driveEmbed ? (
+            <>
+              <iframe
+                src={driveEmbed}
+                title={title}
+                className="w-full h-[calc(100%+68px)] -mt-[68px] border-0 pointer-events-auto"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+              {/* Invisible blocker for Google Drive popout icon */}
+              <div className="absolute top-0 inset-x-0 h-16 bg-transparent z-10 pointer-events-auto select-none" />
+            </>
+          ) : (
+            <iframe
+              src={ytEmbed || vimeoEmbed || ""}
+              title={title}
+              className={`w-full h-full border-0 ${ytEmbed ? "scale-[1.24] origin-center" : ""}`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          )}
         </div>
       </div>
     );

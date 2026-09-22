@@ -28,6 +28,14 @@ function extractYouTubeId(url: string): string | null {
   return match ? match[1] : null;
 }
 
+function extractGoogleDriveId(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(
+    /(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)|docs\.google\.com\/file\/d\/)([a-zA-Z0-9_-]{20,})/
+  );
+  return match ? match[1] : null;
+}
+
 function formatTime(seconds: number): string {
   if (isNaN(seconds) || seconds < 0) return "00:00";
   const mins = Math.floor(seconds / 60);
@@ -47,6 +55,8 @@ export default function CloakedVideoPlayer({
 
   const ytId = extractYouTubeId(url);
   const isYouTube = Boolean(ytId);
+  const driveId = extractGoogleDriveId(url);
+  const isGoogleDrive = Boolean(driveId);
 
   const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [currentTime, setCurrentTime] = useState(0);
@@ -305,6 +315,28 @@ export default function CloakedVideoPlayer({
         ytOrigin
       )}`
     : "";
+
+  if (isGoogleDrive && driveId) {
+    return (
+      <div
+        ref={containerRef}
+        onContextMenu={(e) => e.preventDefault()}
+        className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden group select-none"
+      >
+        <div className="relative w-full h-full overflow-hidden flex items-center justify-center pointer-events-auto">
+          <iframe
+            src={`https://drive.google.com/file/d/${driveId}/preview`}
+            title={title || "Sakil Hub Cinema Player"}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="w-full h-[calc(100%+68px)] -mt-[68px] border-0 pointer-events-auto"
+          />
+          {/* Top Cloak Shield: completely eliminates hovering/clicking on the hidden popout icon */}
+          <div className="absolute top-0 inset-x-0 h-16 bg-transparent z-20 pointer-events-auto select-none" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

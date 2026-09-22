@@ -114,11 +114,13 @@ export async function getPresignedViewUrl(
 
   let cleanKey = fileKey.trim();
 
-  // 1. If it's a YouTube or Vimeo link, pass through directly
+  // 1. If it's a YouTube, Vimeo, or Google Drive link, pass through directly
   if (
     cleanKey.includes("youtube.com") ||
     cleanKey.includes("youtu.be") ||
-    cleanKey.includes("vimeo.com")
+    cleanKey.includes("vimeo.com") ||
+    cleanKey.includes("drive.google.com") ||
+    cleanKey.includes("docs.google.com")
   ) {
     return {
       success: true,

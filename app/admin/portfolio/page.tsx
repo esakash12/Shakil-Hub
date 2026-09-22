@@ -56,6 +56,14 @@ function getYouTubeVideoId(url: string): string | null {
   return match && match[2].length === 11 ? match[2] : null;
 }
 
+function getGoogleDriveVideoId(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(
+    /(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)|docs\.google\.com\/file\/d\/)([a-zA-Z0-9_-]{20,})/
+  );
+  return match ? match[1] : null;
+}
+
 export default function AdminPortfolioPage() {
   const [categories, setCategories] = useState<PortfolioCategoryMeta[]>([]);
   const [items, setItems] = useState<PortfolioItem[]>([]);
@@ -1219,11 +1227,11 @@ export default function AdminPortfolioPage() {
                                 }));
                               }
                             }}
-                            placeholder="Paste YouTube (unlisted/public), Vimeo, or direct MP4 URL"
+                            placeholder="Paste YouTube (unlisted/public), Google Drive, Vimeo, or direct MP4 URL"
                             className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#00d2ff]"
                           />
                           <p className="text-[10.5px] text-zinc-500">
-                            ✦ Unlisted YouTube links stream in 4K with 0 buffer and our cloaked player automatically hides all YouTube branding.
+                            ✦ Supports Unlisted YouTube, Google Drive, Vimeo, and MP4. Branding and popout icons are automatically cloaked.
                           </p>
                         </div>
                       )}
@@ -1247,6 +1255,16 @@ export default function AdminPortfolioPage() {
                                   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                                   className="w-full h-full border-0 scale-[1.24] origin-center"
                                 />
+                              </div>
+                            ) : getGoogleDriveVideoId(projectForm.videoUrl) ? (
+                              <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
+                                <iframe
+                                  src={`https://drive.google.com/file/d/${getGoogleDriveVideoId(projectForm.videoUrl)}/preview`}
+                                  title="Video Preview"
+                                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                                  className="w-full h-[calc(100%+68px)] -mt-[68px] border-0 pointer-events-auto"
+                                />
+                                <div className="absolute top-0 inset-x-0 h-16 bg-transparent z-10 pointer-events-auto select-none" />
                               </div>
                             ) : (
                               <video
