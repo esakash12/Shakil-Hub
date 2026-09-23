@@ -116,11 +116,12 @@ export default function AgencyConsultation({ cmsData }: { cmsData?: AgencyCmsDat
               <form onSubmit={handleBookMeeting} className="space-y-5">
                 {/* 1. Choose a Date */}
                 <div className="space-y-2">
-                  <label className="block text-xs font-mono text-zinc-300 font-bold">
+                  <label htmlFor="consultation-date" className="block text-xs font-mono text-zinc-300 font-bold">
                     Choose a Date
                   </label>
                   <div className="relative">
                     <input
+                      id="consultation-date"
                       type="date"
                       value={selectedDate}
                       min={new Date().toISOString().split("T")[0]}

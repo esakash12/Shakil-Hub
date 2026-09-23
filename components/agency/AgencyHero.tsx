@@ -12,9 +12,11 @@ import {
   Layers,
   Volume2,
 } from "lucide-react";
-import VideoModal from "./VideoModal";
+import dynamic from "next/dynamic";
 import { PortfolioItem } from "@/lib/data/portfolio-types";
 import { AgencyCmsData } from "@/lib/data/agency-cms-types";
+
+const VideoModal = dynamic(() => import("./VideoModal"), { ssr: false });
 
 export default function AgencyHero({
   cmsData,
@@ -213,6 +215,7 @@ export default function AgencyHero({
                     alt="Workstation Preview"
                     fill
                     priority
+                    fetchPriority="high"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 60vw, 500px"
                     className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
                   />
@@ -254,7 +257,7 @@ export default function AgencyHero({
                 </div>
 
                 {/* Timeline Ruler */}
-                <div className="flex justify-between text-[8px] font-mono text-zinc-500 border-b border-white/[0.05] pb-0.5">
+                <div className="flex justify-between text-[8px] font-mono text-zinc-400 border-b border-white/[0.05] pb-0.5">
                   <span>00:00:00</span>
                   <span>00:30:00</span>
                   <span>01:00:00</span>
@@ -265,13 +268,13 @@ export default function AgencyHero({
                 {/* Video Tracks (V2 & V1) */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-1">
-                    <span className="text-[8px] font-mono text-zinc-500 w-4">V2</span>
+                    <span className="text-[8px] font-mono text-zinc-400 w-4">V2</span>
                     <div className="flex-1 h-3.5 bg-cyan-950/60 rounded border border-cyan-500/30 flex items-center px-1.5">
                       <span className="text-[8px] font-mono text-cyan-300 truncate">Adjustment Layer // Color Grade Teal-Orange</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-[8px] font-mono text-zinc-500 w-4">V1</span>
+                    <span className="text-[8px] font-mono text-zinc-400 w-4">V1</span>
                     <div className="w-1/3 h-4 bg-blue-900/60 rounded border border-blue-500/30 flex items-center px-1.5">
                       <span className="text-[8px] font-mono text-blue-200 truncate">Clip_A.r3d</span>
                     </div>
@@ -284,13 +287,13 @@ export default function AgencyHero({
                 {/* Audio Tracks (A1 & A2) */}
                 <div className="space-y-1 pt-1 border-t border-white/[0.05]">
                   <div className="flex items-center gap-1">
-                    <span className="text-[8px] font-mono text-zinc-500 w-4">A1</span>
+                    <span className="text-[8px] font-mono text-zinc-400 w-4">A1</span>
                     <div className="flex-1 h-3 bg-emerald-950/60 rounded border border-emerald-500/30 flex items-center px-1">
                       <span className="text-[7.5px] font-mono text-emerald-300">Soundtrack_Cinematic_Bass_Stereo</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="text-[8px] font-mono text-zinc-500 w-4">A2</span>
+                    <span className="text-[8px] font-mono text-zinc-400 w-4">A2</span>
                     <div className="w-2/3 h-3 bg-teal-950/60 rounded border border-teal-500/30 flex items-center px-1">
                       <span className="text-[7.5px] font-mono text-teal-300">SFX_Whoosh_Impact.wav</span>
                     </div>
@@ -319,9 +322,9 @@ export default function AgencyHero({
         <a
           href="#portfolio"
           aria-label="Scroll down to portfolio"
-          className="inline-flex flex-col items-center gap-1.5 text-zinc-500 hover:text-[#00d2ff] transition-all group cursor-pointer"
+          className="inline-flex flex-col items-center gap-1.5 text-zinc-400 hover:text-[#00d2ff] transition-all group cursor-pointer"
         >
-          <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-500 group-hover:text-[#00d2ff] transition-colors">
+          <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-400 group-hover:text-[#00d2ff] transition-colors">
             Scroll to Explore
           </span>
           <div className="w-5 h-8 rounded-full border border-white/15 group-hover:border-[#00d2ff]/50 flex items-start justify-center p-1 transition-colors">

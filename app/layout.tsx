@@ -8,20 +8,20 @@ const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-outfit",
   display: "swap",
-  weight: ["400", "600", "700", "800"],
+  weight: ["400", "700"],
 });
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
-  weight: ["400", "500", "600"],
+  weight: ["400", "600"],
 });
 
 const hindSiliguri = Hind_Siliguri({
   subsets: ["bengali", "latin"],
   variable: "--font-bengali",
-  weight: ["400", "600", "700"],
+  weight: ["400", "600"],
   display: "swap",
 });
 
@@ -108,6 +108,9 @@ export default function RootLayout({
       lang="bn"
       className={`dark scroll-smooth ${outfit.variable} ${inter.variable} ${hindSiliguri.variable}`}
     >
+      <head>
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+      </head>
       <body className="font-sans bg-black text-white antialiased selection:bg-blue-600 selection:text-white flex flex-col min-h-screen">
         <StorefrontShell>{children}</StorefrontShell>
       </body>

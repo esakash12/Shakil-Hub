@@ -4,12 +4,44 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Sparkles, MessageCircle, Clock, ArrowUpRight, ChevronDown, ChevronUp } from "lucide-react";
+import dynamic from "next/dynamic";
 import {
   PORTFOLIO_CATEGORIES,
   PORTFOLIO_ITEMS,
 } from "@/lib/data/portfolio";
 import { PortfolioCategoryMeta, PortfolioItem } from "@/lib/data/portfolio-types";
-import VideoModal from "./VideoModal";
+
+const VideoModal = dynamic(() => import("./VideoModal"), { ssr: false });
+
+const FALLBACK_THUMBNAIL = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=720&q=75";
+
+function PortfolioThumbnail({ src, alt }: { src: string; alt: string }) {
+  const [imgSrc, setImgSrc] = useState(src || FALLBACK_THUMBNAIL);
+  const isUnoptimized = Boolean(
+    !imgSrc ||
+    imgSrc.startsWith("/api/") ||
+    imgSrc.startsWith("/uploads/") ||
+    imgSrc.startsWith("data:") ||
+    imgSrc.includes("r2.cloudflarestorage.com")
+  );
+
+  return (
+    <Image
+      src={imgSrc}
+      alt={alt}
+      fill
+      unoptimized={isUnoptimized}
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      loading="lazy"
+      onError={() => {
+        if (imgSrc !== FALLBACK_THUMBNAIL) {
+          setImgSrc(FALLBACK_THUMBNAIL);
+        }
+      }}
+      className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-85 group-hover:opacity-100"
+    />
+  );
+}
 
 interface AgencyPortfolioProps {
   initialData?: {
@@ -133,15 +165,7 @@ export default function AgencyPortfolio({ initialData }: AgencyPortfolioProps) {
                 >
                   {/* 16:10 Thumbnail Image Box */}
                   <div className="relative w-full aspect-[16/10] overflow-hidden bg-black">
-                    <Image
-                      src={item.thumbnail}
-                      alt={item.title}
-                      fill
-                      unoptimized={Boolean(item.thumbnail?.startsWith('/api/r2/') || item.thumbnail?.includes('r2.cloudflarestorage.com'))}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      loading="lazy"
-                      className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-85 group-hover:opacity-100"
-                    />
+                    <PortfolioThumbnail src={item.thumbnail} alt={item.title} />
 
                     {/* Dark Cinematic Gradient */}
                     <div className="absolute inset-0 bg-gradient-to-t from-[#070b16] via-transparent to-black/50" />

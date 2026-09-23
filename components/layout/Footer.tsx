@@ -101,9 +101,9 @@ export default function Footer() {
 
           {/* Quick Links (3 cols) */}
           <div className="lg:col-span-3">
-            <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-3">
               Quick Links
-            </h4>
+            </h3>
             <ul className="space-y-2 text-xs">
               {quickLinks.map((item) => (
                 <li key={item.name}>
@@ -117,9 +117,9 @@ export default function Footer() {
 
           {/* Services (3 cols) */}
           <div className="lg:col-span-3">
-            <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-3">
               Services
-            </h4>
+            </h3>
             <ul className="space-y-2 text-xs">
               {servicesList.map((item) => (
                 <li key={item.name}>
@@ -133,9 +133,9 @@ export default function Footer() {
 
           {/* Contact (2 cols) */}
           <div className="lg:col-span-2">
-            <h4 className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-mono font-bold text-white uppercase tracking-wider mb-3">
               Contact
-            </h4>
+            </h3>
             <ul className="space-y-2 text-xs">
               <li className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-[#00d2ff] shrink-0" />

@@ -4,8 +4,10 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Play, Sparkles, Star } from "lucide-react";
-import VideoModal from "./VideoModal";
+import dynamic from "next/dynamic";
 import { PortfolioItem } from "@/lib/data/portfolio-types";
+
+const VideoModal = dynamic(() => import("./VideoModal"), { ssr: false });
 
 export default function AgencyAcademyPreview({
   previewItem,
