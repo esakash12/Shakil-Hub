@@ -182,7 +182,7 @@ export default function AgencyHero({
                     SakilHub_Showreel_2026.drp — 4K DCI
                   </span>
                 </div>
-                <div className="hidden sm:flex items-center gap-2 text-[9px] font-mono text-zinc-500 uppercase">
+                <div className="hidden sm:flex items-center gap-2 text-[9px] font-mono text-zinc-400 uppercase">
                   <span>Media</span>
                   <span>Cut</span>
                   <span className="text-[#00d2ff] font-bold">Edit</span>

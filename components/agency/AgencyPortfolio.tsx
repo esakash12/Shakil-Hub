@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
 import { Play, Sparkles, MessageCircle, Clock, ArrowUpRight, ChevronDown, ChevronUp } from "lucide-react";
 import dynamic from "next/dynamic";
 import {
@@ -147,22 +146,13 @@ export default function AgencyPortfolio({ initialData }: AgencyPortfolioProps) {
             </p>
           </div>
         ) : (
-          <motion.div
-            layout
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"
-          >
-            <AnimatePresence>
-              {displayedItems.map((item) => (
-                <motion.div
-                  key={item.id}
-                  layout
-                  initial={false}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() => setActiveVideo(item)}
-                  className="group relative rounded-2xl overflow-hidden bg-[#070b16] border border-white/[0.08] hover:border-[#00d2ff]/40 transition-all duration-500 flex flex-col justify-between cursor-pointer hover:shadow-[0_15px_45px_rgba(0,0,0,0.8),0_0_30px_rgba(0,210,255,0.15)]"
-                >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+            {displayedItems.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => setActiveVideo(item)}
+                className="group relative rounded-2xl overflow-hidden bg-[#070b16] border border-white/[0.08] hover:border-[#00d2ff]/40 transition-all duration-300 flex flex-col justify-between cursor-pointer hover:shadow-[0_15px_45px_rgba(0,0,0,0.8),0_0_30px_rgba(0,210,255,0.15)]"
+              >
                   {/* 16:10 Thumbnail Image Box */}
                   <div className="relative w-full aspect-[16/10] overflow-hidden bg-black">
                     <PortfolioThumbnail src={item.thumbnail} alt={item.title} />
@@ -211,11 +201,10 @@ export default function AgencyPortfolio({ initialData }: AgencyPortfolioProps) {
                         <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
                       </span>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
 
         {/* View All Works Centered Button (Only show if more than 6 items exist) */}

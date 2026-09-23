@@ -113,6 +113,35 @@ export async function getPersistentPortfolio(): Promise<PortfolioData> {
     writePersistentPortfolio(data).catch(() => {});
   }
 
+  // 4. Validate thumbnails to ensure no missing local file causes 404 in console
+  const validatedItems = await Promise.all(
+    data.items.map(async (item) => {
+      if (item.thumbnail && item.thumbnail.startsWith("/uploads/")) {
+        const rel = item.thumbnail.replace(/^\//, "");
+        const targets = [
+          path.join(process.cwd(), "public", rel),
+          path.join(process.cwd(), ".next", "standalone", "public", rel),
+        ];
+        let exists = false;
+        for (const t of targets) {
+          try {
+            await fs.access(t);
+            exists = true;
+            break;
+          } catch {}
+        }
+        if (!exists) {
+          return {
+            ...item,
+            thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=720&q=75",
+          };
+        }
+      }
+      return item;
+    })
+  );
+  data = { ...data, items: validatedItems };
+
   portfolioCache = { data, timestamp: now };
   return data;
 }

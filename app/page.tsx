@@ -8,11 +8,13 @@ import AgencyAcademyPreview from "@/components/agency/AgencyAcademyPreview";
 import AgencyConsultation from "@/components/agency/AgencyConsultation";
 import { getPortfolioAction } from "@/lib/actions/portfolio";
 import { getAgencyCmsAction } from "@/lib/actions/agency-cms";
+import { getPersistentBranding } from "@/lib/data/branding";
 
 export default async function HomePage() {
-  const [portfolioData, agencyCms] = await Promise.all([
+  const [portfolioData, agencyCms, branding] = await Promise.all([
     getPortfolioAction(),
     getAgencyCmsAction(),
+    getPersistentBranding(),
   ]);
 
   return (
@@ -35,7 +37,7 @@ export default async function HomePage() {
       <AgencyServices />
 
       {/* 5. Director & Founder — MH Sakil Spotlight */}
-      <AgencyFounder cmsData={agencyCms} />
+      <AgencyFounder cmsData={agencyCms} branding={branding} />
 
       {/* 6. Sakil Hub Academy & Masterclasses Preview (Controlled via CMS) */}
       {agencyCms?.showAcademyPreview && (

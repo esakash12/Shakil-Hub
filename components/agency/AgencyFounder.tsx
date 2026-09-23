@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Image from "next/image";
 import {
   Sparkles,
@@ -13,27 +11,15 @@ import {
 } from "lucide-react";
 import { FOUNDER_DATA } from "@/lib/data/founder-data";
 import { AgencyCmsData } from "@/lib/data/agency-cms-types";
-import { getPlatformBrandingAction } from "@/lib/actions/branding";
 import { PlatformBrandingSettings, DEFAULT_BRANDING } from "@/lib/data/branding-types";
 
-export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) {
-  const [branding, setBranding] = useState<PlatformBrandingSettings>(DEFAULT_BRANDING);
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadBrand() {
-      try {
-        const data = await getPlatformBrandingAction();
-        if (isMounted && data) {
-          setBranding(data);
-        }
-      } catch {}
-    }
-    loadBrand();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+export default function AgencyFounder({
+  cmsData,
+  branding = DEFAULT_BRANDING,
+}: {
+  cmsData?: AgencyCmsData;
+  branding?: PlatformBrandingSettings;
+}) {
   const photoUrl = cmsData?.founderPhotoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80";
   const name = cmsData?.founderName || "MH Sakil";
   const signature = cmsData?.founderSignatureText || "";

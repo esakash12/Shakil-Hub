@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import {
   Sparkles,
@@ -126,20 +124,6 @@ export default function TechStackMarquee() {
           })}
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes marquee {
-          0% {
-            transform: translateX(0%);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-        .animate-marquee {
-          animation: marquee 32s linear infinite;
-        }
-      `}</style>
     </div>
   );
 }
