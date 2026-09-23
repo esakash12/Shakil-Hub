@@ -32,6 +32,7 @@ function PortfolioThumbnail({ src, alt }: { src: string; alt: string }) {
       unoptimized={isUnoptimized}
       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       loading="lazy"
+      decoding="async"
       onError={() => {
         if (imgSrc !== FALLBACK_THUMBNAIL) {
           setImgSrc(FALLBACK_THUMBNAIL);

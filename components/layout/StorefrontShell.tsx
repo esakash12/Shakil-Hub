@@ -8,14 +8,18 @@ import MobileBottomNav from "@/components/layout/MobileBottomNav";
 
 import FloatingWhatsApp from "@/components/ui/FloatingWhatsApp";
 
+import { PlatformBrandingSettings } from "@/lib/data/branding-types";
+
 /**
  * StorefrontShell manages global storefront chrome (Navbar, PreFooterStatsBar, Footer, MobileBottomNav, FloatingWhatsApp).
  * For /admin routes, it completely suppresses the storefront chrome to provide an isolated enterprise workspace.
  */
 export default function StorefrontShell({
   children,
+  branding,
 }: {
   children: React.ReactNode;
+  branding?: PlatformBrandingSettings;
 }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
@@ -45,9 +49,9 @@ export default function StorefrontShell({
 
   return (
     <>
-      <Navbar />
+      <Navbar branding={branding} />
       <main className="flex-grow">{children}</main>
-      <Footer />
+      <Footer branding={branding} />
       {showMobileBottomNav && <MobileBottomNav />}
       <FloatingWhatsApp hasBottomNav={showMobileBottomNav} />
     </>

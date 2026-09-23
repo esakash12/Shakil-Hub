@@ -6,31 +6,29 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Play, LayoutDashboard, Menu, X } from "lucide-react";
 import { getCustomerAction } from "@/lib/actions/auth";
-import { getPlatformBrandingAction } from "@/lib/actions/branding";
 import { PlatformBrandingSettings, DEFAULT_BRANDING } from "@/lib/data/branding-types";
 
-export default function Navbar() {
+export default function Navbar({
+  branding = DEFAULT_BRANDING,
+}: {
+  branding?: PlatformBrandingSettings;
+}) {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [branding, setBranding] = useState<PlatformBrandingSettings>(DEFAULT_BRANDING);
 
   useEffect(() => {
     let isMounted = true;
     setIsMobileMenuOpen(false);
-    async function checkAuthAndBranding() {
+    async function checkAuth() {
       try {
-        const [auth, brandData] = await Promise.all([
-          getCustomerAction(),
-          getPlatformBrandingAction(),
-        ]);
+        const auth = await getCustomerAction();
         if (isMounted) {
           setIsLoggedIn(auth.isAuthenticated);
-          if (brandData) setBranding(brandData);
         }
       } catch {}
     }
-    checkAuthAndBranding();
+    checkAuth();
     return () => {
       isMounted = false;
     };

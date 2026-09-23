@@ -98,21 +98,24 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const branding = await getPersistentBranding();
+
   return (
     <html
       lang="bn"
       className={`dark scroll-smooth ${outfit.variable} ${inter.variable} ${hindSiliguri.variable}`}
     >
       <head>
-        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
       </head>
       <body className="font-sans bg-black text-white antialiased selection:bg-blue-600 selection:text-white flex flex-col min-h-screen">
-        <StorefrontShell>{children}</StorefrontShell>
+        <StorefrontShell branding={branding}>{children}</StorefrontShell>
       </body>
     </html>
   );

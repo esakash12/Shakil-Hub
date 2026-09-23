@@ -1,30 +1,14 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Play, Youtube, Facebook, Instagram, Linkedin, Twitter, Mail, MapPin, Phone } from "lucide-react";
-import { getPlatformBrandingAction } from "@/lib/actions/branding";
 import { PlatformBrandingSettings, DEFAULT_BRANDING } from "@/lib/data/branding-types";
 
-export default function Footer() {
-  const [branding, setBranding] = useState<PlatformBrandingSettings>(DEFAULT_BRANDING);
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadBrand() {
-      try {
-        const data = await getPlatformBrandingAction();
-        if (isMounted && data) {
-          setBranding(data);
-        }
-      } catch {}
-    }
-    loadBrand();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+export default function Footer({
+  branding = DEFAULT_BRANDING,
+}: {
+  branding?: PlatformBrandingSettings;
+}) {
 
   const quickLinks = [
     { name: "Home", href: "/" },

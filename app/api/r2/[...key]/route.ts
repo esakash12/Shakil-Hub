@@ -37,10 +37,15 @@ export async function GET(
   try {
     const s3Client = getR2Client();
 
+    const isThumbnail = objectKey.startsWith("thumbnails/") || /\.(jpg|jpeg|png|webp|avif|gif)$/i.test(objectKey);
+
     // Generate high-speed Cloudflare R2 presigned streaming URL
     const command = new GetObjectCommand({
       Bucket: bucketName,
       Key: objectKey,
+      ResponseCacheControl: isThumbnail
+        ? "public, max-age=31536000, immutable"
+        : "public, max-age=86400",
     });
 
     const presignedUrl = await getSignedUrl(s3Client, command, {
@@ -52,7 +57,9 @@ export async function GET(
     return NextResponse.redirect(presignedUrl, {
       status: 307,
       headers: {
-        "Cache-Control": "public, max-age=3600, s-maxage=86400",
+        "Cache-Control": isThumbnail
+          ? "public, max-age=31536000, immutable"
+          : "public, max-age=3600, s-maxage=86400",
       },
     });
   } catch (err: any) {
