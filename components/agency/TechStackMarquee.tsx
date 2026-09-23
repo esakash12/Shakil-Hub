@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import {
@@ -117,7 +117,7 @@ export default function TechStackMarquee() {
                   <div className="text-xs font-bold text-white group-hover:text-[#00d2ff] transition-colors leading-tight">
                     {tool.name}
                   </div>
-                  <div className="text-[10px] font-mono text-zinc-500 leading-tight">
+                  <div className="text-[10px] font-mono text-zinc-400 leading-tight">
                     {tool.category}
                   </div>
                 </div>

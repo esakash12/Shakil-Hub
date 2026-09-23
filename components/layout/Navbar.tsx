@@ -63,7 +63,7 @@ export default function Navbar() {
                   src={branding.logoUrl}
                   alt={branding.siteName || "Sakil Hub"}
                   fill
-                  unoptimized
+                  unoptimized={Boolean(branding.logoUrl?.startsWith('/api/r2/') || branding.logoUrl?.includes('r2.cloudflarestorage.com'))}
                   sizes="(max-width: 640px) 128px, 144px"
                   className="object-contain object-left group-hover:scale-105 transition-transform"
                   priority

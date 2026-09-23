@@ -64,18 +64,7 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
               {/* Full Natural Color Portrait Container (Fit Without Crop) */}
               <div className="relative w-full aspect-[4/5] max-h-[350px] sm:max-h-[380px] overflow-hidden bg-[#050812] flex items-center justify-center">
                 {/* Ambient Soft Blurred Glow Backdrop to gracefully fill any aspect ratio letterbox */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-                  <Image
-                    src={photoUrl}
-                    alt=""
-                    fill
-                    unoptimized
-                    sizes="100px"
-                    className="object-cover blur-3xl opacity-25 scale-125"
-                    aria-hidden="true"
-                  />
-                  <div className="absolute inset-0 bg-black/40" />
-                </div>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,210,255,0.15),transparent_70%)] pointer-events-none select-none" />
 
                 {/* Foreground Uncropped Full-Color Image */}
                 <div className="relative w-full h-full p-2 sm:p-3 flex items-center justify-center z-[1]">
@@ -83,8 +72,8 @@ export default function AgencyFounder({ cmsData }: { cmsData?: AgencyCmsData }) 
                     src={photoUrl}
                     alt={name}
                     fill
-                    unoptimized
-                    sizes="(max-width: 768px) 100vw, 350px"
+                    unoptimized={Boolean(photoUrl?.startsWith('/api/r2/') || photoUrl?.includes('r2.cloudflarestorage.com'))}
+                    sizes="(max-width: 640px) 280px, 350px"
                     className="object-contain object-center transition-transform duration-500 hover:scale-[1.02]"
                     loading="lazy"
                   />

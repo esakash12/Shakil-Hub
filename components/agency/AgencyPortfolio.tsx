@@ -137,8 +137,9 @@ export default function AgencyPortfolio({ initialData }: AgencyPortfolioProps) {
                       src={item.thumbnail}
                       alt={item.title}
                       fill
-                      unoptimized
+                      unoptimized={Boolean(item.thumbnail?.startsWith('/api/r2/') || item.thumbnail?.includes('r2.cloudflarestorage.com'))}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      loading="lazy"
                       className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-85 group-hover:opacity-100"
                     />
 

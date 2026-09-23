@@ -209,25 +209,26 @@ export default function AgencyHero({
                 {/* Center: Cinema Screen Preview */}
                 <div className="col-span-12 sm:col-span-8 relative aspect-[16/9] rounded-lg overflow-hidden bg-black border border-white/[0.08]">
                   <Image
-                    src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80"
+                    src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=720&q=75"
                     alt="Workstation Preview"
                     fill
-                    unoptimized
                     priority
-                    sizes="(max-width: 768px) 100vw, 500px"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 60vw, 500px"
                     className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
 
                   {/* Play Overlay Button */}
-                  <div
+                  <button
+                    type="button"
                     onClick={() => setShowreelOpen(true)}
-                    className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                    aria-label="Play agency showreel"
+                    className="absolute inset-0 flex items-center justify-center cursor-pointer bg-transparent border-0"
                   >
                     <div className="w-11 h-11 rounded-full bg-[#00d2ff]/90 text-black flex items-center justify-center shadow-[0_0_20px_rgba(0,210,255,0.6)] group-hover:scale-110 transition-transform">
                       <Play className="w-4 h-4 fill-current ml-0.5" />
                     </div>
-                  </div>
+                  </button>
 
                   {/* Timecode Pill */}
                   <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-mono px-2 py-0.5 rounded bg-black/70 backdrop-blur-sm text-zinc-300 border border-white/10">

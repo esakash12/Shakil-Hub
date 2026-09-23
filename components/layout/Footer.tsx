@@ -65,7 +65,7 @@ export default function Footer() {
                     src={branding.logoUrl}
                     alt={branding.siteName || "Sakil Hub"}
                     fill
-                    unoptimized
+                    unoptimized={Boolean(branding.logoUrl?.startsWith('/api/r2/') || branding.logoUrl?.includes('r2.cloudflarestorage.com'))}
                     sizes="128px"
                     className="object-contain object-left group-hover:scale-105 transition-transform"
                   />
@@ -166,7 +166,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500 font-mono">
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-400 font-mono">
           <p>{branding.footerCopyright || "© 2026 Sakil Hub. All rights reserved."}</p>
           <div className="flex items-center gap-4">
             <Link href="/privacy" className="hover:text-[#00d2ff] transition-colors">
