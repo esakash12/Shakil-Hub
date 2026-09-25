@@ -18,9 +18,8 @@ export function middleware(request: NextRequest) {
     const isAdminLogin = pathname === "/admin/login";
     const hasValidAdminToken = Boolean(
       adminToken &&
-      (adminToken.startsWith("adm_v2_") ||
-       adminToken.startsWith("eyJ") ||
-       adminToken.startsWith("adm_jwt_"))
+      adminToken.startsWith("adm_v2_") &&
+      adminToken.includes(".")
     );
 
     // Unauthenticated user trying to access admin panel -> redirect to /admin/login
@@ -47,8 +46,14 @@ export function middleware(request: NextRequest) {
   const isStudentAuthPath =
     pathname === "/login" || pathname === "/register";
 
+  const hasValidCustomerToken = Boolean(
+    customerToken &&
+    customerToken.startsWith("std_v2_") &&
+    customerToken.includes(".")
+  );
+
   // Redirect unauthenticated students attempting to access protected dashboard or checkout routes
-  if (isStudentProtectedPath && !customerToken) {
+  if (isStudentProtectedPath && !hasValidCustomerToken) {
     const loginUrl = new URL("/login", request.url);
     const redirectTarget = request.nextUrl.search
       ? `${pathname}${request.nextUrl.search}`
@@ -58,7 +63,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Redirect authenticated students away from login/register pages
-  if (isStudentAuthPath && customerToken) {
+  if (isStudentAuthPath && hasValidCustomerToken) {
     const hasError = searchParams.has("error");
     const isLogout = searchParams.get("logout") === "true";
     if (!hasError && !isLogout) {

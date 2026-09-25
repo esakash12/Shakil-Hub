@@ -1,20 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 import {
   getPersistentAboutCms,
   updatePersistentAboutCms,
   AboutCmsData,
 } from "@/lib/data/about-cms";
-
-async function verifyAdminAuth(): Promise<boolean> {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get("sakil_admin_token")?.value ||
-    cookieStore.get("medusa_admin_token")?.value;
-  return Boolean(token);
-}
+import { requireAdminSession } from "@/lib/actions/admin-auth";
 
 import { getPersistentInstructors } from "@/lib/data/instructors";
 
@@ -48,7 +40,7 @@ export async function updateAboutCmsAction(
   data?: AboutCmsData;
   error?: string;
 }> {
-  const isAdmin = await verifyAdminAuth();
+  const isAdmin = await requireAdminSession();
   if (!isAdmin) {
     return { success: false, error: "Unauthorized. Admin session required." };
   }

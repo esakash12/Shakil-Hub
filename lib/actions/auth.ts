@@ -5,6 +5,8 @@ import {
   savePersistentCustomer,
   findCustomerByEmail,
   hashPassword,
+  verifyPassword,
+  updateCustomerPasswordHash,
   getPersistentCustomers,
 } from "@/lib/data/customers";
 import crypto from "crypto";
@@ -42,6 +44,7 @@ function signStudentToken(email: string): string {
 
 function verifyStudentToken(token: string): string | null {
   if (!token) return null;
+  // Strictly enforce HMAC-SHA256 signature verification for student sessions
   if (token.startsWith("std_v2_")) {
     const raw = token.slice("std_v2_".length);
     const [payloadB64, sig] = raw.split(".");
@@ -63,18 +66,6 @@ function verifyStudentToken(token: string): string | null {
     } catch {
       return null;
     }
-  }
-  // Backwards compatibility for previously active std_tok_ sessions
-  if (token.startsWith("std_tok_")) {
-    try {
-      const parts = token.split("_");
-      if (parts[2]) {
-        const decodedEmail = Buffer.from(parts[2], "base64").toString("utf8")?.toLowerCase().trim();
-        if (decodedEmail && decodedEmail.includes("@")) {
-          return decodedEmail;
-        }
-      }
-    } catch {}
   }
   return null;
 }
@@ -139,16 +130,23 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
   }
 
   try {
-    const hashed = hashPassword(password);
-
     if (existing) {
-      // If user has no passwordHash yet (seeded account), initialize it
+      // If user has no passwordHash yet (seeded account), initialize it with bcrypt
       if (!existing.passwordHash) {
-        existing.passwordHash = hashed;
-        await savePersistentCustomer(existing);
+        const bcryptHash = hashPassword(password);
+        existing.passwordHash = bcryptHash;
+        await updateCustomerPasswordHash(email, bcryptHash);
       }
 
-      if (existing.passwordHash === hashed) {
+      const passResult = verifyPassword(password, existing.passwordHash);
+
+      if (passResult.isValid) {
+        // If account had a legacy SHA-256 hash, automatically upgrade to bcrypt!
+        if (passResult.needsRehash) {
+          const upgradedBcryptHash = hashPassword(password);
+          await updateCustomerPasswordHash(email, upgradedBcryptHash);
+        }
+
         const finalProfile: CustomerProfile = {
           id: existing.id,
           first_name: existing.firstName || "Student",

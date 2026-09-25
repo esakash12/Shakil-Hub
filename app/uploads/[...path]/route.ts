@@ -23,9 +23,15 @@ export async function GET(
       return new NextResponse("Not Found", { status: 404 });
     }
 
-    const relativePath = pathSegments.join("/");
-    // Prevent directory traversal attacks
-    if (relativePath.includes("..")) {
+    const hasInvalidSegment = pathSegments.some(
+      (s) =>
+        s.includes("..") ||
+        s.includes("/") ||
+        s.includes("\\") ||
+        s.includes("\0") ||
+        !/^[a-zA-Z0-9_.-]+$/.test(s)
+    );
+    if (hasInvalidSegment) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 
@@ -52,12 +58,21 @@ export async function GET(
     const ext = path.extname(foundPath).toLowerCase();
     const contentType = MIME_TYPES[ext] || "application/octet-stream";
 
+    const headers: Record<string, string> = {
+      "Content-Type": contentType,
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "public, max-age=31536000, immutable",
+    };
+
+    // Prevent Stored XSS via SVG by applying strict sandbox CSP
+    if (ext === ".svg") {
+      headers["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'";
+      headers["Content-Disposition"] = 'inline; filename="asset.svg"';
+    }
+
     return new NextResponse(new Uint8Array(fileBuffer), {
       status: 200,
-      headers: {
-        "Content-Type": contentType,
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
+      headers,
     });
   } catch (err: any) {
     return new NextResponse("Internal Server Error", { status: 500 });

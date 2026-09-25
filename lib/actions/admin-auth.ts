@@ -29,9 +29,7 @@ function signAdminToken(email: string): string {
 
 export async function verifyAdminToken(token: string): Promise<boolean> {
   if (!token) return false;
-  // If it's a Medusa JWT token (starts with eyJ...)
-  if (token.startsWith("eyJ")) return true;
-  // If it's our signed token format
+  // Strictly enforce HMAC-SHA256 signature verification for admin sessions
   if (token.startsWith("adm_v2_")) {
     const raw = token.slice("adm_v2_".length);
     const [payloadB64, sig] = raw.split(".");
@@ -52,10 +50,6 @@ export async function verifyAdminToken(token: string): Promise<boolean> {
     } catch {
       return false;
     }
-  }
-  // Backwards compatibility for dev mode
-  if (process.env.NODE_ENV !== "production" && token.startsWith("adm_jwt_")) {
-    return true;
   }
   return false;
 }

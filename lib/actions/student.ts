@@ -48,25 +48,12 @@ export async function getEnrolledCoursesAction(): Promise<EnrolledCourseItem[]> 
     const slugSet = new Set<string>();
     const revokedSet = new Set<string>();
 
-    // 1. Resolve authenticated customer email
-    let userEmail = "";
+    // 1. Resolve authenticated customer email strictly from verified session
     const customer = await getCustomerProfile();
-    if (customer?.email) {
-      userEmail = customer.email.toLowerCase().trim();
-    } else {
-      const infoCookie = cookieStore.get("sakil_customer_info")?.value;
-      if (infoCookie) {
-        try {
-          const parsed = JSON.parse(infoCookie);
-          if (parsed.email) userEmail = parsed.email.toLowerCase().trim();
-        } catch {}
-      }
-    }
-
-    // Strict Security: Unauthenticated guests cannot have enrolled courses
-    if (!userEmail) {
+    if (!customer?.email) {
       return [];
     }
+    const userEmail = customer.email.toLowerCase().trim();
 
     // 4. If customer email is available, query persistent orders and admin database entitlements
     if (userEmail) {

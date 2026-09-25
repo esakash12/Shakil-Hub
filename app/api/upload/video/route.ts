@@ -27,10 +27,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 1. Strict File Size Validation (Max 250MB) - Checked before buffering to prevent memory exhaustion DoS
+    const MAX_VIDEO_SIZE = 250 * 1024 * 1024;
+    if (file.size > MAX_VIDEO_SIZE) {
+      return NextResponse.json(
+        { success: false, error: "Video exceeds 250MB size limit." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Strict MIME and Extension Whitelist
+    const ALLOWED_VIDEO_MIMES = new Map<string, string>([
+      ["video/mp4", ".mp4"],
+      ["video/webm", ".webm"],
+      ["video/quicktime", ".mov"],
+    ]);
+
+    const ext = path.extname(file.name || "").toLowerCase();
+    const expectedExt = ALLOWED_VIDEO_MIMES.get(file.type);
+
+    if (!expectedExt || (ext && ext !== expectedExt)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid video format. Only MP4, WebM, and QuickTime MOV videos are allowed.",
+        },
+        { status: 400 }
+      );
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer());
-    const originalName = file.name || "video.mp4";
-    const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const filename = `${Date.now()}-${sanitizedName}`;
+    const sanitizedBase = path
+      .basename(file.name || "video", ext)
+      .replace(/[^a-zA-Z0-9_-]/g, "_")
+      .slice(0, 50);
+    const finalExt = expectedExt || ".mp4";
+    const filename = `${Date.now()}-${sanitizedBase || "video"}${finalExt}`;
 
     // 1. Try uploading to Cloudflare R2 if credentials exist
     const accessKey = process.env.R2_ACCESS_KEY_ID;

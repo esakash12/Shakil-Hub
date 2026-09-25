@@ -2,6 +2,7 @@
 
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { requireAdminSession } from "@/lib/actions/admin-auth";
 
 interface PresignedUploadResponse {
   success: boolean;
@@ -41,6 +42,15 @@ export async function getPresignedUploadUrl(
   fileType: string = "video/mp4",
   folder: string = "lessons"
 ): Promise<PresignedUploadResponse> {
+  // 1. Strict Administrator Authorization Gatekeeper
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return {
+      success: false,
+      error: "Unauthorized: Administrator access required to generate upload URLs.",
+    };
+  }
+
   const bucketName = process.env.R2_BUCKET_NAME || "lms-videos";
   const accessKey = process.env.R2_ACCESS_KEY_ID;
   const secretKey = process.env.R2_SECRET_ACCESS_KEY;
@@ -53,9 +63,14 @@ export async function getPresignedUploadUrl(
     };
   }
 
-  // Strict sanitized unique object key
+  // 2. Strict folder sanitization & whitelist to prevent path traversal
+  const ALLOWED_FOLDERS = ["lessons", "portfolio", "thumbnails", "branding", "assets"];
+  const sanitizedFolder = folder.replace(/[^a-zA-Z0-9_-]/g, "");
+  const targetFolder = ALLOWED_FOLDERS.includes(sanitizedFolder) ? sanitizedFolder : "lessons";
+
+  // 3. Strict sanitized unique object key
   const sanitizedName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
-  const objectKey = `${folder}/${Date.now()}-${sanitizedName}`;
+  const objectKey = `${targetFolder}/${Date.now()}-${sanitizedName}`;
 
   // 1. If R2 credentials are configured
   if (accessKey && secretKey && endpoint) {
@@ -196,6 +211,15 @@ export async function getPresignedViewUrl(
 export async function deleteR2Object(
   urlOrKey?: string
 ): Promise<{ success: boolean; error?: string }> {
+  // 1. Strict Administrator Authorization Gatekeeper
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return {
+      success: false,
+      error: "Unauthorized: Administrator access required to delete storage objects.",
+    };
+  }
+
   if (!urlOrKey || typeof urlOrKey !== "string" || !urlOrKey.trim()) {
     return { success: true };
   }

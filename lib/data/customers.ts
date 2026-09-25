@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import { readDataFile, writeDataFile } from "./storage-helper";
 import { prisma, isPrismaReady } from "../db/prisma";
 
@@ -28,8 +29,81 @@ export interface CustomerRecord {
   updatedAt?: string;
 }
 
+/**
+ * Enterprise Password Hashing using Bcrypt (10 rounds)
+ */
 export function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password).digest("hex");
+  return bcrypt.hashSync(password, 10);
+}
+
+/**
+ * Secure Password Verification supporting automated legacy SHA-256 hash upgrade
+ */
+export function verifyPassword(
+  plainPassword: string,
+  storedHash?: string | null
+): { isValid: boolean; needsRehash: boolean } {
+  if (!storedHash) return { isValid: false, needsRehash: false };
+
+  // 1. Bcrypt hash check ($2a$ or $2b$ or $2y$)
+  if (
+    storedHash.startsWith("$2a$") ||
+    storedHash.startsWith("$2b$") ||
+    storedHash.startsWith("$2y$")
+  ) {
+    try {
+      const isValid = bcrypt.compareSync(plainPassword, storedHash);
+      return { isValid, needsRehash: false };
+    } catch {
+      return { isValid: false, needsRehash: false };
+    }
+  }
+
+  // 2. Legacy fallback check: 64-char hex SHA-256
+  try {
+    const legacyHash = crypto.createHash("sha256").update(plainPassword).digest("hex");
+    if (storedHash === legacyHash) {
+      // Legacy hash matches! Flag for transparent upgrade to bcrypt
+      return { isValid: true, needsRehash: true };
+    }
+  } catch {}
+
+  return { isValid: false, needsRehash: false };
+}
+
+/**
+ * Transparently updates a customer's password hash in both PostgreSQL and persistent storage
+ */
+export async function updateCustomerPasswordHash(
+  email: string,
+  newHash: string
+): Promise<boolean> {
+  const normalizedEmail = email.toLowerCase().trim();
+  try {
+    if (await isPrismaReady()) {
+      await prisma.user.update({
+        where: { email: normalizedEmail },
+        data: { passwordHash: newHash },
+      });
+    }
+  } catch (err: any) {
+    console.warn("Prisma updateCustomerPasswordHash error:", err.message || err);
+  }
+
+  try {
+    const customers = await readDataFile<CustomerRecord[]>("customers.json", []);
+    const idx = customers.findIndex(
+      (c) => c.email.toLowerCase().trim() === normalizedEmail
+    );
+    if (idx !== -1) {
+      customers[idx].passwordHash = newHash;
+      customers[idx].updatedAt = new Date().toISOString();
+      await writeDataFile("customers.json", customers);
+    }
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
