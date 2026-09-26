@@ -5,6 +5,7 @@ import { getEnrolledCoursesAction } from "@/lib/actions/student";
 import { getAllCoursesProgressAction } from "@/lib/actions/progress";
 import { prisma, isPrismaReady } from "@/lib/db/prisma";
 import { getLiveStorefrontCourses } from "@/lib/data/courses-db";
+import { sendCertificateIssuedEmail } from "@/lib/mail";
 
 export interface CertificateItem {
   id: string;
@@ -75,6 +76,10 @@ export async function getUserCertificatesAction(): Promise<CertificateItem[]> {
         // Sync to PostgreSQL Certificate table if user has email
         if (ready && customer?.email) {
           try {
+            const existing = await prisma.certificate.findUnique({
+              where: { certificateNo: code },
+            });
+
             await prisma.certificate.upsert({
               where: { certificateNo: code },
               create: {
@@ -90,6 +95,18 @@ export async function getUserCertificatesAction(): Promise<CertificateItem[]> {
                 courseTitle: course.title,
               },
             });
+
+            // Dispatch congratulatory certificate email upon first issue
+            if (!existing) {
+              sendCertificateIssuedEmail({
+                to: customer.email,
+                name: studentName,
+                courseTitle: course.title,
+                certificateCode: code,
+              }).catch((mailErr) => {
+                console.warn("Certificate email dispatch warning:", mailErr);
+              });
+            }
           } catch (syncErr) {
             console.warn("Certificate DB sync warning:", syncErr);
           }

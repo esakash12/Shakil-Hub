@@ -7,6 +7,7 @@ import {
   deletePersistentOrder,
 } from "@/lib/data/orders";
 import { requireAdminSession } from "@/lib/actions/admin-auth";
+import { sendOrderApprovedEmail } from "@/lib/mail";
 
 export interface AdminOrderRecord {
   id: string;
@@ -140,6 +141,26 @@ export async function verifyAdminOrderAction(orderId: string): Promise<{
       } catch (custErr) {
         console.error("FAILED TO GRANT CUSTOMER COURSE:", custErr);
       }
+    }
+
+    // 3. Send Order Approved Notification Email to Student
+    if (updatedPersistent?.email) {
+      const isShopProduct =
+        targetSlug.startsWith("prod-") ||
+        targetSlug.includes("pack") ||
+        targetSlug.includes("lut") ||
+        targetSlug.includes("preset");
+
+      sendOrderApprovedEmail({
+        to: updatedPersistent.email,
+        name: updatedPersistent.studentName || "Student",
+        orderNumber: updatedPersistent.orderNumber || orderId,
+        itemTitle: updatedPersistent.courseTitle || "Masterclass",
+        itemType: isShopProduct ? "product" : "course",
+        slug: targetSlug,
+      }).catch((mailErr) => {
+        console.warn("Order approved email dispatch warning:", mailErr);
+      });
     }
 
     // Revalidate routes

@@ -14,6 +14,10 @@ import {
   emailSchema,
   bangladeshiPhoneSchema,
 } from "@/lib/security/schemas";
+import {
+  sendOrderReceivedEmail,
+  sendAdminContactNotificationEmail,
+} from "@/lib/mail";
 
 export interface ManualCheckoutInput {
   courseSlug: string;
@@ -259,6 +263,33 @@ export async function processManualCheckout(
       status: "pending_verification",
       createdAt: orderRecord.createdAt,
     });
+
+    // Non-blocking SMTP email dispatches:
+    // 1. Notify Student: Order Received (Pending Verification)
+    if (orderRecord.email) {
+      sendOrderReceivedEmail({
+        to: orderRecord.email,
+        name: orderRecord.fullName,
+        orderNumber: orderRecord.orderNumber,
+        courseTitle: orderRecord.courseTitle,
+        amount: orderRecord.amount,
+        paymentMethod: orderRecord.paymentMethod,
+        trxId: orderRecord.trxId,
+      }).catch((mailErr) => {
+        console.warn("Order received email dispatch warning:", mailErr);
+      });
+
+      // 2. Alert Admin of incoming payment submission
+      sendAdminContactNotificationEmail({
+        name: orderRecord.fullName,
+        email: orderRecord.email,
+        phone: orderRecord.senderNumber,
+        type: `Order #${orderRecord.orderNumber}`,
+        message: `New manual payment submitted for "${orderRecord.courseTitle}" (৳${orderRecord.amount.toLocaleString()} BDT). Method: ${orderRecord.paymentMethod.toUpperCase()} (Sender: ${orderRecord.senderNumber}, TrxID: ${orderRecord.trxId}).`,
+      }).catch((adminErr) => {
+        console.warn("Admin order alert warning:", adminErr);
+      });
+    }
 
     // Clean up any legacy pending orders or cart cookies from the browser
     const cookieStore = await cookies();

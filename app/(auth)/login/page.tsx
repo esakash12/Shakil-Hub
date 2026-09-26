@@ -3,8 +3,8 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, Play, AlertCircle, ArrowRight, Loader2, KeyRound, X, HelpCircle } from "lucide-react";
+import { motion } from "framer-motion";
+import { Mail, Lock, Play, AlertCircle, ArrowRight, Loader2 } from "lucide-react";
 import { loginAction, logoutAction } from "@/lib/actions/auth";
 
 function LoginForm() {
@@ -13,6 +13,8 @@ function LoginForm() {
   const redirectUrl = searchParams.get("redirect") || "/dashboard";
   const queryError = searchParams.get("error");
   const shouldLogout = searchParams.get("logout") === "true";
+  const queryReset = searchParams.get("reset");
+  const [resetSuccess, setResetSuccess] = useState<boolean>(queryReset === "success");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(() => {
@@ -24,7 +26,6 @@ function LoginForm() {
     }
     return null;
   });
-  const [showForgotModal, setShowForgotModal] = useState(false);
 
   useEffect(() => {
     if (queryError === "account_suspended" || shouldLogout) {
@@ -77,6 +78,17 @@ function LoginForm() {
           </p>
         </div>
 
+        {/* Reset Success Notification */}
+        {resetSuccess && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2"
+          >
+            <span>✓ Password updated successfully! Please sign in with your new password.</span>
+          </motion.div>
+        )}
+
         {/* Error Notification */}
         {error && (
           <motion.div
@@ -112,13 +124,12 @@ function LoginForm() {
               <label className="block text-xs font-medium text-gray-300">
                 Password
               </label>
-              <button
-                type="button"
-                onClick={() => setShowForgotModal(true)}
+              <Link
+                href="/forgot-password"
                 className="text-[11px] text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
               >
                 Forgot password?
-              </button>
+              </Link>
             </div>
             <div className="relative">
               <Lock className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -175,62 +186,6 @@ function LoginForm() {
           </Link>
         </div>
       </motion.div>
-
-      {/* Forgot Password Guidance Modal */}
-      <AnimatePresence>
-        {showForgotModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-md rounded-2xl bg-[#0c1017] border border-white/10 p-6 sm:p-8 space-y-5 text-center shadow-2xl"
-            >
-              <button
-                type="button"
-                onClick={() => setShowForgotModal(false)}
-                className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-white bg-white/5 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-600/15 border border-blue-500/20 flex items-center justify-center text-blue-400 shadow-inner">
-                <KeyRound className="w-7 h-7" />
-              </div>
-
-              <div>
-                <h3 className="text-base sm:text-lg font-bold text-white">
-                  Reset Your Password
-                </h3>
-                <p className="text-xs text-gray-400 mt-2 leading-relaxed font-normal">
-                  To protect your course entitlements, password resets are processed via our automated support desk. Send an email with your registered address or message us on WhatsApp.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 text-xs text-gray-300 space-y-1 text-left">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Support Desk:</span>
-                  <span className="text-blue-400 font-mono font-semibold">support@sakilhub.com</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Response Time:</span>
-                  <span className="text-emerald-400 font-medium">&lt; 15 Minutes</span>
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <a
-                  href="mailto:support@sakilhub.com?subject=Password%20Reset%20Request%20-%20Sakil%20Hub"
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all"
-                >
-                  <Mail className="w-4 h-4" />
-                  <span>Send Reset Request Email</span>
-                </a>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </>
   );
 }

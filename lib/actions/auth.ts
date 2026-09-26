@@ -11,6 +11,7 @@ import {
 } from "@/lib/data/customers";
 import crypto from "crypto";
 import { getSessionCookieOptions } from "@/lib/security/cookies";
+import { sendWelcomeEmail } from "@/lib/mail";
 
 export interface AuthResponse {
   success: boolean;
@@ -232,6 +233,11 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
     };
 
     cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
+
+    // Non-blocking welcome email dispatch
+    sendWelcomeEmail(email, `${firstName} ${lastName}`.trim()).catch((mailErr) => {
+      console.warn("Welcome email dispatch warning:", mailErr);
+    });
 
     return {
       success: true,

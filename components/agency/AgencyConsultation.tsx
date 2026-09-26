@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import CursorSpotlight from "@/components/ui/CursorSpotlight";
 import { AgencyCmsData } from "@/lib/data/agency-cms-types";
+import { submitContactAction } from "@/lib/actions/contact";
 
 export default function AgencyConsultation({ cmsData }: { cmsData?: AgencyCmsData }) {
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -82,6 +83,18 @@ export default function AgencyConsultation({ cmsData }: { cmsData?: AgencyCmsDat
 
     const message = `Hello MH Sakil! I would like to book a Strategy Meeting on ${formattedDate} at ${selectedTime}.`;
     const url = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`;
+
+    // Non-blocking admin notification email
+    submitContactAction({
+      name: "Prospective Client",
+      email: "consultation@sakilhub.com",
+      phone: phoneWithCountry,
+      date: formattedDate,
+      time: selectedTime,
+      type: "VIP Strategy Consultation",
+      message: `Client requested a 1-on-1 strategy meeting for ${formattedDate} at ${selectedTime}.`,
+    }).catch(() => {});
+
     window.open(url, "_blank");
   };
 

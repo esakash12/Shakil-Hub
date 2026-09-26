@@ -14,6 +14,10 @@ import {
   QuestionItem,
 } from "@/lib/data/interactions";
 import { requireAdminSession } from "@/lib/actions/admin-auth";
+import {
+  sendQaReplyNotificationEmail,
+  sendAdminContactNotificationEmail,
+} from "@/lib/mail";
 
 export type { QuestionItem };
 
@@ -120,6 +124,16 @@ export async function postLessonQuestionAction(
       customer?.email
     );
 
+    // Non-blocking admin notification email about new classroom question
+    sendAdminContactNotificationEmail({
+      name: resolvedAuthor,
+      email: customer?.email || "student@sakilhub.com",
+      type: "Classroom Question",
+      message: `Student asked a question in course "${courseSlug}" (Lesson: ${lessonId}):\n\n"${questionText.trim()}"`,
+    }).catch((err) => {
+      console.warn("Classroom question admin alert warning:", err);
+    });
+
     revalidatePath(`/learn/${courseSlug}/${lessonId}`);
     return { success: true, questions: updated };
   } catch {
@@ -162,6 +176,20 @@ export async function replyToQuestionAction(
     const updated = await replyToPersistentQA(questionId, replyText);
     if (!updated) {
       return { success: false, error: "Question not found." };
+    }
+
+    // Send Q&A Answered Email to Student if email is attached
+    if (updated.email) {
+      sendQaReplyNotificationEmail({
+        to: updated.email,
+        studentName: updated.author || "Student",
+        question: updated.question,
+        replyText: replyText.trim(),
+        courseSlug: updated.courseSlug || courseSlug || "",
+        lessonId: updated.lessonId || lessonId || "",
+      }).catch((mailErr) => {
+        console.warn("QA reply email dispatch warning:", mailErr);
+      });
     }
 
     if (courseSlug && lessonId) {
