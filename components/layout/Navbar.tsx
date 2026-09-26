@@ -19,8 +19,20 @@ export default function Navbar({
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentY = window.scrollY;
+          setIsScrolled((prev) => {
+            if (currentY > 30) return true;
+            if (currentY < 15) return false;
+            return prev;
+          });
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
@@ -62,35 +74,37 @@ export default function Navbar({
   };
 
   return (
-    <>
-      {/* Top Announcement Ribbon - Scrolls away naturally and smoothly collapses past 40px */}
+    <header className="sticky top-0 z-40 w-full pointer-events-none">
+      {/* Subtle Top Gradient Backdrop Mask (Active only during scroll to softly dissolve page content before the top gap) */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#02050e] via-[#02050e]/85 to-transparent -z-10 transition-opacity duration-300 ${
+          isScrolled ? "opacity-100" : "opacity-0"
+        }`}
+      />
+
+      {/* Top Announcement Ribbon (Smoothly slides up and collapses when scrolling past 30px) */}
       {branding.announcement && (
         <div
-          className={`w-full bg-gradient-to-r from-cyan-950/95 via-[#00334e]/90 to-blue-950/95 border-b border-cyan-500/20 px-4 text-center text-[11px] sm:text-xs text-cyan-200 font-medium tracking-wide shadow-sm transition-all duration-300 relative z-30 ${
+          className={`pointer-events-auto w-full bg-gradient-to-r from-cyan-950/95 via-[#00334e]/90 to-blue-950/95 border-b border-cyan-500/20 px-4 text-center text-xs text-cyan-200 font-medium tracking-wide shadow-sm transition-all duration-300 ease-in-out ${
             isScrolled
-              ? "max-h-0 py-0 opacity-0 overflow-hidden -translate-y-2 pointer-events-none"
-              : "max-h-12 py-1.5 opacity-100 translate-y-0"
+              ? "max-h-0 py-0 opacity-0 overflow-hidden -translate-y-full border-b-0"
+              : "max-h-12 py-2 opacity-100 translate-y-0"
           }`}
         >
-          <span>{branding.announcement}</span>
+          <span className="inline-block leading-normal">{branding.announcement}</span>
         </div>
       )}
 
-      {/* Sticky Floating Island Navigation Container */}
-      <header className="sticky top-0 z-40 w-full pointer-events-none">
-        {/* Subtle Top Gradient Backdrop Mask (Softly dissolves scrolling content before reaching the top gap) */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-4 inset-x-0 h-20 sm:h-24 bg-gradient-to-b from-[#02050e] via-[#02050e]/90 to-transparent -z-10"
-        />
-
-        {/* Floating Island Navigation Container */}
-        <div
-          className={`px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto transition-all duration-300 ${
-            isScrolled ? "pt-1.5 sm:pt-2" : "pt-2 sm:pt-3"
-          }`}
-        >
-          <div className="pointer-events-auto rounded-2xl md:rounded-full border border-white/[0.1] bg-[#02050e]/85 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(0,210,255,0.06)] px-4 sm:px-6 transition-all duration-300">
+      {/* Floating Island Navigation Container */}
+      <div
+        className={`px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto transition-all duration-300 ${
+          branding.announcement && !isScrolled
+            ? "pt-1.5 sm:pt-2"
+            : "pt-2 sm:pt-3"
+        }`}
+      >
+        <div className="pointer-events-auto rounded-2xl md:rounded-full border border-white/[0.1] bg-[#02050e]/85 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(0,210,255,0.06)] px-4 sm:px-6 transition-all duration-300">
           <div className="flex items-center justify-between h-13 sm:h-14">
             {/* Brand Logo - Sakil Hub */}
             <Link href="/" className="flex items-center gap-2 group">
@@ -198,6 +212,5 @@ export default function Navbar({
         </div>
       </div>
     </header>
-  </>
-);
+  );
 }
