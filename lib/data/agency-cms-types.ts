@@ -8,6 +8,10 @@ export interface AgencyCmsData {
   heroCtaText: string;
   heroShowreelText: string;
 
+  // Hero Media & Showreel
+  heroWorkstationImage?: string;
+  heroShowreelVideoUrl?: string;
+
   // Founder Section
   founderName: string;
   founderHeadline: string;
@@ -34,9 +38,16 @@ export interface AgencyCmsData {
   consultationCheck2: string;
   consultationCheck3: string;
   consultationBtnText?: string;
+  consultationTimeSlots?: string;
 
-  // Optional Section Controls
+  // Academy Preview Section Controls & Content
   showAcademyPreview?: boolean;
+  academyBadge?: string;
+  academyTitle?: string;
+  academySubtitle?: string;
+  academyRating?: string;
+  academyStudentCount?: string;
+  academyCtaText?: string;
 
   updatedAt?: string;
 }
@@ -51,6 +62,8 @@ export const DEFAULT_AGENCY_CMS: AgencyCmsData = {
     "Turn your ideas into powerful visual stories. We create cinematic videos, AI-powered commercials, and strategic content that helps your brand grow and get real results.",
   heroCtaText: "Explore Our Portfolio",
   heroShowreelText: "Watch Showreel",
+  heroWorkstationImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=720&q=75",
+  heroShowreelVideoUrl: "",
 
   // Founder Section
   founderName: "MH Sakil",
@@ -81,8 +94,16 @@ export const DEFAULT_AGENCY_CMS: AgencyCmsData = {
   consultationCheck2: "Project Planning",
   consultationCheck3: "Custom Quote",
   consultationBtnText: "Book a Strategy Meeting",
+  consultationTimeSlots: "10:00 AM, 11:00 AM, 02:00 PM, 04:00 PM",
 
   showAcademyPreview: false,
+  academyBadge: "✦ TESTIMONIALS",
+  academyTitle: "Want to Master the Craft?\nWe Teach What We Practice in the Agency.",
+  academySubtitle:
+    "Learn directly from real-world projects, not just theory. Join our creative courses and build your skills with industry experience.",
+  academyRating: "4.9/5",
+  academyStudentCount: "Trusted by 100+ students",
+  academyCtaText: "Explore Web Courses",
 
   updatedAt: new Date().toISOString(),
 };

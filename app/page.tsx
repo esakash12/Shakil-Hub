@@ -49,7 +49,10 @@ export default async function HomePage() {
       {/* 6. Sakil Hub Academy & Masterclasses Preview (Controlled via CMS) */}
       {agencyCms?.showAcademyPreview && (
         <ScrollReveal delay={0.05} distance={24}>
-          <AgencyAcademyPreview previewItem={portfolioData.items?.[1] || portfolioData.items?.[0]} />
+          <AgencyAcademyPreview
+            previewItem={portfolioData.items?.[1] || portfolioData.items?.[0]}
+            cmsData={agencyCms}
+          />
         </ScrollReveal>
       )}
 

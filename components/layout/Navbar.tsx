@@ -51,6 +51,11 @@ export default function Navbar({
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/[0.08] bg-[#02050e]/90 backdrop-blur-2xl shadow-xl">
+      {branding.announcement && (
+        <div className="bg-gradient-to-r from-cyan-950/90 via-[#00334e]/85 to-blue-950/90 border-b border-cyan-500/20 py-1.5 px-4 text-center text-[11px] sm:text-xs text-cyan-200 font-medium tracking-wide">
+          <span>{branding.announcement}</span>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Brand Logo - Sakil Hub */}

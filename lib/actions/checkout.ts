@@ -2,7 +2,6 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { clearCartAction } from "@/lib/actions/cart";
 import { getCustomerProfile } from "@/lib/actions/auth";
 import { getCourseBySlug, CourseDetail } from "@/lib/data/courses";
 import { getLiveCourseBySlug } from "@/lib/data/courses-db";
@@ -261,14 +260,14 @@ export async function processManualCheckout(
       createdAt: orderRecord.createdAt,
     });
 
-    // Clean up any legacy pending orders cookie from the browser
+    // Clean up any legacy pending orders or cart cookies from the browser
     const cookieStore = await cookies();
     if (cookieStore.has("sakil_pending_orders")) {
       cookieStore.delete("sakil_pending_orders");
     }
-
-    // 3. Clear cart
-    await clearCartAction();
+    if (cookieStore.has("sakil_cart")) {
+      cookieStore.delete("sakil_cart");
+    }
 
     // 4. Invalidate server-rendered route caches for Admin and Student views
     try {

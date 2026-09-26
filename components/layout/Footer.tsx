@@ -15,6 +15,7 @@ export default function Footer({
     { name: "Portfolio", href: "/#portfolio" },
     { name: "Courses", href: "/courses" },
     { name: "Shop", href: "/shop" },
+    { name: "Instructors", href: "/instructors" },
     { name: "Services", href: "/#services" },
     { name: "About", href: "/#about-founder" },
     { name: "Contact", href: "/#contact" },
@@ -63,8 +64,13 @@ export default function Footer({
                 </div>
               )}
             </Link>
-            <p className="text-xs font-mono text-zinc-400">
-              Creative Videos <span className="text-[#00d2ff]">•</span> AI <span className="text-[#00d2ff]">•</span> Marketing
+            <p className="text-xs text-zinc-400 leading-relaxed max-w-sm">
+              {branding.footerBio || (
+                <>
+                  Creative Videos <span className="text-[#00d2ff]">•</span> AI{" "}
+                  <span className="text-[#00d2ff]">•</span> Marketing
+                </>
+              )}
             </p>
             {/* Social Links */}
             <div className="flex items-center gap-2.5 pt-2">

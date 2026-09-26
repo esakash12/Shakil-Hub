@@ -3,26 +3,12 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { getCartAction } from "@/lib/actions/cart";
 
 export default function GeneralCheckoutPage() {
   const router = useRouter();
 
   useEffect(() => {
-    async function redirect() {
-      try {
-        const cartData = await getCartAction();
-        const slug = cartData?.items?.[0]?.courseSlug;
-        if (slug) {
-          router.replace(`/checkout/${slug}`);
-        } else {
-          router.replace("/courses");
-        }
-      } catch {
-        router.replace("/courses");
-      }
-    }
-    redirect();
+    router.replace("/courses");
   }, [router]);
 
   return (

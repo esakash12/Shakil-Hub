@@ -26,17 +26,22 @@ export default function AgencyHero({
   featuredItem?: PortfolioItem;
 }) {
   const [showreelOpen, setShowreelOpen] = useState(false);
-  const showreelItem: PortfolioItem = featuredItem || {
-    id: "showreel-default",
-    title: "Sakil Hub — Agency Showreel",
-    category: "commercials",
-    categoryLabel: "Agency Reel",
-    videoUrl: "",
-    thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80",
-    description: "Official agency showreel showcasing commercial edits, visual storytelling, and high-impact digital experiences.",
-    client: "Sakil Hub Original",
+  const showreelItem: PortfolioItem = {
+    id: featuredItem?.id || "showreel-default",
+    title: featuredItem?.title || "Sakil Hub — Agency Showreel",
+    category: featuredItem?.category || "commercials",
+    categoryLabel: featuredItem?.categoryLabel || "Agency Reel",
+    videoUrl: cmsData?.heroShowreelVideoUrl || featuredItem?.videoUrl || "",
+    thumbnail:
+      cmsData?.heroWorkstationImage ||
+      featuredItem?.thumbnail ||
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80",
+    description:
+      featuredItem?.description ||
+      "Official agency showreel showcasing commercial edits, visual storytelling, and high-impact digital experiences.",
+    client: featuredItem?.client || "Sakil Hub Original",
     featured: true,
-    tags: ["Showreel", "Agency", "4K"],
+    tags: featuredItem?.tags || ["Showreel", "Agency", "4K"],
   };
 
   const pillBadge = cmsData?.heroPillBadge || "Creative Video • AI • Marketing";
@@ -211,7 +216,11 @@ export default function AgencyHero({
                 {/* Center: Cinema Screen Preview */}
                 <div className="col-span-12 sm:col-span-8 relative aspect-[16/9] rounded-lg overflow-hidden bg-black border border-white/[0.08]">
                   <Image
-                    src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=720&q=75"
+                    src={
+                      cmsData?.heroWorkstationImage ||
+                      featuredItem?.thumbnail ||
+                      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=720&q=75"
+                    }
                     alt="Workstation Preview"
                     fill
                     priority

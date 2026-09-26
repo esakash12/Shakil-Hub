@@ -20,6 +20,7 @@ import {
   HelpCircle,
   Layout,
   Layers,
+  GraduationCap,
 } from "lucide-react";
 import {
   getPlatformBrandingAction,
@@ -368,6 +369,36 @@ export default function AdminSettingsPage() {
                   />
                 </div>
               </div>
+
+              {/* Hero Visuals & Media */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-white/5 pt-4">
+                <div className="space-y-1.5">
+                  <ImageUploadField
+                    label="Hero Workstation Screen Image"
+                    value={agencyData.heroWorkstationImage || ""}
+                    onChange={(url) => handleAgencyChange("heroWorkstationImage", url)}
+                    placeholder="https://images.unsplash.com/..."
+                    description="Workstation screen preview image displayed inside the hero cinema frame."
+                    variant="banner"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-medium text-gray-300">
+                    Hero Showreel Video URL (YouTube, Vimeo, or direct MP4)
+                  </label>
+                  <input
+                    type="url"
+                    value={agencyData.heroShowreelVideoUrl || ""}
+                    onChange={(e) => handleAgencyChange("heroShowreelVideoUrl", e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=... or direct MP4 URL"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                  />
+                  <p className="text-[11px] text-gray-400">
+                    Plays when visitors click &quot;Watch Showreel&quot; or click play on the hero workstation.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Section 2: Director & Founder Spotlight */}
@@ -459,13 +490,26 @@ export default function AdminSettingsPage() {
               {/* Bio Narrative */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium text-gray-300">
-                  Founder Narrative / Bio Story
+                  Founder Narrative / Bio Story (Paragraph 1)
                 </label>
                 <textarea
                   rows={4}
                   value={agencyData.founderBio1}
                   onChange={(e) => handleAgencyChange("founderBio1", e.target.value)}
                   placeholder="I'm a video content creator and creative director..."
+                  className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs text-gray-200 focus:outline-none focus:border-cyan-500 resize-none leading-relaxed"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-gray-300">
+                  Founder Vision / Leadership Story (Paragraph 2)
+                </label>
+                <textarea
+                  rows={3}
+                  value={agencyData.founderBio2 || ""}
+                  onChange={(e) => handleAgencyChange("founderBio2", e.target.value)}
+                  placeholder="Today, I lead Sakil Hub — creating high-impact visual narratives..."
                   className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs text-gray-200 focus:outline-none focus:border-cyan-500 resize-none leading-relaxed"
                 />
               </div>
@@ -689,6 +733,135 @@ export default function AdminSettingsPage() {
                   />
                 </div>
               </div>
+
+              {/* Consultation Time Slots */}
+              <div className="space-y-1.5 border-t border-white/5 pt-4">
+                <label className="block text-xs font-medium text-gray-300">
+                  Available Consultation Time Slots (Comma-separated)
+                </label>
+                <input
+                  type="text"
+                  value={agencyData.consultationTimeSlots || ""}
+                  onChange={(e) => handleAgencyChange("consultationTimeSlots", e.target.value)}
+                  placeholder="10:00 AM, 11:00 AM, 02:00 PM, 04:00 PM"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                />
+                <p className="text-[11px] text-gray-400">
+                  Time slots shown as selectable pill options on the homepage consultation booking card.
+                </p>
+              </div>
+            </div>
+
+            {/* Section 4: Academy & Courses Preview Banner */}
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#0e1320]/80 border border-white/10 space-y-6">
+              <div className="border-b border-white/5 pb-3 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-cyan-400" />
+                    <h2 className="text-sm font-bold text-white tracking-tight">
+                      Academy & Courses Preview Banner
+                    </h2>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    Display an Academy banner on the homepage showcasing creative courses, ratings, and student count.
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!agencyData.showAcademyPreview}
+                    onChange={(e) => handleAgencyChange("showAcademyPreview", e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                </label>
+              </div>
+
+              {agencyData.showAcademyPreview && (
+                <div className="space-y-4 animate-in fade-in">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-medium text-gray-300">
+                        Badge Text
+                      </label>
+                      <input
+                        type="text"
+                        value={agencyData.academyBadge || ""}
+                        onChange={(e) => handleAgencyChange("academyBadge", e.target.value)}
+                        placeholder="✦ TESTIMONIALS"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-medium text-gray-300">
+                        CTA Button Label
+                      </label>
+                      <input
+                        type="text"
+                        value={agencyData.academyCtaText || ""}
+                        onChange={(e) => handleAgencyChange("academyCtaText", e.target.value)}
+                        placeholder="Explore Web Courses"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-gray-300">
+                      Main Heading (Supports line breaks)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={agencyData.academyTitle || ""}
+                      onChange={(e) => handleAgencyChange("academyTitle", e.target.value)}
+                      placeholder="Want to Master the Craft?&#10;We Teach What We Practice in the Agency."
+                      className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 resize-none font-semibold leading-relaxed"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-medium text-gray-300">
+                      Subtitle / Description
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={agencyData.academySubtitle || ""}
+                      onChange={(e) => handleAgencyChange("academySubtitle", e.target.value)}
+                      placeholder="Learn directly from real-world projects, not just theory..."
+                      className="w-full p-3.5 rounded-xl bg-black/60 border border-white/10 text-xs text-gray-200 focus:outline-none focus:border-cyan-500 resize-none leading-relaxed"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-medium text-gray-300">
+                        Rating Text
+                      </label>
+                      <input
+                        type="text"
+                        value={agencyData.academyRating || ""}
+                        onChange={(e) => handleAgencyChange("academyRating", e.target.value)}
+                        placeholder="4.9/5"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-medium text-gray-300">
+                        Student Count Text
+                      </label>
+                      <input
+                        type="text"
+                        value={agencyData.academyStudentCount || ""}
+                        onChange={(e) => handleAgencyChange("academyStudentCount", e.target.value)}
+                        placeholder="Trusted by 100+ students"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

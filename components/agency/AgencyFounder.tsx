@@ -9,7 +9,6 @@ import {
   Bot,
   Calendar,
 } from "lucide-react";
-import { FOUNDER_DATA } from "@/lib/data/founder-data";
 import { AgencyCmsData } from "@/lib/data/agency-cms-types";
 import { PlatformBrandingSettings, DEFAULT_BRANDING } from "@/lib/data/branding-types";
 

@@ -18,7 +18,13 @@ export default function AgencyConsultation({ cmsData }: { cmsData?: AgencyCmsDat
   });
   const [selectedTime, setSelectedTime] = useState("11:00 AM");
 
-  const timeSlots = ["10:00 AM", "11:00 AM", "02:00 PM", "04:00 PM"];
+  const rawSlots = cmsData?.consultationTimeSlots
+    ? cmsData.consultationTimeSlots
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+  const timeSlots = rawSlots.length > 0 ? rawSlots : ["10:00 AM", "11:00 AM", "02:00 PM", "04:00 PM"];
 
   const badge = cmsData?.consultationBadge || "LET’S WORK TOGETHER";
   const title = cmsData?.consultationTitle || "Let’s Build Something Great Together.";
