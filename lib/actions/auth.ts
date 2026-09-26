@@ -11,7 +11,12 @@ import {
 } from "@/lib/data/customers";
 import crypto from "crypto";
 import { getSessionCookieOptions } from "@/lib/security/cookies";
-import { sendWelcomeEmail } from "@/lib/mail";
+import { sendWelcomeEmail, sendRegistrationOtpEmail } from "@/lib/mail";
+import {
+  createPendingRegistration,
+  getPendingRegistration,
+  verifyAndConsumePendingRegistration,
+} from "@/lib/data/pending-registrations";
 
 export interface AuthResponse {
   success: boolean;
@@ -184,9 +189,12 @@ export async function loginAction(formData: FormData): Promise<AuthResponse> {
 }
 
 /**
- * Register a new student customer directly in PostgreSQL database
+ * Step 1: Initiates registration by validating details, generating a 6-digit OTP,
+ * and dispatching a branded Email Verification Code to the user's inbox.
  */
-export async function registerAction(formData: FormData): Promise<AuthResponse> {
+export async function initiateRegistrationAction(
+  formData: FormData
+): Promise<{ success: boolean; email?: string; error?: string }> {
   const firstName = (formData.get("first_name") as string)?.trim();
   const lastName = (formData.get("last_name") as string)?.trim() || "";
   const email = (formData.get("email") as string)?.trim().toLowerCase();
@@ -194,6 +202,10 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
 
   if (!email || !password || !firstName) {
     return { success: false, error: "All required fields must be filled." };
+  }
+
+  if (password.length < 6) {
+    return { success: false, error: "Password must be at least 6 characters." };
   }
 
   try {
@@ -205,37 +217,99 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
       };
     }
 
-    const customerId = `std-${Date.now().toString().slice(-6)}`;
     const hashedPassword = hashPassword(password);
+    const { otp } = await createPendingRegistration({
+      email,
+      firstName,
+      lastName,
+      passwordHash: hashedPassword,
+    });
 
+    // Send 6-digit OTP email
+    await sendRegistrationOtpEmail(email, firstName, otp);
+
+    return {
+      success: true,
+      email,
+    };
+  } catch (err: any) {
+    console.error("INITIATE REGISTRATION ERROR:", err);
+    return {
+      success: false,
+      error: "Failed to send verification code. Please try again.",
+    };
+  }
+}
+
+/**
+ * Step 2: Verifies the 6-digit OTP and completes customer account creation in database
+ */
+export async function completeRegistrationAction(
+  email: string,
+  otp: string
+): Promise<AuthResponse> {
+  if (!email || !otp || otp.trim().length === 0) {
+    return {
+      success: false,
+      error: "Email and 6-digit verification code are required.",
+    };
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+
+  try {
+    const verification = await verifyAndConsumePendingRegistration(
+      normalizedEmail,
+      otp
+    );
+
+    if (!verification.valid || !verification.registration) {
+      return {
+        success: false,
+        error: verification.error || "Invalid or expired verification code.",
+      };
+    }
+
+    const pending = verification.registration;
+    const customerId = `std-${Date.now().toString().slice(-6)}`;
+
+    // Create the verified customer in PostgreSQL and storage
     await savePersistentCustomer({
       id: customerId,
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      passwordHash: hashedPassword,
+      firstName: pending.firstName,
+      lastName: pending.lastName,
+      email: normalizedEmail,
+      passwordHash: pending.passwordHash,
       status: "active",
       createdAt: new Date().toISOString(),
     });
 
-    // Purge any stale cookies before establishing brand new student session
+    // Purge any stale cookies
     await purgeAllSessionCookies();
 
-    const token = signStudentToken(email);
+    // Establish student session
+    const token = signStudentToken(normalizedEmail);
     const cookieStore = await cookies();
     cookieStore.set("sakil_customer_token", token, getSessionCookieOptions());
 
     const finalProfile: CustomerProfile = {
       id: customerId,
-      first_name: firstName,
-      last_name: lastName,
-      email: email,
+      first_name: pending.firstName,
+      last_name: pending.lastName,
+      email: normalizedEmail,
     };
 
-    cookieStore.set("sakil_customer_info", JSON.stringify(finalProfile), getSessionCookieOptions());
+    cookieStore.set(
+      "sakil_customer_info",
+      JSON.stringify(finalProfile),
+      getSessionCookieOptions()
+    );
 
-    // Non-blocking welcome email dispatch
-    sendWelcomeEmail(email, `${firstName} ${lastName}`.trim()).catch((mailErr) => {
+    // Send Welcome Email
+    sendWelcomeEmail(
+      normalizedEmail,
+      `${pending.firstName} ${pending.lastName}`.trim()
+    ).catch((mailErr) => {
       console.warn("Welcome email dispatch warning:", mailErr);
     });
 
@@ -244,12 +318,66 @@ export async function registerAction(formData: FormData): Promise<AuthResponse> 
       customer: finalProfile,
     };
   } catch (err: any) {
-    console.error("REGISTER ACTION ERROR:", err);
+    console.error("COMPLETE REGISTRATION ERROR:", err);
     return {
       success: false,
-      error: "Registration failed. Please try again.",
+      error: "Account verification failed. Please try again.",
     };
   }
+}
+
+/**
+ * Resends a fresh 6-digit registration OTP to the pending student's email
+ */
+export async function resendRegistrationOtpAction(
+  email: string
+): Promise<{ success: boolean; message?: string; error?: string }> {
+  if (!email || !email.includes("@")) {
+    return { success: false, error: "Valid email address is required." };
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+
+  try {
+    const pending = await getPendingRegistration(normalizedEmail);
+    if (!pending) {
+      return {
+        success: false,
+        error: "Registration session expired. Please fill out the form again.",
+      };
+    }
+
+    const { otp } = await createPendingRegistration({
+      email: pending.email,
+      firstName: pending.firstName,
+      lastName: pending.lastName,
+      passwordHash: pending.passwordHash,
+    });
+
+    await sendRegistrationOtpEmail(pending.email, pending.firstName, otp);
+
+    return {
+      success: true,
+      message: "A new 6-digit verification code has been sent to your email.",
+    };
+  } catch (err: any) {
+    console.error("RESEND REGISTRATION OTP ERROR:", err);
+    return {
+      success: false,
+      error: "Failed to resend verification code. Please try again.",
+    };
+  }
+}
+
+/**
+ * Legacy registration action: initiates registration flow
+ */
+export async function registerAction(formData: FormData): Promise<AuthResponse> {
+  const init = await initiateRegistrationAction(formData);
+  if (!init.success) {
+    return { success: false, error: init.error };
+  }
+  return { success: true };
 }
 
 /**

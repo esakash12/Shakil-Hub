@@ -261,6 +261,35 @@ export function createEmailLayout(props: {
 // ----------------------------------------------------------------------
 
 /**
+ * 0. User Registration: Email Verification OTP Code
+ */
+export async function sendRegistrationOtpEmail(
+  to: string,
+  name: string,
+  otp: string
+): Promise<MailResult> {
+  const html = createEmailLayout({
+    title: "Verify Your Email - Sakil Hub",
+    preheader: `Your Sakil Hub verification code is ${otp}. Valid for 15 minutes.`,
+    headline: "Verify Your Email Address ✉️",
+    contentHtml: `
+      <p>Hello ${name || "Creator"},</p>
+      <p>Thank you for signing up for <strong>Sakil Hub</strong>. To complete your account registration and activate your student portal, please enter the 6-digit verification code below:</p>
+      <div class="otp-code">${otp}</div>
+      <p style="text-align: center; color: #94a3b8; font-size: 13px;">This verification code will expire in <strong>15 minutes</strong>.</p>
+      <p>If you did not initiate this registration, please ignore this email.</p>
+    `,
+    footerNote: "Sakil Hub Security Team • Automated Account Verification",
+  });
+
+  return sendMail({
+    to,
+    subject: `[Sakil Hub] ${otp} is your verification code for account registration`,
+    html,
+  });
+}
+
+/**
  * 1. User Registration: Welcome Email
  */
 export async function sendWelcomeEmail(to: string, name: string): Promise<MailResult> {
