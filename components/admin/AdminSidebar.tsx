@@ -16,6 +16,7 @@ import {
   Award,
   ShoppingBag,
   Film,
+  MessageSquare,
 } from "lucide-react";
 import { adminLogoutAction } from "@/lib/actions/admin-auth";
 
@@ -63,6 +64,12 @@ export default function AdminSidebar() {
       label: "Students",
       href: "/admin/students",
       icon: Users,
+      exact: false,
+    },
+    {
+      label: "Classroom Q&A",
+      href: "/admin/qa",
+      icon: MessageSquare,
       exact: false,
     },
     {

@@ -369,3 +369,59 @@ export async function getPendingOrdersAction(): Promise<PendingStudentOrder[]> {
       (o.status as any) === "processing"
   );
 }
+
+export interface StudentProductItem {
+  id: string;
+  orderNumber: string;
+  slug: string;
+  title: string;
+  category: string;
+  thumbnail: string;
+  price: number;
+  deliveryMethod?: {
+    type: string;
+    label?: string;
+    instructions?: string;
+    downloadUrl?: string;
+    licenseKeySample?: string;
+  };
+  purchasedAt: string;
+}
+
+/**
+ * Server Action: Fetches all approved digital products/assets purchased by the student
+ */
+export async function getStudentDigitalProductsAction(): Promise<StudentProductItem[]> {
+  try {
+    const allOrders = await getAllStudentOrdersAction();
+    const approvedOrders = allOrders.filter((o) => o.status === "approved");
+
+    const { getShopProductBySlug } = await import("@/lib/data/shop");
+    const products: StudentProductItem[] = [];
+
+    for (const order of approvedOrders) {
+      if (order.courseSlug) {
+        const shopProd = await getShopProductBySlug(order.courseSlug);
+        if (shopProd) {
+          products.push({
+            id: order.id,
+            orderNumber: order.orderNumber,
+            slug: shopProd.slug,
+            title: shopProd.title,
+            category: shopProd.category || "Digital Product",
+            thumbnail: shopProd.thumbnail || order.courseThumbnail || "",
+            price: Number(order.amount) || Number(shopProd.price) || 0,
+            deliveryMethod: shopProd.deliveryMethod,
+            purchasedAt: order.createdAt,
+          });
+        }
+      }
+    }
+
+    return products;
+  } catch (err) {
+    console.error("GET STUDENT DIGITAL PRODUCTS ERROR:", err);
+    return [];
+  }
+}
+

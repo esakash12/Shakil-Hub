@@ -1,8 +1,23 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { User, Mail, ShieldCheck, Check, Save, Loader2, AlertCircle, Sparkles } from "lucide-react";
-import { getCustomerProfile, updateCustomerProfileAction } from "@/lib/actions/auth";
+import {
+  User,
+  Mail,
+  ShieldCheck,
+  Check,
+  Save,
+  Loader2,
+  AlertCircle,
+  Sparkles,
+  Lock,
+  KeyRound,
+} from "lucide-react";
+import {
+  getCustomerProfile,
+  updateCustomerProfileAction,
+  changeStudentPasswordAction,
+} from "@/lib/actions/auth";
 
 export default function SettingsPage() {
   const [firstName, setFirstName] = useState("");
@@ -13,6 +28,14 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Password Change State
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordSaved, setPasswordSaved] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -53,6 +76,32 @@ export default function SettingsPage() {
       setError("An unexpected error occurred while saving your profile.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (isChangingPassword) return;
+
+    setIsChangingPassword(true);
+    setPasswordError(null);
+
+    const formData = new FormData(e.currentTarget);
+    try {
+      const res = await changeStudentPasswordAction(formData);
+      if (res.success) {
+        setPasswordSaved(true);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setTimeout(() => setPasswordSaved(false), 4000);
+      } else {
+        setPasswordError(res.error || "Failed to update password.");
+      }
+    } catch {
+      setPasswordError("An unexpected error occurred while updating your password.");
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -177,6 +226,121 @@ export default function SettingsPage() {
               <>
                 <Save className="w-3.5 h-3.5" />
                 <span>Save Changes</span>
+              </>
+            )}
+          </button>
+        </div>
+      </form>
+
+      {/* Security & Password Card */}
+      <form
+        onSubmit={handlePasswordChange}
+        className="rounded-2xl bg-white/[0.02] border border-white/5 p-5 sm:p-6 space-y-4"
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-white flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>Security & Password</span>
+          </h2>
+          <span className="text-[10px] text-gray-500 uppercase font-mono tracking-wider">
+            Encrypted (Bcrypt)
+          </span>
+        </div>
+
+        <p className="text-xs text-gray-400">
+          Ensure your account uses a secure password to protect your course entitlements and certificates.
+        </p>
+
+        {passwordError && (
+          <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{passwordError}</span>
+          </div>
+        )}
+
+        <div className="space-y-3.5">
+          <div>
+            <label className="block text-xs font-medium text-gray-300 mb-1.5">
+              Current Password
+            </label>
+            <div className="relative">
+              <KeyRound className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="password"
+                name="current_password"
+                required
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter current password"
+                disabled={isChangingPassword}
+                className="w-full rounded-xl bg-white/[0.03] border border-white/10 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 disabled:opacity-50 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label className="block text-xs font-medium text-gray-300 mb-1.5">
+                New Password
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="password"
+                  name="new_password"
+                  required
+                  minLength={6}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="At least 6 characters"
+                  disabled={isChangingPassword}
+                  className="w-full rounded-xl bg-white/[0.03] border border-white/10 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 disabled:opacity-50 transition-colors"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-300 mb-1.5">
+                Confirm New Password
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="password"
+                  name="confirm_password"
+                  required
+                  minLength={6}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repeat new password"
+                  disabled={isChangingPassword}
+                  className="w-full rounded-xl bg-white/[0.03] border border-white/10 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 disabled:opacity-50 transition-colors"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-3 flex items-center justify-between">
+          <button
+            type="submit"
+            disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword}
+            className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-600/30 transition-all disabled:opacity-50 cursor-pointer"
+          >
+            {isChangingPassword ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Updating Password...</span>
+              </>
+            ) : passwordSaved ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-white" />
+                <span>Password Updated!</span>
+              </>
+            ) : (
+              <>
+                <KeyRound className="w-3.5 h-3.5" />
+                <span>Update Password</span>
               </>
             )}
           </button>

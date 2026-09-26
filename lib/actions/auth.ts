@@ -453,3 +453,60 @@ export async function getCustomerAction(): Promise<{
     return { isAuthenticated: false };
   }
 }
+
+/**
+ * Server Action: Allows authenticated student to change their password securely
+ */
+export async function changeStudentPasswordAction(formData: FormData): Promise<{
+  success: boolean;
+  error?: string;
+  message?: string;
+}> {
+  try {
+    const profile = await getCustomerProfile();
+    if (!profile?.email) {
+      return { success: false, error: "Your session has expired. Please sign in again." };
+    }
+
+    const currentPassword = (formData.get("current_password") as string) || "";
+    const newPassword = (formData.get("new_password") as string) || "";
+    const confirmPassword = (formData.get("confirm_password") as string) || "";
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return { success: false, error: "All password fields are required." };
+    }
+
+    if (newPassword.length < 6) {
+      return { success: false, error: "New password must be at least 6 characters long." };
+    }
+
+    if (newPassword !== confirmPassword) {
+      return { success: false, error: "New passwords do not match." };
+    }
+
+    const customer = await findCustomerByEmail(profile.email);
+    if (!customer) {
+      return { success: false, error: "Student account not found." };
+    }
+
+    const { isValid } = verifyPassword(currentPassword, customer.passwordHash);
+    if (!isValid) {
+      return { success: false, error: "Current password is incorrect." };
+    }
+
+    const newHash = hashPassword(newPassword);
+    await updateCustomerPasswordHash(profile.email, newHash);
+
+    return {
+      success: true,
+      message: "Password changed successfully! Please use your new password next time you sign in.",
+    };
+  } catch (err: any) {
+    console.error("CHANGE STUDENT PASSWORD ERROR:", err);
+    return {
+      success: false,
+      error: "An unexpected error occurred while updating your password. Please try again.",
+    };
+  }
+}
+

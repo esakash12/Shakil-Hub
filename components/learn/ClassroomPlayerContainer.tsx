@@ -22,6 +22,7 @@ interface ClassroomPlayerContainerProps {
   attachmentName?: string;
   prevLessonId?: string;
   nextLessonId?: string;
+  watermarkText?: string;
 }
 
 export default function ClassroomPlayerContainer({
@@ -36,6 +37,7 @@ export default function ClassroomPlayerContainer({
   attachmentName,
   prevLessonId,
   nextLessonId,
+  watermarkText,
 }: ClassroomPlayerContainerProps) {
   const [watchPercentage, setWatchPercentage] = useState(0);
   const [maxWatchPercentage, setMaxWatchPercentage] = useState(0);
@@ -155,6 +157,8 @@ export default function ClassroomPlayerContainer({
         title={currentLessonTitle}
         poster={poster}
         autoPlay={true}
+        watermarkText={watermarkText}
+        videoStorageKey={`${courseSlug}_${lessonId}`}
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleVideoEnded}
       />

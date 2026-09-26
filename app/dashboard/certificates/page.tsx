@@ -1,7 +1,8 @@
 import React from "react";
 import Link from "next/link";
-import { Award, ArrowRight, Sparkles, ShieldCheck, Download, ExternalLink, CheckCircle } from "lucide-react";
+import { Award, ArrowRight, Sparkles } from "lucide-react";
 import { getUserCertificatesAction, CertificateItem } from "@/lib/actions/certificates";
+import CertificateCard from "@/components/dashboard/CertificateCard";
 
 export const dynamic = "force-dynamic";
 
@@ -27,64 +28,7 @@ export default async function CertificatesPage() {
       {certificates.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {certificates.map((cert) => (
-            <div
-              key={cert.id}
-              className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 space-y-5 transition-all shadow-xl"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-600/15 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                    <Award className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-bold text-white leading-snug">
-                      {cert.title}
-                    </h3>
-                    <p className="text-[11px] text-gray-400 font-mono mt-0.5">
-                      Code: {cert.code}
-                    </p>
-                  </div>
-                </div>
-
-                <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  <span>Verified</span>
-                </span>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 text-xs text-gray-300 space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Student:</span>
-                  <span className="font-semibold text-white">{cert.studentName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Issued On:</span>
-                  <span className="font-mono text-gray-300">{cert.issuedDate}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Honors:</span>
-                  <span className="text-emerald-400 font-semibold">{cert.grade}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-1">
-                <Link
-                  href={`/courses/${cert.courseSlug}`}
-                  className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Course Page</span>
-                </Link>
-
-                <button
-                  type="button"
-                  className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download PDF</span>
-                </button>
-              </div>
-            </div>
+            <CertificateCard key={cert.id} certificate={cert} />
           ))}
         </div>
       ) : (

@@ -26,6 +26,8 @@ export interface CustomVideoPlayerProps {
   badge?: string;
   autoPlay?: boolean;
   className?: string;
+  watermarkText?: string;
+  videoStorageKey?: string;
   onEnded?: () => void;
   onTimeUpdate?: (currentTime: number, duration: number, percentage: number) => void;
 }
@@ -79,6 +81,8 @@ export default function CustomVideoPlayer({
   badge = "Preview",
   autoPlay = false,
   className = "",
+  watermarkText,
+  videoStorageKey,
   onEnded,
   onTimeUpdate,
 }: CustomVideoPlayerProps) {
@@ -116,6 +120,52 @@ export default function CustomVideoPlayer({
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const [centerAnimation, setCenterAnimation] = useState<"play" | "pause" | null>(null);
+
+  // 1. Resume from saved timestamp
+  const resumeKey = `sakil_vid_time_${videoStorageKey || src || title}`;
+  const [resumeToast, setResumeToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!videoRef.current || typeof window === "undefined") return;
+    try {
+      const saved = localStorage.getItem(resumeKey);
+      if (saved) {
+        const time = parseFloat(saved);
+        if (!isNaN(time) && time > 5) {
+          videoRef.current.currentTime = time;
+          setCurrentTime(time);
+          const mins = Math.floor(time / 60);
+          const secs = Math.floor(time % 60);
+          setResumeToast(`Resumed from ${mins}:${secs < 10 ? "0" : ""}${secs}`);
+          setTimeout(() => setResumeToast(null), 3500);
+        }
+      }
+    } catch {}
+  }, [resumeKey]);
+
+  // 2. Floating Dynamic Anti-Piracy Watermark
+  const [watermarkPos, setWatermarkPos] = useState<React.CSSProperties>({
+    top: "12%",
+    left: "10%",
+  });
+
+  useEffect(() => {
+    if (!watermarkText) return;
+    const positions: React.CSSProperties[] = [
+      { top: "12%", left: "10%", right: "auto", bottom: "auto" },
+      { top: "15%", right: "12%", left: "auto", bottom: "auto" },
+      { bottom: "18%", left: "14%", top: "auto", right: "auto" },
+      { bottom: "22%", right: "12%", top: "auto", left: "auto" },
+      { top: "45%", left: "28%", right: "auto", bottom: "auto" },
+    ];
+    let idx = 0;
+    const interval = setInterval(() => {
+      idx = (idx + 1) % positions.length;
+      setWatermarkPos(positions[idx]);
+    }, 45000);
+
+    return () => clearInterval(interval);
+  }, [watermarkText]);
 
   // Robust, race-condition-safe video play
   const safePlay = useCallback(async () => {
@@ -499,6 +549,11 @@ export default function CustomVideoPlayer({
               const pct = (curr / dur) * 100;
               onTimeUpdate(curr, dur, pct);
             }
+            if (curr > 3 && typeof window !== "undefined") {
+              try {
+                localStorage.setItem(resumeKey, curr.toString());
+              } catch {}
+            }
             if (videoRef.current.buffered.length > 0) {
               setBufferedEnd(
                 videoRef.current.buffered.end(videoRef.current.buffered.length - 1)
@@ -509,12 +564,34 @@ export default function CustomVideoPlayer({
         onEnded={() => {
           setIsPlaying(false);
           setShowControls(true);
+          try {
+            if (typeof window !== "undefined") localStorage.removeItem(resumeKey);
+          } catch {}
           if (onEnded) onEnded();
         }}
         onError={() => setIsBuffering(false)}
         onClick={togglePlay}
         className="w-full h-full object-contain bg-black cursor-pointer"
       />
+
+      {/* Dynamic Floating Anti-Piracy Watermark */}
+      {watermarkText && (
+        <div
+          style={watermarkPos}
+          className="absolute z-35 pointer-events-none transition-all duration-1000 select-none flex items-center gap-1.5 opacity-30 hover:opacity-10 text-[11px] font-mono text-white/70 px-2 py-0.5 rounded bg-black/40 backdrop-blur-[2px] border border-white/5"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400/80 animate-pulse" />
+          <span>{watermarkText}</span>
+        </div>
+      )}
+
+      {/* Resume Toast */}
+      {resumeToast && (
+        <div className="absolute top-14 left-4 z-40 px-3 py-1.5 rounded-lg bg-neutral-900/90 border border-cyan-500/40 text-xs font-mono text-cyan-300 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-300 flex items-center gap-2 pointer-events-none">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+          {resumeToast}
+        </div>
+      )}
 
       {/* 2. Initial Poster & Big Glowing Neon Cyan Play Banner */}
       {!hasStarted && (

@@ -264,6 +264,43 @@ export async function getPersistentQA(
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
+export async function getAllPersistentQA(): Promise<QuestionItem[]> {
+  const all = await readJsonFile<QuestionItem[]>(QA_FILE, []);
+  return all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function replyToPersistentQA(
+  questionId: string,
+  replyText: string,
+  authorName: string = "Sakil Ahmed (Instructor)"
+): Promise<QuestionItem | null> {
+  if (!questionId || !replyText?.trim()) return null;
+  const all = await readJsonFile<QuestionItem[]>(QA_FILE, []);
+  const index = all.findIndex((q) => q.id === questionId);
+  if (index === -1) return null;
+
+  all[index] = {
+    ...all[index],
+    reply: {
+      author: authorName,
+      time: "Just now",
+      text: replyText.trim(),
+    },
+  };
+
+  await writeJsonFile(QA_FILE, all);
+  return all[index];
+}
+
+export async function deletePersistentQA(questionId: string): Promise<boolean> {
+  if (!questionId) return false;
+  const all = await readJsonFile<QuestionItem[]>(QA_FILE, []);
+  const filtered = all.filter((q) => q.id !== questionId);
+  if (filtered.length === all.length) return false;
+  await writeJsonFile(QA_FILE, filtered);
+  return true;
+}
+
 export async function postPersistentQA(
   courseSlug: string,
   lessonId: string,

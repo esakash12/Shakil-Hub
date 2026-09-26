@@ -177,6 +177,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
               attachmentName={currentLesson?.attachmentName}
               prevLessonId={prevLesson?.id}
               nextLessonId={nextLesson?.id}
+              watermarkText={customer?.email || customer?.phone || "Sakil Hub Student"}
             />
           </div>
 

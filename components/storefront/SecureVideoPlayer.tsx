@@ -11,6 +11,8 @@ interface SecureVideoPlayerProps {
   badge?: string;
   poster?: string;
   autoPlay?: boolean;
+  watermarkText?: string;
+  videoStorageKey?: string;
   onEnded?: () => void;
   onTimeUpdate?: (currentTime: number, duration: number, percentage: number) => void;
   className?: string;
@@ -22,6 +24,8 @@ export default function SecureVideoPlayer({
   badge = "HD Stream",
   poster,
   autoPlay = true,
+  watermarkText,
+  videoStorageKey,
   onEnded,
   onTimeUpdate,
   className = "",
@@ -133,6 +137,8 @@ export default function SecureVideoPlayer({
       badge={badge}
       poster={poster}
       autoPlay={autoPlay}
+      watermarkText={watermarkText}
+      videoStorageKey={videoStorageKey}
       onEnded={onEnded}
       onTimeUpdate={onTimeUpdate}
       className={className}

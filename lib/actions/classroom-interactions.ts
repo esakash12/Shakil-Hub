@@ -7,9 +7,13 @@ import {
   savePersistentNote,
   deletePersistentNote,
   getPersistentQA,
+  getAllPersistentQA,
+  replyToPersistentQA,
+  deletePersistentQA,
   postPersistentQA,
   QuestionItem,
 } from "@/lib/data/interactions";
+import { requireAdminSession } from "@/lib/actions/admin-auth";
 
 export type { QuestionItem };
 
@@ -122,3 +126,76 @@ export async function postLessonQuestionAction(
     return { success: false, questions: [] };
   }
 }
+
+/**
+ * Server Action: Fetches all student questions across all courses for the Admin QA Hub
+ */
+export async function getAllAdminQuestionsAction(): Promise<QuestionItem[]> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) return [];
+  try {
+    return await getAllPersistentQA();
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Server Action: Replies to a student question from the Admin Panel
+ */
+export async function replyToQuestionAction(
+  questionId: string,
+  replyText: string,
+  courseSlug?: string,
+  lessonId?: string
+): Promise<{ success: boolean; error?: string }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
+  if (!questionId || !replyText?.trim()) {
+    return { success: false, error: "Reply text is required." };
+  }
+
+  try {
+    const updated = await replyToPersistentQA(questionId, replyText);
+    if (!updated) {
+      return { success: false, error: "Question not found." };
+    }
+
+    if (courseSlug && lessonId) {
+      revalidatePath(`/learn/${courseSlug}/${lessonId}`);
+    }
+    revalidatePath("/admin/qa");
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to post reply." };
+  }
+}
+
+/**
+ * Server Action: Deletes a student question from the Admin Panel
+ */
+export async function deleteQuestionAction(
+  questionId: string,
+  courseSlug?: string,
+  lessonId?: string
+): Promise<{ success: boolean; error?: string }> {
+  const isAuth = await requireAdminSession();
+  if (!isAuth) {
+    return { success: false, error: "Unauthorized. Admin session required." };
+  }
+
+  try {
+    const success = await deletePersistentQA(questionId);
+    if (courseSlug && lessonId) {
+      revalidatePath(`/learn/${courseSlug}/${lessonId}`);
+    }
+    revalidatePath("/admin/qa");
+    return { success };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to delete question." };
+  }
+}
+

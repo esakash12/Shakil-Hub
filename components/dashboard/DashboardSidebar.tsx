@@ -13,6 +13,7 @@ import {
   LogOut,
   User,
   Clock,
+  Download,
 } from "lucide-react";
 import { logoutAction, CustomerProfile } from "@/lib/actions/auth";
 
@@ -38,6 +39,7 @@ export default function DashboardSidebar({
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, exact: true },
     { name: "My Courses", href: "/dashboard/courses", icon: GraduationCap, exact: false },
+    { name: "My Downloads", href: "/dashboard/downloads", icon: Download, exact: false },
     { name: "Pending Orders", href: "/dashboard/pending", icon: Clock, exact: false },
     { name: "Wishlist", href: "/dashboard/wishlist", icon: Heart, exact: false },
     { name: "My Certificates", href: "/dashboard/certificates", icon: Award, exact: false },
