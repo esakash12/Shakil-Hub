@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { Play, Sparkles, MessageCircle, Clock, ArrowUpRight, ChevronDown, ChevronUp } from "lucide-react";
 import dynamic from "next/dynamic";
+import CursorSpotlight from "@/components/ui/CursorSpotlight";
 import {
   PORTFOLIO_CATEGORIES,
   PORTFOLIO_ITEMS,
@@ -60,6 +61,17 @@ export default function AgencyPortfolio({ initialData }: AgencyPortfolioProps) {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [activeVideo, setActiveVideo] = useState<PortfolioItem | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [activePortfolioIndex, setActivePortfolioIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const handleCarouselScroll = () => {
+    if (!carouselRef.current) return;
+    const { scrollLeft, clientWidth } = carouselRef.current;
+    if (clientWidth > 0) {
+      const idx = Math.round(scrollLeft / (clientWidth * 0.82));
+      setActivePortfolioIndex(Math.max(0, Math.min(items.length - 1, idx)));
+    }
+  };
 
   React.useEffect(() => {
     if (initialData) {
@@ -147,64 +159,100 @@ export default function AgencyPortfolio({ initialData }: AgencyPortfolioProps) {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-            {displayedItems.map((item) => (
+          <div className="space-y-4">
+            <CursorSpotlight>
               <div
-                key={item.id}
-                onClick={() => setActiveVideo(item)}
-                className="group relative rounded-2xl overflow-hidden bg-[#070b16] border border-white/[0.08] hover:border-[#00d2ff]/40 transition-all duration-300 flex flex-col justify-between cursor-pointer hover:shadow-[0_15px_45px_rgba(0,0,0,0.8),0_0_30px_rgba(0,210,255,0.15)]"
+                ref={carouselRef}
+                onScroll={handleCarouselScroll}
+                className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar pb-3 -mx-4 px-4 sm:mx-0 sm:px-0"
               >
-                  {/* 16:10 Thumbnail Image Box */}
-                  <div className="relative w-full aspect-[16/10] overflow-hidden bg-black">
-                    <PortfolioThumbnail src={item.thumbnail} alt={item.title} />
+                {displayedItems.map((item) => (
+                  <div
+                    key={item.id}
+                    data-spotlight-card
+                    onClick={() => setActiveVideo(item)}
+                    className="group relative shrink-0 w-[82vw] sm:w-[70vw] md:w-auto snap-center md:snap-align-none rounded-2xl overflow-hidden bg-[#070b16] border border-white/[0.08] hover:border-[#00d2ff]/40 transition-all duration-300 flex flex-col justify-between cursor-pointer hover:shadow-[0_15px_45px_rgba(0,0,0,0.8),0_0_30px_rgba(0,210,255,0.15)]"
+                  >
+                    {/* Desktop Hardware-Accelerated Spotlight Overlay */}
+                    <div className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-0 bg-[radial-gradient(350px_circle_at_var(--mouse-x,0)_var(--mouse-y,0),rgba(0,210,255,0.15),transparent_40%)] hidden md:block" />
 
-                    {/* Dark Cinematic Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#070b16] via-transparent to-black/50" />
+                    {/* 16:10 Thumbnail Image Box */}
+                    <div className="relative w-full aspect-[16/10] overflow-hidden bg-black">
+                      <PortfolioThumbnail src={item.thumbnail} alt={item.title} />
 
-                    {/* Top-Left: Category Tag Badge */}
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="px-2.5 py-0.8 rounded-full text-[10.5px] font-mono font-bold bg-black/80 backdrop-blur-md text-white border border-white/15">
-                        {item.categoryLabel}
-                      </span>
+                      {/* Dark Cinematic Gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#070b16] via-transparent to-black/50" />
+
+                      {/* Top-Left: Category Tag Badge */}
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="px-2.5 py-0.8 rounded-full text-[10.5px] font-mono font-bold bg-black/80 backdrop-blur-md text-white border border-white/15">
+                          {item.categoryLabel}
+                        </span>
+                      </div>
+
+                      {/* Top-Right: Duration Pill */}
+                      {item.duration && (
+                        <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono text-zinc-300 bg-black/80 backdrop-blur-md border border-white/15">
+                          <Clock className="w-3 h-3 text-[#00d2ff]" />
+                          <span>{item.duration}</span>
+                        </div>
+                      )}
+
+                      {/* Central Play Button */}
+                      <div className="absolute inset-0 flex items-center justify-center z-10">
+                        <div className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-md border border-white/20 group-hover:border-[#00d2ff] group-hover:bg-[#00d2ff] group-hover:text-black text-white flex items-center justify-center transition-all group-hover:scale-110 shadow-lg">
+                          <Play className="w-4 h-4 fill-current ml-0.5" />
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Top-Right: Duration Pill */}
-                    {item.duration && (
-                      <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono text-zinc-300 bg-black/80 backdrop-blur-md border border-white/15">
-                        <Clock className="w-3 h-3 text-[#00d2ff]" />
-                        <span>{item.duration}</span>
+                    {/* Card Info Box */}
+                    <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                      <div className="space-y-1.5">
+                        <h3 className="text-base font-bold text-white group-hover:text-[#00d2ff] transition-colors line-clamp-1">
+                          {item.title}
+                        </h3>
+                        <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed font-normal">
+                          {item.description}
+                        </p>
                       </div>
-                    )}
 
-                    {/* Central Play Button */}
-                    <div className="absolute inset-0 flex items-center justify-center z-10">
-                      <div className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-md border border-white/20 group-hover:border-[#00d2ff] group-hover:bg-[#00d2ff] group-hover:text-black text-white flex items-center justify-center transition-all group-hover:scale-110 shadow-lg">
-                        <Play className="w-4 h-4 fill-current ml-0.5" />
+                      {/* Bottom Cyan Action Link */}
+                      <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
+                        <span className="text-xs font-mono font-semibold text-[#00d2ff] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                          <span>View Project</span>
+                          <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                        </span>
                       </div>
                     </div>
                   </div>
-
-                  {/* Card Info Box */}
-                  <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                    <div className="space-y-1.5">
-                      <h3 className="text-base font-bold text-white group-hover:text-[#00d2ff] transition-colors line-clamp-1">
-                        {item.title}
-                      </h3>
-                      <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed font-normal">
-                        {item.description}
-                      </p>
-                    </div>
-
-                    {/* Bottom Cyan Action Link */}
-                    <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
-                      <span className="text-xs font-mono font-semibold text-[#00d2ff] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                        <span>View Project</span>
-                        <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                      </span>
-                    </div>
-                </div>
+                ))}
               </div>
-            ))}
+            </CursorSpotlight>
+
+            {/* Mobile Carousel Progress Dots (Peek-Ahead feedback) */}
+            {displayedItems.length > 1 && (
+              <div className="flex md:hidden items-center justify-center gap-1.5 pt-1">
+                {displayedItems.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    aria-label={`Go to slide ${i + 1}`}
+                    onClick={() => {
+                      if (carouselRef.current) {
+                        const targetLeft = i * (carouselRef.current.clientWidth * 0.82);
+                        carouselRef.current.scrollTo({ left: targetLeft, behavior: "smooth" });
+                      }
+                    }}
+                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                      activePortfolioIndex === i
+                        ? "w-6 bg-[#00d2ff] shadow-[0_0_10px_rgba(0,210,255,0.5)]"
+                        : "w-1.5 bg-white/20 hover:bg-white/40"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { X, ExternalLink, Play, Sparkles } from "lucide-react";
 import { PortfolioItem } from "@/lib/data/portfolio-types";
 import CloakedVideoPlayer from "./CloakedVideoPlayer";
@@ -11,6 +11,9 @@ interface VideoModalProps {
 }
 
 export default function VideoModal({ item, onClose }: VideoModalProps) {
+  const [sheetTranslateY, setSheetTranslateY] = useState(0);
+  const touchStartY = useRef<number | null>(null);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -25,45 +28,81 @@ export default function VideoModal({ item, onClose }: VideoModalProps) {
     };
   }, [item, onClose]);
 
+  // Touch handlers attached strictly to the top drag handle/header to prevent video timeline interference
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY.current === null) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - touchStartY.current;
+    if (deltaY > 0) {
+      setSheetTranslateY(deltaY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (sheetTranslateY > 80) {
+      onClose();
+    }
+    setSheetTranslateY(0);
+    touchStartY.current = null;
+  };
+
   if (!item) return null;
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 md:p-10 bg-black/90 backdrop-blur-2xl animate-in fade-in duration-200 select-none"
+      className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6 lg:p-10 bg-black/90 backdrop-blur-2xl animate-in fade-in duration-200 select-none"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl bg-[#0a0d14] border border-white/10 rounded-2xl sm:rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[92vh]"
+        className="relative w-full md:max-w-4xl bg-[#0a0d14] border-t md:border border-white/10 rounded-t-3xl md:rounded-3xl shadow-[0_-20px_60px_rgba(0,0,0,0.95)] md:shadow-[0_25px_80px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[90vh]"
+        style={{
+          transform: sheetTranslateY > 0 ? `translateY(${sheetTranslateY}px)` : undefined,
+          transition: sheetTranslateY === 0 ? "transform 0.2s ease-out" : "none",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cinema Ambient Lighting Glow */}
         <div className="absolute -inset-2 bg-gradient-to-r from-[#00d2ff]/20 via-[#0066ff]/20 to-[#00d2ff]/20 rounded-3xl blur-2xl pointer-events-none -z-10" />
 
-        {/* Modal Top Bar */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-white/10 bg-[#0c101a]/80">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-cyan-500/10 text-cyan-300 border border-cyan-500/25 shrink-0">
-              {item.categoryLabel}
-            </span>
-            <h3 className="text-xs sm:text-sm font-bold text-white truncate max-w-[220px] sm:max-w-md">
-              {item.title}
-            </h3>
-          </div>
+        {/* Modal Top Drag Handle / Header (Only this area handles drag-to-dismiss) */}
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="px-4 sm:px-6 pt-2 pb-3 border-b border-white/10 bg-[#0c101a]/95 touch-none select-none cursor-grab active:cursor-grabbing md:cursor-default"
+        >
+          {/* Mobile Drag Indicator Bar */}
+          <div className="w-12 h-1.5 rounded-full bg-white/25 hover:bg-white/40 mx-auto mb-2 md:hidden transition-colors" />
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close modal"
-            className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-cyan-500/10 text-cyan-300 border border-cyan-500/25 shrink-0">
+                {item.categoryLabel}
+              </span>
+              <h3 className="text-xs sm:text-sm font-bold text-white truncate max-w-[200px] sm:max-w-md">
+                {item.title}
+              </h3>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close modal"
+              className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Video Player Box */}
-        <div className="relative w-full aspect-video bg-black flex items-center justify-center overflow-hidden">
+        {/* Video Player Box (Completely free of drag listeners, allows timeline scrubbing) */}
+        <div className="relative w-full aspect-video bg-black flex items-center justify-center overflow-hidden shrink-0">
           {item.videoUrl ? (
             <CloakedVideoPlayer
               url={item.videoUrl}
@@ -83,8 +122,8 @@ export default function VideoModal({ item, onClose }: VideoModalProps) {
           )}
         </div>
 
-        {/* Modal Project Details Footer */}
-        <div className="p-4 sm:p-6 bg-[#080a10] border-t border-white/5 space-y-3">
+        {/* Scrollable Project Details Section (Below Video) */}
+        <div className="p-4 sm:p-6 bg-[#080a10] border-t border-white/5 space-y-3 overflow-y-auto max-h-[35vh] sm:max-h-none no-scrollbar">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-1">
               <div className="text-sm font-bold text-white flex items-center gap-2">
@@ -109,7 +148,7 @@ export default function VideoModal({ item, onClose }: VideoModalProps) {
               rel="noopener noreferrer"
               className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all shrink-0 cursor-pointer"
             >
-              <span>Get Similar Video on WhatsApp</span>
+              <span>Inquire for Similar Project</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>

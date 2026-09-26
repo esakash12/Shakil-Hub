@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { Search, ChevronRight, Sparkles, SlidersHorizontal, ArrowRight, Video } from "lucide-react";
 import CourseCard, { CourseProps } from "@/components/ui/CourseCard";
+import CursorSpotlight from "@/components/ui/CursorSpotlight";
 
 interface CoursesCatalogClientProps {
   initialCourses: CourseProps[];
@@ -15,7 +16,18 @@ export default function CoursesCatalogClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeCourseIndex, setActiveCourseIndex] = useState(0);
+  const courseCarouselRef = useRef<HTMLDivElement>(null);
   const itemsPerPage = 6;
+
+  const handleCourseScroll = () => {
+    if (!courseCarouselRef.current) return;
+    const { scrollLeft, clientWidth } = courseCarouselRef.current;
+    if (clientWidth > 0) {
+      const idx = Math.round(scrollLeft / (clientWidth * 0.82));
+      setActiveCourseIndex(Math.max(0, Math.min(displayedCourses.length - 1, idx)));
+    }
+  };
 
   const categories = [
     "All",
@@ -148,12 +160,50 @@ export default function CoursesCatalogClient({
               </div>
             </div>
 
-            {/* Course Grid */}
+            {/* Course Grid & Mobile 82vw Snap-Scroll Carousel */}
             {displayedCourses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 pt-2">
-                {displayedCourses.map((course, index) => (
-                  <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
-                ))}
+              <div className="space-y-4 pt-2">
+                <CursorSpotlight>
+                  <div
+                    ref={courseCarouselRef}
+                    onScroll={handleCourseScroll}
+                    className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar pb-3 -mx-4 px-4 sm:mx-0 sm:px-0"
+                  >
+                    {displayedCourses.map((course, index) => (
+                      <div
+                        key={`${course.id}-${index}`}
+                        data-spotlight-card
+                        className="shrink-0 w-[82vw] sm:w-[70vw] md:w-auto snap-center md:snap-align-none"
+                      >
+                        <CourseCard course={course} index={index} />
+                      </div>
+                    ))}
+                  </div>
+                </CursorSpotlight>
+
+                {/* Mobile Carousel Progress Dots */}
+                {displayedCourses.length > 1 && (
+                  <div className="flex md:hidden items-center justify-center gap-1.5 pt-1">
+                    {displayedCourses.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        aria-label={`Go to course ${i + 1}`}
+                        onClick={() => {
+                          if (courseCarouselRef.current) {
+                            const targetLeft = i * (courseCarouselRef.current.clientWidth * 0.82);
+                            courseCarouselRef.current.scrollTo({ left: targetLeft, behavior: "smooth" });
+                          }
+                        }}
+                        className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                          activeCourseIndex === i
+                            ? "w-6 bg-[#00d2ff] shadow-[0_0_10px_rgba(0,210,255,0.5)]"
+                            : "w-1.5 bg-white/20 hover:bg-white/40"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="p-12 rounded-2xl bg-white/[0.02] border border-white/5 text-center space-y-3">

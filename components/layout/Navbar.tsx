@@ -50,115 +50,127 @@ export default function Navbar({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/[0.08] bg-[#02050e]/90 backdrop-blur-2xl shadow-xl">
+    <header className="sticky top-0 z-40 w-full pointer-events-none">
+      {/* Top Announcement Ribbon (when configured in Admin Settings) */}
       {branding.announcement && (
-        <div className="bg-gradient-to-r from-cyan-950/90 via-[#00334e]/85 to-blue-950/90 border-b border-cyan-500/20 py-1.5 px-4 text-center text-[11px] sm:text-xs text-cyan-200 font-medium tracking-wide">
+        <div className="pointer-events-auto w-full bg-gradient-to-r from-cyan-950/95 via-[#00334e]/90 to-blue-950/95 border-b border-cyan-500/20 py-1.5 px-4 text-center text-[11px] sm:text-xs text-cyan-200 font-medium tracking-wide shadow-sm">
           <span>{branding.announcement}</span>
         </div>
       )}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16">
-          {/* Brand Logo - Sakil Hub */}
-          <Link href="/" className="flex items-center gap-2 group">
-            {branding.logoUrl ? (
-              <div className="relative h-8 sm:h-9 w-32 sm:w-36 overflow-hidden rounded-md">
-                <Image
-                  src={branding.logoUrl}
-                  alt={branding.siteName || "Sakil Hub"}
-                  fill
-                  unoptimized={Boolean(branding.logoUrl?.startsWith('/api/r2/') || branding.logoUrl?.includes('r2.cloudflarestorage.com'))}
-                  sizes="(max-width: 640px) 128px, 144px"
-                  className="object-contain object-left group-hover:scale-105 transition-transform"
-                  priority
-                />
-              </div>
-            ) : (
-              <div className="flex items-center gap-1 font-sans">
-                <span className="text-xl sm:text-2xl font-black tracking-tight text-white">
-                  Sakil
-                </span>
-                <span className="px-2 py-0.5 rounded-lg bg-[#0070f3] text-black font-black text-base sm:text-lg shadow-[0_0_15px_rgba(0,112,243,0.4)]">
-                  Hub
-                </span>
-              </div>
-            )}
-          </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-            {navLinks.map((link) => {
-              const active = isLinkActive(link.href, link.exact);
+      {/* Floating Island Navigation Container */}
+      <div
+        className={`px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto transition-all duration-300 ${
+          branding.announcement ? "pt-2 sm:pt-2.5" : "pt-2.5 sm:pt-3.5"
+        }`}
+      >
+        <div className="pointer-events-auto rounded-2xl md:rounded-full border border-white/[0.1] bg-[#02050e]/85 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(0,210,255,0.06)] px-4 sm:px-6 transition-all duration-300">
+          <div className="flex items-center justify-between h-13 sm:h-14">
+            {/* Brand Logo - Sakil Hub */}
+            <Link href="/" className="flex items-center gap-2 group">
+              {branding.logoUrl ? (
+                <div className="relative h-7 sm:h-8 w-28 sm:w-32 overflow-hidden rounded-md">
+                  <Image
+                    src={branding.logoUrl}
+                    alt={branding.siteName || "Sakil Hub"}
+                    fill
+                    unoptimized={Boolean(
+                      branding.logoUrl?.startsWith("/api/r2/") ||
+                        branding.logoUrl?.includes("r2.cloudflarestorage.com")
+                    )}
+                    sizes="(max-width: 640px) 112px, 128px"
+                    className="object-contain object-left group-hover:scale-105 transition-transform"
+                    priority
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 font-sans">
+                  <span className="text-lg sm:text-xl font-black tracking-tight text-white">
+                    Sakil
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded-md bg-[#0070f3] text-black font-black text-xs sm:text-sm shadow-[0_0_15px_rgba(0,112,243,0.4)]">
+                    Hub
+                  </span>
+                </div>
+              )}
+            </Link>
 
-              return (
+            {/* Desktop Navigation Links */}
+            <nav className="hidden md:flex items-center gap-6 lg:gap-8">
+              {navLinks.map((link) => {
+                const active = isLinkActive(link.href, link.exact);
+
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className={`text-xs lg:text-sm font-medium transition-all duration-200 ${
+                      active
+                        ? "text-[#00d2ff] font-bold drop-shadow-[0_0_10px_rgba(0,210,255,0.5)]"
+                        : "text-zinc-400 hover:text-white hover:drop-shadow-sm"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Right Action - Dashboard / Login Button & Mobile Toggle */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {isLoggedIn ? (
                 <Link
-                  key={link.name}
-                  href={link.href}
-                  className={`text-xs lg:text-sm font-medium transition-all duration-200 ${
-                    active
-                      ? "text-[#00d2ff] font-bold drop-shadow-[0_0_10px_rgba(0,210,255,0.5)]"
-                      : "text-zinc-400 hover:text-white hover:drop-shadow-sm"
-                  }`}
+                  href="/dashboard"
+                  className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#00d2ff] hover:bg-[#00b8e6] text-black text-xs font-black shadow-[0_0_20px_rgba(0,210,255,0.4)] flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
-                  {link.name}
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <span>Dashboard</span>
                 </Link>
-              );
-            })}
-          </nav>
+              ) : (
+                <Link
+                  href="/login"
+                  className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#00d2ff] hover:bg-[#00b8e6] text-black text-xs font-black shadow-[0_0_20px_rgba(0,210,255,0.4)] flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  <span>Log In</span>
+                </Link>
+              )}
 
-          {/* Right Action - Dashboard / Login Button & Mobile Toggle */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {isLoggedIn ? (
-              <Link
-                href="/dashboard"
-                className="px-4 sm:px-5 py-2 rounded-full bg-[#00d2ff] hover:bg-[#00b8e6] text-black text-xs font-black shadow-[0_0_20px_rgba(0,210,255,0.4)] flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              {/* Mobile Menu Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+                aria-label="Toggle navigation menu"
               >
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                <span>Dashboard</span>
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="px-4 sm:px-5 py-2 rounded-full bg-[#00d2ff] hover:bg-[#00b8e6] text-black text-xs font-black shadow-[0_0_20px_rgba(0,210,255,0.4)] flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-              >
-                <span>Log In</span>
-              </Link>
-            )}
-
-            {/* Mobile Menu Toggle Button */}
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-colors"
-              aria-label="Toggle navigation menu"
-            >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
+
+          {/* Mobile Navigation Dropdown (Expanding within the floating island) */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden border-t border-white/[0.08] py-2.5 space-y-1 animate-in slide-in-from-top-2 duration-200">
+              {navLinks.map((link) => {
+                const active = isLinkActive(link.href, link.exact);
+                return (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`block px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                      active
+                        ? "bg-[#00d2ff]/15 text-[#00d2ff] font-bold"
+                        : "text-zinc-300 hover:bg-white/[0.04] hover:text-white"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Mobile Navigation Dropdown */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-white/[0.08] bg-[#02050e]/98 backdrop-blur-2xl px-4 py-3 space-y-1 shadow-2xl">
-          {navLinks.map((link) => {
-            const active = isLinkActive(link.href, link.exact);
-            return (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  active
-                    ? "bg-[#00d2ff]/10 text-[#00d2ff] font-bold"
-                    : "text-zinc-300 hover:bg-white/[0.04] hover:text-white"
-                }`}
-              >
-                {link.name}
-              </Link>
-            );
-          })}
-        </div>
-      )}
     </header>
   );
 }
