@@ -427,7 +427,7 @@ export default function CustomVideoPlayer({
                 allowFullScreen
               />
               {/* Invisible blocker for Google Drive popout icon */}
-              <div className="absolute top-0 inset-x-0 h-16 bg-transparent z-10 pointer-events-auto select-none" />
+              <div className="absolute top-0 right-0 w-24 h-16 bg-transparent z-10 pointer-events-auto select-none" />
             </>
           ) : (
             <iframe

@@ -156,7 +156,7 @@ export default function DynamicCheckoutForm({
               }}
               placeholder="e.g. Tanvir Ahmed"
               disabled={isProcessing}
-              className={`w-full pl-10 pr-4 py-3 rounded-xl bg-black/50 border text-white placeholder-zinc-500 text-xs sm:text-sm transition-colors outline-none ${
+              className={`w-full pl-10 pr-4 py-3 rounded-xl bg-black/50 border text-white placeholder-zinc-500 text-base sm:text-sm transition-colors outline-none ${
                 fieldErrors.fullName
                   ? "border-red-500/80 focus:border-red-500 focus:ring-1 focus:ring-red-500/40"
                   : "border-white/10 hover:border-white/20 focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30"
@@ -201,7 +201,7 @@ export default function DynamicCheckoutForm({
               placeholder="01XXXXXXXXX"
               maxLength={11}
               disabled={isProcessing}
-              className={`w-full pl-10 pr-4 py-3 rounded-xl bg-black/50 border text-white placeholder-zinc-500 text-xs sm:text-sm transition-colors outline-none font-mono ${
+              className={`w-full pl-10 pr-4 py-3 rounded-xl bg-black/50 border text-white placeholder-zinc-500 text-base sm:text-sm transition-colors outline-none font-mono ${
                 fieldErrors.whatsappNumber
                   ? "border-red-500/80 focus:border-red-500 focus:ring-1 focus:ring-red-500/40"
                   : "border-white/10 hover:border-white/20 focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30"
@@ -243,7 +243,7 @@ export default function DynamicCheckoutForm({
                   }}
                   placeholder="name@email.com"
                   disabled={isProcessing}
-                  className={`w-full pl-10 pr-4 py-3 rounded-xl bg-black/50 border text-white placeholder-zinc-500 text-xs sm:text-sm transition-colors outline-none ${
+                  className={`w-full pl-10 pr-4 py-3 rounded-xl bg-black/50 border text-white placeholder-zinc-500 text-base sm:text-sm transition-colors outline-none ${
                     fieldErrors.email
                       ? "border-red-500/80 focus:border-red-500 focus:ring-1 focus:ring-red-500/40"
                       : "border-white/10 hover:border-white/20 focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30"
@@ -277,7 +277,7 @@ export default function DynamicCheckoutForm({
                   placeholder="01XXXXXXXXX"
                   maxLength={11}
                   disabled={isProcessing}
-                  className={`w-full pl-10 pr-4 py-3 rounded-xl bg-black/50 border text-white placeholder-zinc-500 text-xs sm:text-sm transition-colors outline-none font-mono ${
+                  className={`w-full pl-10 pr-4 py-3 rounded-xl bg-black/50 border text-white placeholder-zinc-500 text-base sm:text-sm transition-colors outline-none font-mono ${
                     fieldErrors.phone
                       ? "border-red-500/80 focus:border-red-500 focus:ring-1 focus:ring-red-500/40"
                       : "border-white/10 hover:border-white/20 focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30"

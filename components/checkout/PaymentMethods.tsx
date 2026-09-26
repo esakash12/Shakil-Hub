@@ -214,7 +214,7 @@ export default function PaymentMethods({
                 pattern="^01[3-9][0-9]{8}$"
                 maxLength={11}
                 title="Must be an 11-digit Bangladeshi mobile number starting with 01"
-                className="w-full rounded-xl bg-white/[0.03] border border-white/10 px-3.5 py-2 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 font-mono"
+                className="w-full rounded-xl bg-white/[0.03] border border-white/10 px-3.5 py-2 text-base sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 font-mono"
               />
             </div>
 
@@ -237,7 +237,7 @@ export default function PaymentMethods({
                 minLength={6}
                 maxLength={20}
                 title="Must be at least 6 to 12 alphanumeric characters"
-                className="w-full rounded-xl bg-white/[0.03] border border-white/10 px-3.5 py-2 text-xs sm:text-sm text-white font-mono uppercase placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                className="w-full rounded-xl bg-white/[0.03] border border-white/10 px-3.5 py-2 text-base sm:text-sm text-white font-mono uppercase placeholder-gray-500 focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>

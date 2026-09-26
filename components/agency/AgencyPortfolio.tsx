@@ -109,8 +109,8 @@ export default function AgencyPortfolio({ initialData }: AgencyPortfolioProps) {
         </div>
 
         {/* Category Filter Tabs */}
-        <div className="flex items-center justify-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl">
+        <div className="w-full overflow-x-auto pb-2 scrollbar-none flex justify-start sm:justify-center px-2">
+          <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl shrink-0 mx-auto sm:mx-0">
             {categories.map((cat) => {
               const isActive = activeCategory === cat.id;
 
@@ -122,10 +122,10 @@ export default function AgencyPortfolio({ initialData }: AgencyPortfolioProps) {
                     setActiveCategory(cat.id);
                     setShowAll(false);
                   }}
-                  className={`px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer shrink-0 ${
+                  className={`px-4 py-2 min-h-[38px] flex items-center justify-center rounded-full text-xs font-medium transition-all duration-200 cursor-pointer shrink-0 select-none ${
                     isActive
                       ? "bg-[#00d2ff] text-black font-extrabold shadow-[0_0_20px_rgba(0,210,255,0.4)]"
-                      : "bg-white/[0.03] text-zinc-400 hover:text-white border border-transparent hover:border-white/10"
+                      : "bg-white/[0.03] text-zinc-400 hover:text-white border border-transparent hover:border-white/10 active:scale-95"
                   }`}
                 >
                   <span>{cat.label}</span>

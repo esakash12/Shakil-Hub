@@ -85,7 +85,7 @@ function RegisterForm() {
                 name="first_name"
                 required
                 placeholder="Tanvir"
-                className="w-full rounded-xl bg-white/[0.03] border border-white/10 pl-10 pr-3 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all"
+                className="w-full rounded-xl bg-white/[0.03] border border-white/10 pl-10 pr-3 py-2.5 text-base sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all"
               />
             </div>
           </div>
@@ -98,7 +98,7 @@ function RegisterForm() {
               type="text"
               name="last_name"
               placeholder="Ahmed"
-              className="w-full rounded-xl bg-white/[0.03] border border-white/10 px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all"
+              className="w-full rounded-xl bg-white/[0.03] border border-white/10 px-3.5 py-2.5 text-base sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all"
             />
           </div>
         </div>
@@ -114,7 +114,7 @@ function RegisterForm() {
               name="email"
               required
               placeholder="student@example.com"
-              className="w-full rounded-xl bg-white/[0.03] border border-white/10 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all"
+              className="w-full rounded-xl bg-white/[0.03] border border-white/10 pl-10 pr-4 py-2.5 text-base sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all"
             />
           </div>
         </div>
@@ -130,7 +130,7 @@ function RegisterForm() {
               name="password"
               required
               placeholder="At least 6 characters"
-              className="w-full rounded-xl bg-white/[0.03] border border-white/10 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all"
+              className="w-full rounded-xl bg-white/[0.03] border border-white/10 pl-10 pr-4 py-2.5 text-base sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all"
             />
           </div>
         </div>

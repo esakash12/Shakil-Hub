@@ -304,7 +304,7 @@ export default function ThemedPaymentGateway({
                 pattern="^01[3-9][0-9]{8,9}$"
                 maxLength={12}
                 disabled={isProcessing}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-black/70 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20 font-mono text-sm"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-black/70 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20 font-mono text-base sm:text-sm"
               />
               <span className="text-[10px] text-zinc-500 block">
                 The mobile number you sent money from
@@ -325,7 +325,7 @@ export default function ThemedPaymentGateway({
                 minLength={4}
                 maxLength={25}
                 disabled={isProcessing}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-black/70 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20 font-mono uppercase font-bold text-sm"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-black/70 border border-white/10 text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20 font-mono uppercase font-bold text-base sm:text-sm"
               />
               <span className="text-[10px] text-zinc-500 block">
                 Found in the confirmation SMS / receipt

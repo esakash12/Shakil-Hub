@@ -113,7 +113,7 @@ export default function CoursesCatalogClient({
                       setCurrentPage(1);
                     }}
                     placeholder="Search courses by keyword, tool..."
-                    className="w-full rounded-xl bg-[#0e1320]/90 border border-white/10 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 shadow-inner transition-all"
+                    className="w-full rounded-xl bg-[#0e1320]/90 border border-white/10 pl-10 pr-4 py-2.5 text-base sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 shadow-inner transition-all"
                   />
                 </div>
 

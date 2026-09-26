@@ -53,7 +53,7 @@ export default function StorefrontShell({
       <main className="flex-grow">{children}</main>
       <Footer branding={branding} />
       {showMobileBottomNav && <MobileBottomNav />}
-      <FloatingWhatsApp hasBottomNav={showMobileBottomNav} />
+      <FloatingWhatsApp hasBottomNav={showMobileBottomNav} hasStickyCta={isCourseSinglePage} />
     </>
   );
 }

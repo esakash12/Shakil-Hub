@@ -97,7 +97,7 @@ export default function ShopCatalogClient({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search software, prompts, templates, LUTs..."
-              className="w-full pl-9 pr-4 py-2 rounded-xl bg-black/60 border border-white/10 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 transition-all font-normal"
+              className="w-full pl-9 pr-4 py-2 rounded-xl bg-black/60 border border-white/10 text-base sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 transition-all font-normal"
             />
             {searchQuery && (
               <button

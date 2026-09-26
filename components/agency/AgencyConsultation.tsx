@@ -126,7 +126,7 @@ export default function AgencyConsultation({ cmsData }: { cmsData?: AgencyCmsDat
                       value={selectedDate}
                       min={new Date().toISOString().split("T")[0]}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/[0.08] hover:border-white/20 focus:border-[#00d2ff] text-white text-xs font-mono transition-colors outline-none cursor-pointer [color-scheme:dark]"
+                      className="w-full px-4 py-2.5 rounded-xl bg-black/50 border border-white/[0.08] hover:border-white/20 focus:border-[#00d2ff] text-white text-base sm:text-xs font-mono transition-colors outline-none cursor-pointer [color-scheme:dark]"
                     />
                     <Calendar className="w-4 h-4 text-[#00d2ff] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>

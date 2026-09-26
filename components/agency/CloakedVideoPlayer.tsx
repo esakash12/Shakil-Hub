@@ -331,8 +331,8 @@ export default function CloakedVideoPlayer({
             allowFullScreen
             className="w-full h-[calc(100%+68px)] -mt-[68px] border-0 pointer-events-auto"
           />
-          {/* Top Cloak Shield: completely eliminates hovering/clicking on the hidden popout icon */}
-          <div className="absolute top-0 inset-x-0 h-16 bg-transparent z-20 pointer-events-auto select-none" />
+          {/* Top-Right Cloak Shield: blocks clicking on Google Drive popout icon while keeping rest of video interactive */}
+          <div className="absolute top-0 right-0 w-24 h-16 bg-transparent z-20 pointer-events-auto select-none" />
         </div>
       </div>
     );

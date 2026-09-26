@@ -77,9 +77,6 @@ const TECH_TOOLS: TechTool[] = [
 ];
 
 export default function TechStackMarquee() {
-  // Duplicate array for seamless infinite marquee loop
-  const duplicatedTools = [...TECH_TOOLS, ...TECH_TOOLS];
-
   return (
     <div className="relative py-8 bg-[#02050e] border-y border-white/[0.06] overflow-hidden select-none">
       {/* Background Soft Glow */}
@@ -95,33 +92,66 @@ export default function TechStackMarquee() {
 
       {/* Marquee Track with Left & Right Gradient Fade Masks */}
       <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-        <div className="flex gap-4 sm:gap-6 animate-marquee w-max hover:[animation-play-state:paused]">
-          {duplicatedTools.map((tool, idx) => {
-            const Icon = tool.icon;
-            return (
-              <div
-                key={`${tool.name}-${idx}`}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-[#070b16] border border-white/[0.08] hover:border-[#00d2ff]/40 shadow-sm hover:shadow-[0_0_20px_rgba(0,210,255,0.15)] transition-all shrink-0 cursor-default group"
-              >
+        <div className="flex w-max hover:[animation-play-state:paused]">
+          {/* Primary Track */}
+          <div className="flex gap-4 sm:gap-6 animate-marquee shrink-0 pr-4 sm:pr-6">
+            {TECH_TOOLS.map((tool, idx) => {
+              const Icon = tool.icon;
+              return (
                 <div
-                  className={`w-9 h-9 rounded-xl bg-gradient-to-br ${tool.color} p-[1px] flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform`}
+                  key={`tool-1-${idx}`}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-[#070b16] border border-white/[0.08] hover:border-[#00d2ff]/40 shadow-sm hover:shadow-[0_0_20px_rgba(0,210,255,0.15)] transition-all shrink-0 cursor-default group"
                 >
-                  <div className="w-full h-full rounded-[11px] bg-[#070b16] flex items-center justify-center">
-                    <Icon className="w-4 h-4 text-white" />
+                  <div
+                    className={`w-9 h-9 rounded-xl bg-gradient-to-br ${tool.color} p-[1px] flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform`}
+                  >
+                    <div className="w-full h-full rounded-[11px] bg-[#070b16] flex items-center justify-center">
+                      <Icon className="w-4 h-4 text-white" />
+                    </div>
                   </div>
-                </div>
 
-                <div className="text-left">
-                  <div className="text-xs font-bold text-white group-hover:text-[#00d2ff] transition-colors leading-tight">
-                    {tool.name}
-                  </div>
-                  <div className="text-[10px] font-mono text-zinc-400 leading-tight">
-                    {tool.category}
+                  <div className="text-left">
+                    <div className="text-xs font-bold text-white group-hover:text-[#00d2ff] transition-colors leading-tight">
+                      {tool.name}
+                    </div>
+                    <div className="text-[10px] font-mono text-zinc-400 leading-tight">
+                      {tool.category}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+
+          {/* Tandem Secondary Track (Eliminates all gaps and snaps) */}
+          <div className="flex gap-4 sm:gap-6 animate-marquee shrink-0 pr-4 sm:pr-6" aria-hidden="true">
+            {TECH_TOOLS.map((tool, idx) => {
+              const Icon = tool.icon;
+              return (
+                <div
+                  key={`tool-2-${idx}`}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-[#070b16] border border-white/[0.08] hover:border-[#00d2ff]/40 shadow-sm hover:shadow-[0_0_20px_rgba(0,210,255,0.15)] transition-all shrink-0 cursor-default group"
+                >
+                  <div
+                    className={`w-9 h-9 rounded-xl bg-gradient-to-br ${tool.color} p-[1px] flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform`}
+                  >
+                    <div className="w-full h-full rounded-[11px] bg-[#070b16] flex items-center justify-center">
+                      <Icon className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+
+                  <div className="text-left">
+                    <div className="text-xs font-bold text-white group-hover:text-[#00d2ff] transition-colors leading-tight">
+                      {tool.name}
+                    </div>
+                    <div className="text-[10px] font-mono text-zinc-400 leading-tight">
+                      {tool.category}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

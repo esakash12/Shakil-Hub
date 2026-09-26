@@ -6,11 +6,13 @@ import { MessageCircle, X } from "lucide-react";
 interface FloatingWhatsAppProps {
   phoneNumber?: string;
   hasBottomNav?: boolean;
+  hasStickyCta?: boolean;
 }
 
 export default function FloatingWhatsApp({
   phoneNumber = "8801326896947",
   hasBottomNav = true,
+  hasStickyCta = false,
 }: FloatingWhatsAppProps) {
   const [isOpenTooltip, setIsOpenTooltip] = useState(false);
 
@@ -19,9 +21,19 @@ export default function FloatingWhatsApp({
     "Hello MH Sakil Hub, I have an inquiry about video production / courses / digital assets."
   )}`;
 
+  const getBottomOffset = () => {
+    if (hasStickyCta) {
+      return "calc(env(safe-area-inset-bottom, 0px) + 84px)";
+    }
+    if (hasBottomNav) {
+      return "calc(env(safe-area-inset-bottom, 0px) + 80px)";
+    }
+    return "calc(env(safe-area-inset-bottom, 0px) + 20px)";
+  };
+
   return (
     <div
-      style={{ bottom: hasBottomNav ? "80px" : "20px" }}
+      style={{ bottom: getBottomOffset() }}
       className="fixed right-4 sm:right-6 sm:!bottom-6 z-40 transition-all duration-300 select-none"
     >
       <div className="relative flex items-center group">

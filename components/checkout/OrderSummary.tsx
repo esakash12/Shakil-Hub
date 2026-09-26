@@ -100,7 +100,7 @@ export default function OrderSummary({
               value={couponCode}
               onChange={(e) => setCouponCode(e.target.value)}
               placeholder="Coupon code (e.g. SAVE100)"
-              className="w-full rounded-xl bg-white/[0.03] border border-white/10 pl-9 pr-3 py-2 text-xs text-white placeholder-gray-500 uppercase font-mono focus:outline-none focus:border-blue-500 transition-all"
+              className="w-full rounded-xl bg-white/[0.03] border border-white/10 pl-9 pr-3 py-2 text-base sm:text-xs text-white placeholder-gray-500 uppercase font-mono focus:outline-none focus:border-blue-500 transition-all"
             />
           </div>
           <button

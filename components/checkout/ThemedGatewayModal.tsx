@@ -309,7 +309,7 @@ export default function ThemedGatewayModal({
               placeholder="01XXXXXXXXX"
               maxLength={11}
               disabled={isProcessing}
-              className={`w-full px-3 py-2 rounded-xl border bg-white text-gray-900 placeholder-gray-400 text-xs font-mono transition-colors outline-none ${
+              className={`w-full px-3 py-2 rounded-xl border bg-white text-gray-900 placeholder-gray-400 text-base sm:text-xs font-mono transition-colors outline-none ${
                 fieldErrors.senderNumber
                   ? "border-red-500 focus:border-red-600 focus:ring-1 focus:ring-red-500/30"
                   : "border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -339,7 +339,7 @@ export default function ThemedGatewayModal({
               placeholder="ট্রানজেকশন আইডি লিখুন"
               maxLength={25}
               disabled={isProcessing}
-              className={`w-full px-3 py-2 rounded-xl border bg-white text-gray-900 placeholder-gray-400 text-xs font-mono uppercase font-bold transition-colors outline-none ${
+              className={`w-full px-3 py-2 rounded-xl border bg-white text-gray-900 placeholder-gray-400 text-base sm:text-xs font-mono uppercase font-bold transition-colors outline-none ${
                 fieldErrors.trxId
                   ? "border-red-500 focus:border-red-600 focus:ring-1 focus:ring-red-500/30"
                   : "border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"

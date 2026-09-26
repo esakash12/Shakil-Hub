@@ -9,6 +9,7 @@ import AgencyConsultation from "@/components/agency/AgencyConsultation";
 import { getPortfolioAction } from "@/lib/actions/portfolio";
 import { getAgencyCmsAction } from "@/lib/actions/agency-cms";
 import { getPersistentBranding } from "@/lib/data/branding";
+import ScrollReveal from "@/components/ui/ScrollReveal";
 
 export default async function HomePage() {
   const [portfolioData, agencyCms, branding] = await Promise.all([
@@ -31,21 +32,31 @@ export default async function HomePage() {
       <TechStackMarquee />
 
       {/* 3. Featured Portfolio Showcase — 6 Curated Cards & Filter Pills */}
-      <AgencyPortfolio initialData={portfolioData} />
+      <ScrollReveal delay={0.05} distance={20}>
+        <AgencyPortfolio initialData={portfolioData} />
+      </ScrollReveal>
 
       {/* 4. Specialized Creative Agency Services — 2x2 Bento Grid */}
-      <AgencyServices />
+      <ScrollReveal delay={0.05} distance={24}>
+        <AgencyServices />
+      </ScrollReveal>
 
       {/* 5. Director & Founder — MH Sakil Spotlight */}
-      <AgencyFounder cmsData={agencyCms} branding={branding} />
+      <ScrollReveal delay={0.05} distance={24}>
+        <AgencyFounder cmsData={agencyCms} branding={branding} />
+      </ScrollReveal>
 
       {/* 6. Sakil Hub Academy & Masterclasses Preview (Controlled via CMS) */}
       {agencyCms?.showAcademyPreview && (
-        <AgencyAcademyPreview previewItem={portfolioData.items?.[1] || portfolioData.items?.[0]} />
+        <ScrollReveal delay={0.05} distance={24}>
+          <AgencyAcademyPreview previewItem={portfolioData.items?.[1] || portfolioData.items?.[0]} />
+        </ScrollReveal>
       )}
 
       {/* 7. Free Strategy Meeting Consultation & Booking Terminal */}
-      <AgencyConsultation cmsData={agencyCms} />
+      <ScrollReveal delay={0.05} distance={24}>
+        <AgencyConsultation cmsData={agencyCms} />
+      </ScrollReveal>
     </div>
   );
 }
