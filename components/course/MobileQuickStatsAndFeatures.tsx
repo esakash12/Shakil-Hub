@@ -107,7 +107,7 @@ export default function MobileQuickStatsAndFeatures({
               </span>
             </div>
             <p className="text-[11px] text-gray-400 mt-1 flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-cyan-400" />
+              <Sparkles className="w-3 h-3 shrink-0 text-cyan-400" />
               <span>Special promotional lifetime access</span>
             </p>
           </div>
@@ -151,7 +151,7 @@ export default function MobileQuickStatsAndFeatures({
       <div className="grid grid-cols-2 gap-2.5">
         <div className="p-3 rounded-xl bg-black/40 border border-cyan-500/15 space-y-1">
           <div className="flex items-center gap-1.5 text-cyan-400 text-xs font-semibold">
-            <Clock className="w-3.5 h-3.5 text-cyan-400 drop-shadow-[0_0_6px_rgba(6,182,212,0.6)]" />
+            <Clock className="w-3.5 h-3.5 shrink-0 text-cyan-400 drop-shadow-[0_0_6px_rgba(6,182,212,0.6)]" />
             <span>Duration</span>
           </div>
           <div className="flex items-baseline gap-1.5">
@@ -164,7 +164,7 @@ export default function MobileQuickStatsAndFeatures({
 
         <div className="p-3 rounded-xl bg-black/40 border border-cyan-500/15 space-y-1">
           <div className="flex items-center gap-1.5 text-cyan-400 text-xs font-semibold">
-            <BookOpen className="w-3.5 h-3.5 text-cyan-400 drop-shadow-[0_0_6px_rgba(6,182,212,0.6)]" />
+            <BookOpen className="w-3.5 h-3.5 shrink-0 text-cyan-400 drop-shadow-[0_0_6px_rgba(6,182,212,0.6)]" />
             <span>Curriculum</span>
           </div>
           <div className="flex items-baseline gap-1.5">
@@ -190,22 +190,22 @@ export default function MobileQuickStatsAndFeatures({
         >
           {isEnrolling ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin text-black" />
+              <Loader2 className="w-4 h-4 shrink-0 animate-spin text-black" />
               <span>Preparing Checkout...</span>
             </>
           ) : isEnrolled ? (
             <>
-              <Play className="w-4 h-4 fill-black" />
+              <Play className="w-4 h-4 shrink-0 fill-black" />
               <span>Continue Learning</span>
             </>
           ) : isPending ? (
             <>
-              <Clock className="w-4 h-4 text-black animate-pulse" />
+              <Clock className="w-4 h-4 shrink-0 text-black animate-pulse" />
               <span>View Pending Order →</span>
             </>
           ) : (
             <>
-              <Zap className="w-4 h-4 fill-black" />
+              <Zap className="w-4 h-4 shrink-0 fill-black" />
               <span>Enroll Now {course.price}</span>
             </>
           )}
@@ -221,7 +221,7 @@ export default function MobileQuickStatsAndFeatures({
           }`}
         >
           <Heart
-            className={`w-3.5 h-3.5 ${
+            className={`w-3.5 h-3.5 shrink-0 ${
               isWishlisted ? "fill-red-500 text-red-500" : ""
             }`}
           />
@@ -232,7 +232,7 @@ export default function MobileQuickStatsAndFeatures({
       {/* 4. Feature List (This Course Includes) */}
       <div className="border-t border-white/10 pt-3.5 space-y-2.5">
         <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-          <Award className="w-3.5 h-3.5 text-cyan-400" />
+          <Award className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
           <span>This Course Includes:</span>
         </h4>
 
@@ -275,7 +275,7 @@ export default function MobileQuickStatsAndFeatures({
       <div className="grid grid-cols-2 gap-2.5 pt-1 border-t border-white/10">
         <div className="p-2.5 rounded-xl bg-black/40 border border-cyan-500/10 space-y-0.5">
           <div className="flex items-center gap-1 text-cyan-400 text-[11px] font-semibold">
-            <BarChart className="w-3 h-3" />
+            <BarChart className="w-3 h-3 shrink-0" />
             <span>Level</span>
           </div>
           <p className="text-xs font-bold text-white truncate">
@@ -285,7 +285,7 @@ export default function MobileQuickStatsAndFeatures({
 
         <div className="p-2.5 rounded-xl bg-black/40 border border-cyan-500/10 space-y-0.5">
           <div className="flex items-center gap-1 text-teal-400 text-[11px] font-semibold">
-            <ShieldCheck className="w-3 h-3" />
+            <ShieldCheck className="w-3 h-3 shrink-0" />
             <span>Access</span>
           </div>
           <p className="text-xs font-bold text-white">Lifetime Access</p>

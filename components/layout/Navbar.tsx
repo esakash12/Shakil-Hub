@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Play, LayoutDashboard, Menu, X } from "lucide-react";
+import { LayoutDashboard, Menu, X } from "lucide-react";
 import { getCustomerAction } from "@/lib/actions/auth";
 import { PlatformBrandingSettings, DEFAULT_BRANDING } from "@/lib/data/branding-types";
 
@@ -163,7 +163,7 @@ export default function Navbar({
                   href="/dashboard"
                   className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#00d2ff] hover:bg-[#00b8e6] text-black text-xs font-black shadow-[0_0_20px_rgba(0,210,255,0.4)] flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
-                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <LayoutDashboard className="w-3.5 h-3.5 shrink-0" />
                   <span>Dashboard</span>
                 </Link>
               ) : (
@@ -182,7 +182,7 @@ export default function Navbar({
                 className="md:hidden p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-colors"
                 aria-label="Toggle navigation menu"
               >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {isMobileMenuOpen ? <X className="w-5 h-5 shrink-0" /> : <Menu className="w-5 h-5 shrink-0" />}
               </button>
             </div>
           </div>

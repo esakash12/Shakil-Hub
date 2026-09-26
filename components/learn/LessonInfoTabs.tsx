@@ -9,17 +9,14 @@ import {
   Download,
   FileText,
   FileArchive,
-  Palette,
   Sparkles,
   MessageSquare,
   Plus,
   Trash2,
   Send,
-  User,
   ShieldCheck,
   Loader2,
   ExternalLink,
-  CheckCircle2,
   Lock,
 } from "lucide-react";
 import {
@@ -274,7 +271,7 @@ export default function LessonInfoTabs({
               href={`/learn/${courseSlug}/${prevLessonId}`}
               className="px-3.5 py-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-white font-medium text-xs flex items-center gap-1.5 transition-all"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden sm:inline">Prev</span>
             </Link>
           )}
@@ -296,7 +293,7 @@ export default function LessonInfoTabs({
                   title="Watch at least 90% of the video lesson to unlock completion"
                   className="px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm flex items-center gap-2 bg-white/[0.03] text-gray-500 border border-white/5 cursor-not-allowed opacity-75"
                 >
-                  <Lock className="w-4 h-4 text-gray-500" />
+                  <Lock className="w-4 h-4 text-gray-500 shrink-0" />
                   <span>
                     Watch 90% to Complete ({Math.round(watchPercentage)}%)
                   </span>
@@ -317,13 +314,13 @@ export default function LessonInfoTabs({
               >
                 {effectiveToggling ? (
                   <Loader2
-                    className={`w-4 h-4 animate-spin ${
+                    className={`w-4 h-4 animate-spin shrink-0 ${
                       effectiveCompleted ? "text-emerald-400" : "text-blue-400"
                     }`}
                   />
                 ) : (
                   <CheckCircle
-                    className={`w-4 h-4 ${
+                    className={`w-4 h-4 shrink-0 ${
                       effectiveCompleted ? "text-emerald-400" : "text-blue-400"
                     }`}
                   />
@@ -341,7 +338,7 @@ export default function LessonInfoTabs({
               className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 shadow-[0_0_15px_rgba(37,99,235,0.4)] transition-all"
             >
               <span>Next Lesson</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 shrink-0" />
             </Link>
           )}
         </div>
@@ -419,7 +416,7 @@ export default function LessonInfoTabs({
             {/* Key Takeaways */}
             <div className="rounded-xl bg-white/[0.02] border border-white/5 p-4 sm:p-5 space-y-3">
               <h4 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-blue-400" />
+                <Sparkles className="w-4 h-4 text-blue-400 shrink-0" />
                 Key Lesson Takeaways
               </h4>
               <ul className="space-y-2 text-xs text-gray-400">
@@ -514,12 +511,12 @@ export default function LessonInfoTabs({
                     >
                       {res.url && res.url.startsWith("http") ? (
                         <>
-                          <ExternalLink className="w-4 h-4 text-cyan-400" />
+                          <ExternalLink className="w-4 h-4 text-cyan-400 shrink-0" />
                           <span className="hidden sm:inline">Open Asset</span>
                         </>
                       ) : (
                         <>
-                          <Download className="w-4 h-4 text-blue-400" />
+                          <Download className="w-4 h-4 text-blue-400 shrink-0" />
                           <span className="hidden sm:inline">Download</span>
                         </>
                       )}
@@ -529,7 +526,7 @@ export default function LessonInfoTabs({
               })
             ) : (
               <div className="p-8 sm:p-12 rounded-2xl bg-white/[0.02] border border-white/5 text-center space-y-2">
-                <FileArchive className="w-8 h-8 text-gray-500 mx-auto" />
+                <FileArchive className="w-8 h-8 text-gray-500 mx-auto shrink-0" />
                 <h4 className="text-xs sm:text-sm font-semibold text-white">No Downloadable Assets</h4>
                 <p className="text-xs text-gray-400 max-w-sm mx-auto font-normal leading-relaxed">
                   This lesson does not have additional project files attached. Follow along directly with the instructor&apos;s timeline demonstration.
@@ -558,9 +555,9 @@ export default function LessonInfoTabs({
                   className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md shadow-blue-600/30 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isPostingQuestion ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
                   ) : (
-                    <Send className="w-3.5 h-3.5" />
+                    <Send className="w-3.5 h-3.5 shrink-0" />
                   )}
                   <span>Post Question</span>
                 </button>
@@ -594,7 +591,7 @@ export default function LessonInfoTabs({
                       <div className="ml-4 p-3 rounded-lg bg-blue-600/10 border border-blue-500/20 space-y-1.5">
                         <div className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-1.5 text-blue-400 font-semibold text-[11px]">
-                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
                             <span>{q.reply.author}</span>
                           </div>
                           <span className="text-gray-500 text-[10px]">{q.reply.time}</span>
@@ -609,7 +606,7 @@ export default function LessonInfoTabs({
               </div>
             ) : (
               <div className="p-8 sm:p-12 rounded-2xl bg-white/[0.02] border border-white/5 text-center space-y-2">
-                <MessageSquare className="w-8 h-8 text-gray-500 mx-auto" />
+                <MessageSquare className="w-8 h-8 text-gray-500 mx-auto shrink-0" />
                 <h4 className="text-xs sm:text-sm font-semibold text-white">No Questions Yet</h4>
                 <p className="text-xs text-gray-400 max-w-sm mx-auto font-normal leading-relaxed">
                   Have a question or stuck on a concept? Post your question above to get guidance from your instructor and classmates.
@@ -636,9 +633,9 @@ export default function LessonInfoTabs({
                 className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
               >
                 {isSavingNote ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
                 ) : (
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-3.5 h-3.5 shrink-0" />
                 )}
                 <span>Save Note</span>
               </button>
@@ -662,7 +659,7 @@ export default function LessonInfoTabs({
                       className="text-gray-500 hover:text-red-400 p-1 transition-colors shrink-0 cursor-pointer"
                       aria-label="Delete note"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3.5 h-3.5 shrink-0" />
                     </button>
                   </div>
                 ))

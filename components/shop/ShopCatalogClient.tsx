@@ -6,18 +6,13 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import {
   Search,
-  SlidersHorizontal,
   ArrowUpDown,
   Check,
   ArrowRight,
-  Sparkles,
   Key,
   Download,
   UserCheck,
-  HelpCircle,
   ShoppingBag,
-  Star,
-  ShieldCheck,
   Zap,
 } from "lucide-react";
 import { DigitalProduct, DeliveryMethodType } from "@/lib/data/shop-types";
@@ -69,13 +64,13 @@ export default function ShopCatalogClient({
   const getDeliveryIcon = (type: DeliveryMethodType) => {
     switch (type) {
       case "account_access":
-        return <UserCheck className="w-3.5 h-3.5 text-cyan-400" />;
+        return <UserCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />;
       case "license_key":
-        return <Key className="w-3.5 h-3.5 text-amber-400" />;
+        return <Key className="w-3.5 h-3.5 text-amber-400 shrink-0" />;
       case "download_link":
-        return <Download className="w-3.5 h-3.5 text-emerald-400" />;
+        return <Download className="w-3.5 h-3.5 text-emerald-400 shrink-0" />;
       default:
-        return <Zap className="w-3.5 h-3.5 text-blue-400" />;
+        return <Zap className="w-3.5 h-3.5 text-blue-400 shrink-0" />;
     }
   };
 
@@ -91,7 +86,7 @@ export default function ShopCatalogClient({
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 shrink-0" />
             <input
               type="text"
               value={searchQuery}
@@ -112,7 +107,7 @@ export default function ShopCatalogClient({
           {/* Sort Dropdown */}
           <div className="flex items-center gap-2">
             <span className="text-xs text-zinc-400 hidden sm:inline flex items-center gap-1 font-medium">
-              <ArrowUpDown className="w-3.5 h-3.5 text-cyan-400" />
+              <ArrowUpDown className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
               <span>Sort:</span>
             </span>
             <select
@@ -169,7 +164,7 @@ export default function ShopCatalogClient({
       {initialProducts.length === 0 ? (
         <div className="py-20 text-center space-y-3 rounded-2xl bg-[#0e1320]/60 border border-white/10 p-6 sm:p-10 backdrop-blur-xl shadow-lg">
           <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mx-auto shadow-[0_0_20px_rgba(6,182,212,0.15)]">
-            <ShoppingBag className="w-7 h-7" />
+            <ShoppingBag className="w-7 h-7 shrink-0" />
           </div>
           <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
             No Products Available Yet
@@ -181,7 +176,7 @@ export default function ShopCatalogClient({
       ) : filteredProducts.length === 0 ? (
         <div className="py-16 text-center space-y-3 rounded-2xl bg-[#0e1320]/60 border border-white/10 p-6 backdrop-blur-xl">
           <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mx-auto">
-            <ShoppingBag className="w-6 h-6" />
+            <ShoppingBag className="w-6 h-6 shrink-0" />
           </div>
           <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
             No Digital Products Match Your Filter
@@ -297,14 +292,14 @@ export default function ShopCatalogClient({
                     )}
                   </div>
                   <p className="text-[9px] text-emerald-400 font-medium flex items-center gap-1">
-                    <Zap className="w-2.5 h-2.5 text-emerald-400" />
+                    <Zap className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
                     <span>Instant Automated Access</span>
                   </p>
                 </div>
 
                 <div className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-extrabold text-[11px] shadow-[0_0_12px_rgba(6,182,212,0.2)] group-hover:scale-105 group-hover:shadow-[0_0_18px_rgba(6,182,212,0.35)] transition-all">
                   <span>Get Access</span>
-                  <ArrowRight className="w-3 h-3 stroke-[2.5]" />
+                  <ArrowRight className="w-3 h-3 stroke-[2.5] shrink-0" />
                 </div>
               </div>
             </Link>

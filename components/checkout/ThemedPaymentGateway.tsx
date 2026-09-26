@@ -36,29 +36,53 @@ interface ThemedPaymentGatewayProps {
 
 export function BkashLogo({ className = "w-6 h-6" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 100 100" fill="currentColor" className={className}>
-      <path d="M50 8 C60 25 80 32 94 36 C78 44 64 56 60 74 C54 58 44 48 30 44 C42 36 48 24 50 8 Z" />
-      <path d="M12 48 C28 50 40 60 44 76 C32 78 22 72 12 60 Z" opacity="0.85" />
+    <svg
+      viewBox="0 0 100 100"
+      width="24"
+      height="24"
+      fill="currentColor"
+      className={`shrink-0 ${className}`}
+      aria-hidden="true"
+    >
+      <path d="M47 8 L79 38 L54 44 L47 8 Z" />
+      <path d="M52 47 L86 42 L65 72 L52 47 Z" />
+      <path d="M48 51 L61 77 L34 85 L48 51 Z" />
+      <path d="M44 47 L30 80 L16 56 L44 47 Z" />
+      <path d="M47 43 L17 52 L36 26 L47 43 Z" />
     </svg>
   );
 }
 
 export function NagadLogo({ className = "w-6 h-6" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 100 100" fill="currentColor" className={className}>
-      <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="8" />
-      <path d="M50 20 C58 35 68 45 68 58 C68 70 59 78 50 78 C41 78 32 70 32 58 C32 45 42 35 50 20 Z" />
+    <svg
+      viewBox="0 0 100 100"
+      width="24"
+      height="24"
+      fill="currentColor"
+      className={`shrink-0 ${className}`}
+      aria-hidden="true"
+    >
+      <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="9" />
+      <path d="M50 16 C68 28 74 48 64 66 C56 80 38 84 26 72 C18 64 18 50 28 40 C36 32 46 32 52 38" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
     </svg>
   );
 }
 
 export function RocketLogo({ className = "w-6 h-6" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 100 100" fill="currentColor" className={className}>
-      <path d="M50 10 C62 25 70 42 70 65 L50 60 L30 65 C30 42 38 25 50 10 Z" />
-      <path d="M28 66 L18 82 L34 76 Z" />
-      <path d="M72 66 L82 82 L66 76 Z" />
-      <circle cx="50" cy="42" r="7" fill="white" />
+    <svg
+      viewBox="0 0 100 100"
+      width="24"
+      height="24"
+      fill="currentColor"
+      className={`shrink-0 ${className}`}
+      aria-hidden="true"
+    >
+      <path d="M50 8 C62 25 72 45 70 70 L50 63 L30 70 C28 45 38 25 50 8 Z" />
+      <path d="M26 68 L14 84 L32 77 Z" />
+      <path d="M74 68 L86 84 L68 77 Z" />
+      <circle cx="50" cy="40" r="8" fill="white" />
     </svg>
   );
 }
@@ -170,7 +194,7 @@ export default function ThemedPaymentGateway({
             aria-label="Change Payment Method"
             className="p-1.5 rounded-xl bg-black/20 hover:bg-black/40 text-white transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 shrink-0" />
           </button>
 
           <div className="flex items-center gap-2.5">
@@ -214,7 +238,7 @@ export default function ThemedPaymentGateway({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div>
               <span className="text-[11px] text-zinc-400 font-medium flex items-center gap-1.5">
-                <Smartphone className={`w-3.5 h-3.5 ${config.themeText}`} />
+                <Smartphone className={`w-3.5 h-3.5 shrink-0 ${config.themeText}`} />
                 <span>{config.brandName} Personal / Send Money Number</span>
               </span>
               <div className="text-xl sm:text-2xl font-mono font-black text-white tracking-wider mt-0.5 select-all">
@@ -233,12 +257,12 @@ export default function ThemedPaymentGateway({
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 text-black stroke-[3]" />
+                  <Check className="w-4 h-4 shrink-0 text-black stroke-[3]" />
                   <span>Copied to Clipboard!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-3.5 h-3.5" />
+                  <Copy className="w-3.5 h-3.5 shrink-0" />
                   <span>1-Tap Copy Number</span>
                 </>
               )}
@@ -250,7 +274,7 @@ export default function ThemedPaymentGateway({
               Invoice Reference: <strong className="text-white font-mono">{orderReference}</strong>
             </span>
             <span className="text-emerald-400 font-medium flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              <ShieldCheck className="w-3 h-3 shrink-0 text-emerald-400" />
               <span>Instant Verification</span>
             </span>
           </div>
@@ -262,7 +286,7 @@ export default function ThemedPaymentGateway({
         <div className="rounded-2xl bg-white/[0.02] border border-white/5 p-4 sm:p-4.5 space-y-2.5">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-              <Info className={`w-3.5 h-3.5 ${config.themeText}`} />
+              <Info className={`w-3.5 h-3.5 shrink-0 ${config.themeText}`} />
               <span>How to Complete Payment (কীভাবে পেমেন্ট করবেন):</span>
             </h4>
             <span className="text-[10px] font-mono font-bold text-zinc-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
@@ -334,7 +358,7 @@ export default function ThemedPaymentGateway({
                   onClick={handlePasteTrxId}
                   className="text-[11px] font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer transition-colors"
                 >
-                  <ClipboardPaste className="w-3 h-3" />
+                  <ClipboardPaste className="w-3 h-3 shrink-0" />
                   <span>Paste</span>
                 </button>
               </div>
@@ -374,12 +398,12 @@ export default function ThemedPaymentGateway({
           >
             {isProcessing ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <Loader2 className="w-4 h-4 shrink-0 animate-spin text-white" />
                 <span>Verifying Transaction ID...</span>
               </>
             ) : (
               <>
-                <CheckCircle2 className="w-4 h-4 text-white stroke-[2.5]" />
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-white stroke-[2.5]" />
                 <span>{config.buttonLabel}</span>
               </>
             )}
@@ -397,7 +421,7 @@ export default function ThemedPaymentGateway({
             </button>
 
             <span className="flex items-center gap-1 text-[11px] text-zinc-500">
-              <Lock className="w-3 h-3" />
+              <Lock className="w-3 h-3 shrink-0" />
               <span>256-Bit SSL Encrypted</span>
             </span>
           </div>

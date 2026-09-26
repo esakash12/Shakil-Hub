@@ -43,7 +43,7 @@ export default function CourseCard({
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-br from-neutral-900 via-neutral-950 to-black">
               <div className="w-9 h-9 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-2 shadow-inner">
-                <Play className="w-4 h-4 fill-cyan-400 ml-0.5" />
+                <Play className="w-4 h-4 shrink-0 fill-cyan-400 ml-0.5" />
               </div>
               <span className="text-[11px] font-bold text-white tracking-tight line-clamp-1">
                 {course.title}
@@ -80,7 +80,7 @@ export default function CourseCard({
 
         {/* Rating display */}
         <div className="flex items-center gap-1 text-xs">
-          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+          <Star className="w-3.5 h-3.5 shrink-0 fill-amber-400 text-amber-400" />
           <span className="font-bold text-white text-xs">
             {course.rating.toFixed(1)}
           </span>

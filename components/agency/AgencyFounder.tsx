@@ -2,12 +2,10 @@ import React from "react";
 import Image from "next/image";
 import {
   Sparkles,
-  Briefcase,
-  MapPin,
-  MessageCircle,
-  ArrowUpRight,
-  Bot,
-  Calendar,
+  Facebook,
+  Instagram,
+  Youtube,
+  Linkedin,
 } from "lucide-react";
 import { AgencyCmsData } from "@/lib/data/agency-cms-types";
 import { PlatformBrandingSettings, DEFAULT_BRANDING } from "@/lib/data/branding-types";
@@ -97,7 +95,7 @@ export default function AgencyFounder({
                 className="w-8 h-8 rounded-full bg-white/[0.03] border border-white/[0.08] hover:border-[#00d2ff] text-zinc-400 hover:text-[#00d2ff] flex items-center justify-center transition-all cursor-pointer hover:scale-105"
                 aria-label="Facebook"
               >
-                <span className="text-xs font-bold font-mono">f</span>
+                <Facebook className="w-3.5 h-3.5" />
               </a>
               <a
                 href={branding.instagramUrl || "https://instagram.com/sakilhub"}
@@ -106,7 +104,7 @@ export default function AgencyFounder({
                 className="w-8 h-8 rounded-full bg-white/[0.03] border border-white/[0.08] hover:border-[#00d2ff] text-zinc-400 hover:text-[#00d2ff] flex items-center justify-center transition-all cursor-pointer hover:scale-105"
                 aria-label="Instagram"
               >
-                <span className="text-xs font-bold font-mono">ig</span>
+                <Instagram className="w-3.5 h-3.5" />
               </a>
               <a
                 href={branding.youtubeUrl || "https://youtube.com/@sakilhub"}
@@ -115,7 +113,7 @@ export default function AgencyFounder({
                 className="w-8 h-8 rounded-full bg-white/[0.03] border border-white/[0.08] hover:border-[#00d2ff] text-zinc-400 hover:text-[#00d2ff] flex items-center justify-center transition-all cursor-pointer hover:scale-105"
                 aria-label="YouTube"
               >
-                <span className="text-xs font-bold font-mono">yt</span>
+                <Youtube className="w-3.5 h-3.5" />
               </a>
               <a
                 href={branding.linkedinUrl || "https://linkedin.com/company/sakilhub"}
@@ -124,7 +122,7 @@ export default function AgencyFounder({
                 className="w-8 h-8 rounded-full bg-white/[0.03] border border-white/[0.08] hover:border-[#00d2ff] text-zinc-400 hover:text-[#00d2ff] flex items-center justify-center transition-all cursor-pointer hover:scale-105"
                 aria-label="LinkedIn"
               >
-                <span className="text-xs font-bold font-mono">in</span>
+                <Linkedin className="w-3.5 h-3.5" />
               </a>
             </div>
           </div>

@@ -12,7 +12,6 @@ import {
   Copy,
   Check,
   Search,
-  ExternalLink,
   MessageCircle,
   ShoppingBag,
 } from "lucide-react";
@@ -88,7 +87,7 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                 : "bg-white/[0.03] text-gray-400 hover:text-white border border-white/5"
             }`}
           >
-            <Clock className="w-3.5 h-3.5" />
+            <Clock className="w-3.5 h-3.5 shrink-0" />
             <span>Pending ({pendingCount})</span>
           </button>
           <button
@@ -100,7 +99,7 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                 : "bg-white/[0.03] text-gray-400 hover:text-white border border-white/5"
             }`}
           >
-            <CheckCircle2 className="w-3.5 h-3.5" />
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
             <span>Approved ({approvedCount})</span>
           </button>
           <button
@@ -112,7 +111,7 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                 : "bg-white/[0.03] text-gray-400 hover:text-white border border-white/5"
             }`}
           >
-            <XCircle className="w-3.5 h-3.5" />
+            <XCircle className="w-3.5 h-3.5 shrink-0" />
             <span>Rejected ({rejectedCount})</span>
           </button>
           <button
@@ -130,7 +129,7 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
 
         {/* Search */}
         <div className="relative w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
           <input
             type="text"
             value={searchQuery}
@@ -186,7 +185,7 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-blue-600/20 text-blue-400">
-                          <Play className="w-5 h-5 fill-current" />
+                          <Play className="w-5 h-5 fill-current shrink-0" />
                         </div>
                       )}
                     </div>
@@ -221,19 +220,19 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                   <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
                     {isPending && (
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">
-                        <Clock className="w-3.5 h-3.5 animate-spin" />
+                        <Clock className="w-3.5 h-3.5 animate-spin shrink-0" />
                         <span>Awaiting Verification</span>
                       </div>
                     )}
                     {isApproved && (
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                         <span>Access Granted</span>
                       </div>
                     )}
                     {isRejected && (
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold">
-                        <XCircle className="w-3.5 h-3.5" />
+                        <XCircle className="w-3.5 h-3.5 shrink-0" />
                         <span>Rejected</span>
                       </div>
                     )}
@@ -274,9 +273,9 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                           className="text-gray-500 hover:text-white transition-colors cursor-pointer"
                         >
                           {copiedId === order.id ? (
-                            <Check className="w-3 h-3 text-emerald-400" />
+                            <Check className="w-3 h-3 text-emerald-400 shrink-0" />
                           ) : (
-                            <Copy className="w-3 h-3" />
+                            <Copy className="w-3 h-3 shrink-0" />
                           )}
                         </button>
                       )}
@@ -298,11 +297,11 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                     {/* Visual 3-Step Verification Pipeline */}
                     <div className="flex items-center justify-between text-[11px] text-gray-400">
                       <span className="flex items-center gap-1 text-emerald-400 font-semibold">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                         <span>1. Order Placed</span>
                       </span>
                       <span className="flex items-center gap-1 text-amber-400 font-bold">
-                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
                         <span>2. Admin TrxID Review</span>
                       </span>
                       <span className="text-gray-600 font-medium">
@@ -330,7 +329,7 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold transition-colors self-start sm:self-auto shrink-0"
                       >
-                        <MessageCircle className="w-3.5 h-3.5" />
+                        <MessageCircle className="w-3.5 h-3.5 shrink-0" />
                         <span>WhatsApp Support</span>
                       </a>
                     </div>
@@ -347,7 +346,7 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                         href={order.courseSlug ? `/dashboard/courses/${order.courseSlug}/learn` : "/dashboard/courses"}
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/30 transition-all self-start sm:self-auto shrink-0"
                       >
-                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <Play className="w-3.5 h-3.5 fill-current shrink-0" />
                         <span>Access Content</span>
                       </Link>
                       <a
@@ -358,7 +357,7 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-semibold transition-colors self-start sm:self-auto shrink-0"
                       >
-                        <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                        <MessageCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                         <span>WhatsApp Support</span>
                       </a>
                     </div>
@@ -378,7 +377,7 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
                       rel="noreferrer"
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-semibold transition-colors self-start sm:self-auto shrink-0"
                     >
-                      <MessageCircle className="w-3.5 h-3.5" />
+                      <MessageCircle className="w-3.5 h-3.5 shrink-0" />
                       <span>Contact Support</span>
                     </a>
                   </div>
@@ -391,7 +390,7 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
         /* Empty State */
         <div className="text-center py-16 px-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto shadow-inner">
-            <Clock className="w-6 h-6" />
+            <Clock className="w-6 h-6 shrink-0" />
           </div>
           <div className="space-y-1">
             <h3 className="text-base sm:text-lg font-bold text-white">
@@ -413,7 +412,7 @@ export default function StudentOrdersList({ orders }: StudentOrdersListProps) {
             href="/courses"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-600/30 transition-all"
           >
-            <ShoppingBag className="w-4 h-4" />
+            <ShoppingBag className="w-4 h-4 shrink-0" />
             <span>Browse Masterclasses</span>
           </Link>
         </div>

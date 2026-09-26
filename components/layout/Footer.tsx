@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Play, Youtube, Facebook, Instagram, Linkedin, Twitter, Mail, MapPin, Phone } from "lucide-react";
+import { Youtube, Facebook, Instagram, Linkedin, Twitter, Mail, MapPin, Phone } from "lucide-react";
 import { PlatformBrandingSettings, DEFAULT_BRANDING } from "@/lib/data/branding-types";
 
 export default function Footer({
@@ -35,6 +35,7 @@ export default function Footer({
     { icon: Instagram, href: branding.instagramUrl || "https://instagram.com", label: "Instagram" },
     { icon: Youtube, href: branding.youtubeUrl || "https://youtube.com", label: "YouTube" },
     { icon: Linkedin, href: branding.linkedinUrl || "https://linkedin.com", label: "LinkedIn" },
+    ...(branding.twitterUrl ? [{ icon: Twitter, href: branding.twitterUrl, label: "Twitter / X" }] : []),
   ];
 
   return (
