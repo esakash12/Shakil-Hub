@@ -16,6 +16,18 @@ export default function Navbar({
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -50,21 +62,35 @@ export default function Navbar({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full pointer-events-none">
-      {/* Top Announcement Ribbon (when configured in Admin Settings) */}
+    <>
+      {/* Top Announcement Ribbon - Scrolls away naturally and smoothly collapses past 40px */}
       {branding.announcement && (
-        <div className="pointer-events-auto w-full bg-gradient-to-r from-cyan-950/95 via-[#00334e]/90 to-blue-950/95 border-b border-cyan-500/20 py-1.5 px-4 text-center text-[11px] sm:text-xs text-cyan-200 font-medium tracking-wide shadow-sm">
+        <div
+          className={`w-full bg-gradient-to-r from-cyan-950/95 via-[#00334e]/90 to-blue-950/95 border-b border-cyan-500/20 px-4 text-center text-[11px] sm:text-xs text-cyan-200 font-medium tracking-wide shadow-sm transition-all duration-300 relative z-30 ${
+            isScrolled
+              ? "max-h-0 py-0 opacity-0 overflow-hidden -translate-y-2 pointer-events-none"
+              : "max-h-12 py-1.5 opacity-100 translate-y-0"
+          }`}
+        >
           <span>{branding.announcement}</span>
         </div>
       )}
 
-      {/* Floating Island Navigation Container */}
-      <div
-        className={`px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto transition-all duration-300 ${
-          branding.announcement ? "pt-2 sm:pt-2.5" : "pt-2.5 sm:pt-3.5"
-        }`}
-      >
-        <div className="pointer-events-auto rounded-2xl md:rounded-full border border-white/[0.1] bg-[#02050e]/85 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(0,210,255,0.06)] px-4 sm:px-6 transition-all duration-300">
+      {/* Sticky Floating Island Navigation Container */}
+      <header className="sticky top-0 z-40 w-full pointer-events-none">
+        {/* Subtle Top Gradient Backdrop Mask (Softly dissolves scrolling content before reaching the top gap) */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-4 inset-x-0 h-20 sm:h-24 bg-gradient-to-b from-[#02050e] via-[#02050e]/90 to-transparent -z-10"
+        />
+
+        {/* Floating Island Navigation Container */}
+        <div
+          className={`px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto transition-all duration-300 ${
+            isScrolled ? "pt-1.5 sm:pt-2" : "pt-2 sm:pt-3"
+          }`}
+        >
+          <div className="pointer-events-auto rounded-2xl md:rounded-full border border-white/[0.1] bg-[#02050e]/85 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(0,210,255,0.06)] px-4 sm:px-6 transition-all duration-300">
           <div className="flex items-center justify-between h-13 sm:h-14">
             {/* Brand Logo - Sakil Hub */}
             <Link href="/" className="flex items-center gap-2 group">
@@ -172,5 +198,6 @@ export default function Navbar({
         </div>
       </div>
     </header>
-  );
+  </>
+);
 }
