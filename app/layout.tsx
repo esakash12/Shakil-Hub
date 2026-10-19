@@ -34,16 +34,21 @@ export const viewport: Viewport = {
 
 export async function generateMetadata(): Promise<Metadata> {
   const branding = await getPersistentBranding();
-  const siteTitle = `${branding.siteName} - ${branding.siteTagline}`;
+  
+  // Explicit agency branding as confirmed by client
+  const siteTitle = "SakilHub — All Your Creative & Digital Solutions Under One Roof";
+  const siteDescription =
+    "From Vision to Creation, We Make It Happen. Video Production | Video Editing | Web Development | Digital Marketing | Model Hunting | Studio & More.";
+  const sakilPhoto = "https://sakilhub.com/images/mehedi-hasan-sakil.jpg";
 
   return {
     metadataBase: new URL("https://sakilhub.com"),
     title: {
       default: siteTitle,
-      template: `%s | ${branding.siteName}`,
+      template: `%s | SakilHub`,
     },
-    description: branding.footerBio,
-    icons: branding.faviconUrl ? { icon: branding.faviconUrl } : undefined,
+    description: siteDescription,
+    icons: branding.faviconUrl ? { icon: branding.faviconUrl } : { icon: "/images/mehedi-hasan-sakil.jpg" },
     keywords: [
       "SakilHub",
       "Creative Agency Bangladesh",
@@ -55,22 +60,22 @@ export async function generateMetadata(): Promise<Metadata> {
       "Media Studio",
       "Filmmaking Bangladesh",
       "Color Grading",
-      branding.siteName,
+      "Mehedi Hasan Sakil",
     ],
-    authors: [{ name: `${branding.siteName} Team`, url: "https://sakilhub.com" }],
-    creator: branding.siteName,
-    publisher: `${branding.siteName} Media`,
+    authors: [{ name: "Mehedi Hasan Sakil", url: "https://sakilhub.com" }],
+    creator: "SakilHub",
+    publisher: "SakilHub Media",
     openGraph: {
       title: siteTitle,
-      description: branding.footerBio,
+      description: siteDescription,
       url: "https://sakilhub.com",
-      siteName: branding.siteName,
+      siteName: "SakilHub",
       images: [
         {
-          url: "https://sakilhub.com/images/mehedi-hasan-sakil.jpg",
+          url: sakilPhoto,
           width: 1200,
           height: 630,
-          alt: `${branding.siteName} - Directed by Mehedi Hasan Sakil`,
+          alt: "SakilHub — Directed by Mehedi Hasan Sakil",
         },
       ],
       locale: "en_US",
@@ -79,9 +84,9 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: {
       card: "summary_large_image",
       title: siteTitle,
-      description: branding.footerBio,
+      description: siteDescription,
       creator: "@sakilhub",
-      images: ["https://sakilhub.com/images/mehedi-hasan-sakil.jpg"],
+      images: [sakilPhoto],
     },
     robots: {
       index: true,
