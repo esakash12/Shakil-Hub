@@ -26,21 +26,36 @@ function PortfolioThumbnail({ src, alt }: { src: string; alt: string }) {
   );
 
   return (
-    <Image
-      src={imgSrc}
-      alt={alt}
-      fill
-      unoptimized={isUnoptimized}
-      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-      loading="lazy"
-      decoding="async"
-      onError={() => {
-        if (imgSrc !== FALLBACK_THUMBNAIL) {
-          setImgSrc(FALLBACK_THUMBNAIL);
-        }
-      }}
-      className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-85 group-hover:opacity-100"
-    />
+    <div className="relative w-full h-full overflow-hidden bg-[#070b16]">
+      {/* 1. Ambient blurred background to fill the card beautifully */}
+      <Image
+        src={imgSrc}
+        alt=""
+        fill
+        unoptimized={isUnoptimized}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        loading="lazy"
+        decoding="async"
+        className="object-cover scale-125 blur-xl brightness-40 pointer-events-none select-none"
+        aria-hidden="true"
+      />
+      {/* 2. Sharp, uncropped foreground image preserving full 9:16 or 16:9 frame */}
+      <Image
+        src={imgSrc}
+        alt={alt}
+        fill
+        unoptimized={isUnoptimized}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        loading="lazy"
+        decoding="async"
+        onError={() => {
+          if (imgSrc !== FALLBACK_THUMBNAIL) {
+            setImgSrc(FALLBACK_THUMBNAIL);
+          }
+        }}
+        className="object-contain group-hover:scale-105 transition-transform duration-500 z-1"
+      />
+    </div>
   );
 }
 
