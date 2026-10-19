@@ -119,18 +119,53 @@ export default function AdminPortfolioPage() {
 
     try {
       setIsCapturingFrame(true);
+      const vWidth = video.videoWidth || 1280;
+      const vHeight = video.videoHeight || 720;
+      const isVertical = vHeight > vWidth; // e.g. 9:16 Reels / TikTok
+
       const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth || 1280;
-      canvas.height = video.videoHeight || 720;
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Could not initialize canvas context.");
 
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      if (isVertical) {
+        // Compose standard 16:9 showcase canvas (1280x720) with blurred background & centered full 9:16 frame
+        canvas.width = 1280;
+        canvas.height = 720;
+
+        // 1. Draw blurred, darkened background to fill 16:9 canvas
+        ctx.save();
+        ctx.filter = "blur(24px) brightness(0.4)";
+        // Draw zoomed video across the full canvas to avoid black bars
+        const bgScale = Math.max(canvas.width / vWidth, canvas.height / vHeight);
+        const bgW = vWidth * bgScale;
+        const bgH = vHeight * bgScale;
+        const bgX = (canvas.width - bgW) / 2;
+        const bgY = (canvas.height - bgH) / 2;
+        ctx.drawImage(video, bgX, bgY, bgW, bgH);
+        ctx.restore();
+
+        // 2. Draw sharp, uncropped 9:16 video frame centered
+        const targetH = canvas.height;
+        const targetW = (vWidth / vHeight) * targetH;
+        const posX = (canvas.width - targetW) / 2;
+        ctx.drawImage(video, posX, 0, targetW, targetH);
+      } else {
+        // Standard horizontal video: capture native resolution
+        canvas.width = vWidth;
+        canvas.height = vHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      }
+
       const base64Data = canvas.toDataURL("image/jpeg", 0.92);
 
       setProjectForm((prev) => ({ ...prev, thumbnail: base64Data }));
       setFrameCaptureSuccess(true);
-      showToast(`Frame at ${formatVideoDuration(video.currentTime)} captured as thumbnail!`, "success");
+      showToast(
+        isVertical
+          ? `9:16 Reel frame at ${formatVideoDuration(video.currentTime)} captured in cinematic showcase format!`
+          : `Frame at ${formatVideoDuration(video.currentTime)} captured as thumbnail!`,
+        "success"
+      );
       setTimeout(() => setFrameCaptureSuccess(false), 4000);
     } catch (err: any) {
       console.error("Frame capture error:", err);
@@ -297,20 +332,42 @@ export default function AdminPortfolioPage() {
 
         tempVideo.onseeked = () => {
           clearTimeout(timer);
-            const canvas = document.createElement("canvas");
-            canvas.width = 480;
-            canvas.height = 270;
-            const ctx = canvas.getContext("2d");
-            if (ctx) {
+          const vWidth = tempVideo.videoWidth || 1280;
+          const vHeight = tempVideo.videoHeight || 720;
+          const isVertical = vHeight > vWidth;
+
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            if (isVertical) {
+              canvas.width = 640;
+              canvas.height = 360;
+              // Blurred backdrop
+              ctx.save();
+              ctx.filter = "blur(18px) brightness(0.4)";
+              const bgScale = Math.max(canvas.width / vWidth, canvas.height / vHeight);
+              const bgW = vWidth * bgScale;
+              const bgH = vHeight * bgScale;
+              ctx.drawImage(tempVideo, (canvas.width - bgW) / 2, (canvas.height - bgH) / 2, bgW, bgH);
+              ctx.restore();
+              // Centered sharp reel
+              const targetH = canvas.height;
+              const targetW = (vWidth / vHeight) * targetH;
+              ctx.drawImage(tempVideo, (canvas.width - targetW) / 2, 0, targetW, targetH);
+            } else {
+              canvas.width = 480;
+              canvas.height = 270;
               ctx.drawImage(tempVideo, 0, 0, 480, 270);
-              const frameUrl = canvas.toDataURL("image/jpeg", 0.65);
-              setProjectForm((prev) => {
-                if (!prev.thumbnail) {
-                  return { ...prev, thumbnail: frameUrl };
-                }
-                return prev;
-              });
             }
+
+            const frameUrl = canvas.toDataURL("image/jpeg", 0.75);
+            setProjectForm((prev) => {
+              if (!prev.thumbnail) {
+                return { ...prev, thumbnail: frameUrl };
+              }
+              return prev;
+            });
+          }
           try { URL.revokeObjectURL(blobUrl); } catch {}
         };
       } catch (err) {
