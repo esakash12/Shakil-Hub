@@ -67,12 +67,10 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: branding.siteName,
       images: [
         {
-          url:
-            branding.logoUrl ||
-            "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&h=630&q=80",
+          url: "https://sakilhub.com/images/mehedi-hasan-sakil.jpg",
           width: 1200,
           height: 630,
-          alt: siteTitle,
+          alt: `${branding.siteName} - Directed by Mehedi Hasan Sakil`,
         },
       ],
       locale: "en_US",
@@ -83,10 +81,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: siteTitle,
       description: branding.footerBio,
       creator: "@sakilhub",
-      images: [
-        branding.logoUrl ||
-          "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&h=630&q=80",
-      ],
+      images: ["https://sakilhub.com/images/mehedi-hasan-sakil.jpg"],
     },
     robots: {
       index: true,

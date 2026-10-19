@@ -24,7 +24,7 @@ export interface PlatformBrandingSettings {
 export const DEFAULT_BRANDING: PlatformBrandingSettings = {
   siteName: "SakilHub",
   siteTagline: "All Your Creative & Digital Solutions Under One Roof",
-  logoUrl: "",
+  logoUrl: "/images/mehedi-hasan-sakil.jpg",
   faviconUrl: "",
   contactEmail: "support@sakilhub.com",
   contactPhone: "+880 1326-896947",
