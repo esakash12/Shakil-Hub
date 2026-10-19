@@ -39,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const siteTitle = "SakilHub — All Your Creative & Digital Solutions Under One Roof";
   const siteDescription =
     "From Vision to Creation, We Make It Happen. Video Production | Video Editing | Web Development | Digital Marketing | Model Hunting | Studio & More.";
-  const sakilPhoto = "https://sakilhub.com/images/mehedi-hasan-sakil.jpg";
+  const sakilLogo = "https://sakilhub.com/images/sakil-circle-logo.jpg";
 
   return {
     metadataBase: new URL("https://sakilhub.com"),
@@ -48,7 +48,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | SakilHub`,
     },
     description: siteDescription,
-    icons: branding.faviconUrl ? { icon: branding.faviconUrl } : { icon: "/images/mehedi-hasan-sakil.jpg" },
+    icons: branding.faviconUrl ? { icon: branding.faviconUrl } : { icon: "/images/sakil-circle-logo.jpg" },
     keywords: [
       "SakilHub",
       "Creative Agency Bangladesh",
@@ -72,10 +72,10 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: "SakilHub",
       images: [
         {
-          url: sakilPhoto,
-          width: 1200,
-          height: 630,
-          alt: "SakilHub — Directed by Mehedi Hasan Sakil",
+          url: sakilLogo,
+          width: 800,
+          height: 800,
+          alt: "SakilHub — All Your Creative & Digital Solutions Under One Roof",
         },
       ],
       locale: "en_US",
@@ -86,7 +86,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: siteTitle,
       description: siteDescription,
       creator: "@sakilhub",
-      images: [sakilPhoto],
+      images: [sakilLogo],
     },
     robots: {
       index: true,
