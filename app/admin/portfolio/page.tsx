@@ -23,6 +23,7 @@ import {
   FileVideo,
   Check,
   Video,
+  Camera,
 } from "lucide-react";
 import ImageUploadField from "@/components/admin/ImageUploadField";
 import {
@@ -101,6 +102,47 @@ export default function AdminPortfolioPage() {
   const [videoUploadError, setVideoUploadError] = useState("");
   const [videoUploadStats, setVideoUploadStats] = useState("");
   const videoInputRef = React.useRef<HTMLInputElement>(null);
+  const previewVideoRef = React.useRef<HTMLVideoElement>(null);
+  const [isCapturingFrame, setIsCapturingFrame] = useState(false);
+  const [frameCaptureSuccess, setFrameCaptureSuccess] = useState(false);
+
+  const handleCaptureVideoFrame = async () => {
+    const video = previewVideoRef.current;
+    if (!video) {
+      showToast("Video preview element not found.", "error");
+      return;
+    }
+    if (video.readyState < 2) {
+      showToast("Please play or seek the video to the frame you want.", "error");
+      return;
+    }
+
+    try {
+      setIsCapturingFrame(true);
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Could not initialize canvas context.");
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const base64Data = canvas.toDataURL("image/jpeg", 0.92);
+
+      setProjectForm((prev) => ({ ...prev, thumbnail: base64Data }));
+      setFrameCaptureSuccess(true);
+      showToast(`Frame at ${formatVideoDuration(video.currentTime)} captured as thumbnail!`, "success");
+      setTimeout(() => setFrameCaptureSuccess(false), 4000);
+    } catch (err: any) {
+      console.error("Frame capture error:", err);
+      if (err.name === "SecurityError") {
+        showToast("CORS restriction on external video. Please upload thumbnail manually.", "error");
+      } else {
+        showToast(err.message || "Failed to capture video frame.", "error");
+      }
+    } finally {
+      setIsCapturingFrame(false);
+    }
+  };
 
   // Category Modal / Form State
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -1268,6 +1310,8 @@ export default function AdminPortfolioPage() {
                               </div>
                             ) : (
                               <video
+                                ref={previewVideoRef}
+                                crossOrigin="anonymous"
                                 src={resolveMediaUrl(projectForm.videoUrl) || projectForm.videoUrl}
                                 controls
                                 preload="metadata"
@@ -1275,6 +1319,42 @@ export default function AdminPortfolioPage() {
                               />
                             )}
                           </div>
+
+                          {/* 1-Click Frame Capture Button for MP4 / Uploaded Video */}
+                          {!getYouTubeVideoId(projectForm.videoUrl) && !getGoogleDriveVideoId(projectForm.videoUrl) && (
+                            <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-cyan-950/30 border border-[#00d2ff]/20">
+                              <span className="text-[11px] text-zinc-300">
+                                💡 <em>ভিডিওর যেকোনো পছন্দের ফ্রেমে পজ করে থাম্বনেল সেট করুন:</em>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={handleCaptureVideoFrame}
+                                disabled={isCapturingFrame}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md shrink-0 ${
+                                  frameCaptureSuccess
+                                    ? "bg-emerald-500 text-white"
+                                    : "bg-[#00d2ff] text-black hover:bg-[#00b8e6] active:scale-95"
+                                } disabled:opacity-50`}
+                              >
+                                {isCapturingFrame ? (
+                                  <>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    <span>Capturing...</span>
+                                  </>
+                                ) : frameCaptureSuccess ? (
+                                  <>
+                                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                    <span>Thumbnail Selected!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Camera className="w-3.5 h-3.5" />
+                                    <span>Capture Video Frame</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

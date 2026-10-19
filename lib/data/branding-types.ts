@@ -22,8 +22,8 @@ export interface PlatformBrandingSettings {
 }
 
 export const DEFAULT_BRANDING: PlatformBrandingSettings = {
-  siteName: "Sakil Hub",
-  siteTagline: "We Build Powerful Digital Experiences, Videos & Brands",
+  siteName: "SakilHub",
+  siteTagline: "All Your Creative & Digital Solutions Under One Roof",
   logoUrl: "",
   faviconUrl: "",
   contactEmail: "support@sakilhub.com",
@@ -36,12 +36,12 @@ export const DEFAULT_BRANDING: PlatformBrandingSettings = {
   linkedinUrl: "https://linkedin.com/company/sakilhub",
   twitterUrl: "https://twitter.com/sakilhub",
   footerBio:
-    "We Build Powerful Digital Experiences, Videos & Brands. Professional cinematic video production, commercial editing, and visual storytelling.",
-  footerCopyright: "© 2026 Sakil Hub. All rights reserved.",
+    "From Vision to Creation, We Make It Happen. Video Production | Video Editing | Web Development | Digital Marketing | Model Hunting | Studio & More.",
+  footerCopyright: "© 2026 SakilHub. All rights reserved.",
   announcement:
-    "Welcome to Sakil Hub! Turn your ideas into powerful visual stories.",
+    "From Vision to Creation, We Make It Happen — Explore our creative & digital agency services.",
   bkashNumber: "01326896947",
   nagadNumber: "01326896947",
   rocketNumber: "01326896947",
-  updatedAt: "2026-09-19T23:00:00.000Z",
+  updatedAt: "2026-10-19T12:40:00.000Z",
 };

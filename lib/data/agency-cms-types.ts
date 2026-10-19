@@ -54,12 +54,12 @@ export interface AgencyCmsData {
 
 export const DEFAULT_AGENCY_CMS: AgencyCmsData = {
   // Hero Section
-  heroPillBadge: "Creative Video • AI • Marketing",
+  heroPillBadge: "Video Production • Web Dev • Digital Marketing • Studio",
   heroHeadlinePrefix: "We Build Powerful",
   heroHeadlineHighlight: "Digital Experiences",
   heroHeadlineSuffix: ", Videos & Brands",
   heroSubtext:
-    "Turn your ideas into powerful visual stories. We create cinematic videos, AI-powered commercials, and strategic content that helps your brand grow and get real results.",
+    "From Vision to Creation, We Make It Happen. All your creative & digital solutions under one roof — Video Production, Video Editing, Web Development, Digital Marketing, Model Hunting, Studio & More.",
   heroCtaText: "Explore Our Portfolio",
   heroShowreelText: "Watch Showreel",
   heroWorkstationImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=720&q=75",
