@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Readable } from "stream";
 
 function getR2Client(): S3Client {
   return new S3Client({
@@ -37,33 +37,51 @@ export async function GET(
   try {
     const s3Client = getR2Client();
 
-    const isThumbnail = objectKey.startsWith("thumbnails/") || /\.(jpg|jpeg|png|webp|avif|gif)$/i.test(objectKey);
+    const rangeHeader = request.headers.get("range");
 
-    // Generate high-speed Cloudflare R2 presigned streaming URL
     const command = new GetObjectCommand({
       Bucket: bucketName,
       Key: objectKey,
-      ResponseCacheControl: isThumbnail
+      Range: rangeHeader || undefined,
+    });
+
+    const s3Response = await s3Client.send(command);
+
+    if (!s3Response.Body) {
+      return new NextResponse("File body is empty", { status: 404 });
+    }
+
+    const isThumbnail = objectKey.startsWith("thumbnails/") || /\.(jpg|jpeg|png|webp|avif|gif)$/i.test(objectKey);
+
+    const headers = new Headers();
+    if (s3Response.ContentType) {
+      headers.set("Content-Type", s3Response.ContentType);
+    }
+    if (s3Response.ContentLength !== undefined) {
+      headers.set("Content-Length", s3Response.ContentLength.toString());
+    }
+    headers.set("Accept-Ranges", "bytes");
+
+    if (rangeHeader && s3Response.ContentRange) {
+      headers.set("Content-Range", s3Response.ContentRange);
+    }
+
+    headers.set(
+      "Cache-Control",
+      isThumbnail
         ? "public, max-age=31536000, immutable"
-        : "public, max-age=86400",
-    });
+        : "public, max-age=86400, s-maxage=86400"
+    );
 
-    const presignedUrl = await getSignedUrl(s3Client, command, {
-      expiresIn: 86400, // 24 hours
-    });
+    const stream = s3Response.Body as ReadableStream;
+    const status = rangeHeader && s3Response.ContentRange ? 206 : 200;
 
-    // 307 Temporary Redirect: Directly stream from Cloudflare R2's global edge network.
-    // This eliminates 100% of video buffering and frees the Node.js server from heavy proxying!
-    return NextResponse.redirect(presignedUrl, {
-      status: 307,
-      headers: {
-        "Cache-Control": isThumbnail
-          ? "public, max-age=31536000, immutable"
-          : "public, max-age=3600, s-maxage=86400",
-      },
+    return new NextResponse(stream as any, {
+      status,
+      headers,
     });
   } catch (err: any) {
-    console.error(`R2 Media streaming redirect error for key "${objectKey}":`, err.message || err);
+    console.error(`R2 Media streaming proxy error for key "${objectKey}":`, err.message || err);
     return new NextResponse("Failed to resolve media from Cloudflare R2", {
       status: 404,
     });

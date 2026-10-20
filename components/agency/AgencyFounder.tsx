@@ -17,7 +17,7 @@ export default function AgencyFounder({
   cmsData?: AgencyCmsData;
   branding?: PlatformBrandingSettings;
 }) {
-  const photoUrl = cmsData?.founderPhotoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80";
+  const photoUrl = cmsData?.founderPhotoUrl || "/images/founder-sakil.jpg";
   const name = cmsData?.founderName || "MH Sakil";
   const signature = cmsData?.founderSignatureText || "";
   const headline = cmsData?.founderHeadline || "Directed by MH Sakil";
